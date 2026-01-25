@@ -12,6 +12,7 @@
 - **Phase 1 (Foundation):** Đã hoàn thành (Cấu trúc monorepo, 9 Agent Personas).
 - **Phase 2 (Connectivity):** Đã hoàn thành (Kết nối Supabase, GitHub Sync).
 - **Phase 3 (Intelligence):** Đang triển khai (Đã hoàn thành điều hướng Robot cơ bản, đang chuẩn bị cho Vision & Voice).
+- **Phase 5 (Independence):** Đã lên kế hoạch (Triển khai standalone trên Raspberry Pi & Cloud MQTT).
 
 ---
 
