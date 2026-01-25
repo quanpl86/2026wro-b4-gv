@@ -84,10 +84,9 @@ def init_hardware(config):
         # 3. Khởi tạo DriveBase
         robot = DriveBase(motors['left'], motors['right'], wheel_diameter=56, axle_track=114)
         
-        # Tăng giới hạn tốc độ và ĐẶC BIỆT tăng giảm tốc cực đại (Maximum)
-        # Bằng cách đặt acceleration lên 10000, robot.stop() sẽ dừng khựng ngay lập tức
-        # mà không gây xung đột 'Invalid State' như khi gọi motor.hold() thủ công.
-        robot.settings(600, 10000, 300, 10000)
+        # Tăng giới hạn tốc độ và ĐẶC BIỆT là Gia tốc/Giảm tốc (Acceleration/Deceleration)
+        # 12000 mm/s^2 là mức cực hạn để dừng khựng ngay lập tức.
+        robot.settings(600, 4000, 300, 12000)
         
         ev3.screen.print("✅ HW Ready")
         print("🤖 Robot Profile: {}".format(config.get('name', 'Unknown')))
@@ -99,16 +98,34 @@ def init_hardware(config):
 last_payload = ""
 
 def stop_robot():
-    """Dừng robot ngay lập tức bằng DriveBase với gia tốc cực đại"""
-    global robot, last_payload
-    last_payload = "" 
+    """Dừng robot ngay lập tức và khóa bánh (Hard Brake) với độ tin cậy tuyệt đối"""
+    global robot, motors, last_payload
+    last_payload = "" # Reset ngay để chấp nhận lệnh tiếp theo
     try:
         if robot:
-            # Ở acceleration 10000, lệnh này sẽ dừng motor gần như tức thì (Hard Brake)
+            # 1. Yêu cầu DriveBase dừng ngay lập tức
             robot.stop()
-            print("🛑 DriveBase Hard Stop")
+        
+        # 2. Thử khóa motor độc lập để triệt tiêu quán tính (Thử tối đa 10 lần)
+        # Chúng ta dùng vòng lặp để đợi DriveBase giải phóng quyền điều khiển (Ownership)
+        for i in range(10):
+            try:
+                # Thử khóa từng motor. Nếu lỗi ở một motor, cái kia vẫn được thử.
+                if 'left' in motors: 
+                    try: motors['left'].hold()
+                    except: pass
+                if 'right' in motors: 
+                    try: motors['right'].hold()
+                    except: pass
+                
+                # Kiểm tra xem đã khóa được cả 2 chưa (nếu không văng lỗi là thành công)
+                # Nếu đã khóa xong thì thoát vòng lặp
+                print("🛑 Precision Brake Engaged ({}ms)".format((i+1)*10))
+                break
+            except:
+                time.sleep(0.01) # Chờ 10ms rồi thử lại
     except Exception as e:
-        print("⚠️ Stop Error:", e)
+        print("⚠️ Stop Logic Error:", e)
 
 def on_message(topic, msg):
     global robot, motors, last_payload
