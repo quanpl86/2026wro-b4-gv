@@ -66,14 +66,6 @@ export default function JudgePage() {
 
         const connectWs = () => {
             try {
-                const isHttps = window.location.protocol === 'https:';
-                const isLocal = hubIp.includes('localhost') || hubIp.includes('127.0.0.1');
-
-                if (isHttps && !isLocal) {
-                    setWsError("Mixed Content: Link HTTPS chặn kết nối 'ws' tới IP. Hãy bật 'Insecure content' trong cài đặt trình duyệt.");
-                    return;
-                }
-
                 const socket = new WebSocket(`ws://${hubIp}:8765`);
                 const start = Date.now();
 

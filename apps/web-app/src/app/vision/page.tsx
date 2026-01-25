@@ -49,15 +49,6 @@ export default function VisionPage() {
 
         const connectWs = () => {
             try {
-                // Security check: browsers block ws:// from https:// pages for non-localhost IPs
-                const isHttps = window.location.protocol === 'https:';
-                const isLocal = hubIp.includes('localhost') || hubIp.includes('127.0.0.1');
-
-                if (isHttps && !isLocal) {
-                    setWsError("Mixed Content: Netlify (HTTPS) chặn kết nối 'ws' tới IP nội bộ. Hãy vào 'Site Settings' của trình duyệt và cho phép 'Insecure content'.");
-                    return;
-                }
-
                 const socket = new WebSocket(`ws://${hubIp}:8765`);
                 socket.onopen = () => {
                     setWsStatus('Connected');
@@ -70,7 +61,7 @@ export default function VisionPage() {
                 wsRef.current = socket;
             } catch (err: any) {
                 console.error("[WS Error]", err);
-                setWsError("Trình duyệt từ chối kết nối WebSocket. Kiểm tra IP và thiết lập bảo mật.");
+                setWsError("Connection Refused");
             }
         };
         connectWs();
@@ -201,9 +192,11 @@ export default function VisionPage() {
                     {wsError && (
                         <div className="bg-red-600 text-white p-6 rounded-3xl shadow-2xl max-w-sm animate-in fade-in zoom-in duration-300">
                             <h3 className="font-black mb-1 uppercase tracking-widest text-[10px]">⚠️ Security Block</h3>
-                            <p className="text-xs font-bold leading-relaxed">{wsError}</p>
-                            <div className="mt-4 p-3 bg-black/20 rounded-xl text-[9px] font-bold uppercase tracking-wider">
-                                Settings &gt; Site Settings &gt; Insecure Content &gt; ALLOW
+                            <p className="text-xs font-bold leading-relaxed">Netlify (HTTPS) chặn kết nối không bảo mật tới Laptop Hub ({hubIp}).</p>
+                            <div className="mt-4 p-4 bg-black/20 rounded-2xl text-[9px] font-bold uppercase tracking-wider space-y-1">
+                                <p>1. Cài đặt trình duyệt &gt; Site Settings</p>
+                                <p>2. "Insecure content" &gt; ALLOW</p>
+                                <p>3. Làm mới trang này.</p>
                             </div>
                         </div>
                     )}
