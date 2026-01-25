@@ -84,9 +84,10 @@ def init_hardware(config):
         # 3. Khởi tạo DriveBase
         robot = DriveBase(motors['left'], motors['right'], wheel_diameter=56, axle_track=114)
         
-        # Tăng giới hạn tốc độ và ĐẶC BIỆT tăng giảm tốc cực đại để dừng khựng
-        # Deceleration 8000 là mức dư sức dừng khựng với 56mm wheels
-        robot.settings(600, 2000, 300, 8000)
+        # Tăng giới hạn tốc độ và ĐẶC BIỆT tăng giảm tốc cực đại (Maximum)
+        # Bằng cách đặt acceleration lên 10000, robot.stop() sẽ dừng khựng ngay lập tức
+        # mà không gây xung đột 'Invalid State' như khi gọi motor.hold() thủ công.
+        robot.settings(600, 10000, 300, 10000)
         
         ev3.screen.print("✅ HW Ready")
         print("🤖 Robot Profile: {}".format(config.get('name', 'Unknown')))
@@ -98,30 +99,14 @@ def init_hardware(config):
 last_payload = ""
 
 def stop_robot():
-    """Dừng robot ngay lập tức và giữ vị trí (Hard Brake) với cơ chế phòng lỗi cao cấp"""
-    global robot, motors, last_payload
-    last_payload = "" # Luôn sẵn sàng nhận lệnh mới sau khi dừng
+    """Dừng robot ngay lập tức bằng DriveBase với gia tốc cực đại"""
+    global robot, last_payload
+    last_payload = "" 
     try:
-        # 1. Yêu cầu DriveBase dừng logic trước
         if robot:
-            try: robot.stop()
-            except: pass
-        
-        # 2. Nghỉ một chút để DriveBase giải phóng quyền điều khiển Motor
-        time.sleep(0.04)
-        
-        # 3. Thử khóa từng motor độc lập (Tránh bị lỗi cái này kéo theo cái kia)
-        for m_name in ['left', 'right']:
-            if m_name in motors:
-                for i in range(5):
-                    try:
-                        motors[m_name].hold()
-                        break # Thành công motor này, chuyển sang motor tiếp theo
-                    except:
-                        if i == 4: print("⚠️ Failed to hold {}".format(m_name))
-                        time.sleep(0.02)
-        
-        print("🛑 Hard Brake Engaged")
+            # Ở acceleration 10000, lệnh này sẽ dừng motor gần như tức thì (Hard Brake)
+            robot.stop()
+            print("🛑 DriveBase Hard Stop")
     except Exception as e:
         print("⚠️ Stop Error:", e)
 
