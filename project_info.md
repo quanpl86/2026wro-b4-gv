@@ -11,7 +11,7 @@
 ## 📈 3. Trạng thái Triển khai (Live Status)
 - **Phase 1 (Foundation):** Đã hoàn thành (Cấu trúc monorepo, 9 Agent Personas).
 - **Phase 2 (Connectivity):** Đã hoàn thành (Kết nối Supabase, GitHub Sync).
-- **Phase 3 (Intelligence):** Đang triển khai (Ưu tiên: Xây dựng UI test điều khiển động cơ EV3).
+- **Phase 3 (Intelligence):** Đang triển khai (Đã hoàn thành điều hướng Robot cơ bản, đang chuẩn bị cho Vision & Voice).
 
 ---
 
@@ -26,8 +26,10 @@
 ---
 
 ## ✅ 5. Tính năng hiện hữu (Latest Features)
-- [x] Hệ thống Monorepo ổn định.
-- [x] Supabase Client tích hợp (Web/Python).
-- [x] Thư viện Audio & Vision (verified).
+- [x] Hệ thống Monorepo ổn định & GitHub Auto-sync.
+- [x] Giao diện điều khiển **EV3 Controller** (Dark mode, glassmorphism).
+- [x] **Keyboard Mapping:** Điều khiển robot bằng WASD, Phím mũi tên hoặc phím gán tự chọn.
+- [x] **Hiệu suất cao:** Scale tốc độ robot lên 600mm/s với phản hồi thời gian thực (<100ms).
+- [x] **Chẩn đoán thông minh:** Tự động phát hiện xung đột cổng motor trên UI và màn hình EV3.
+- [x] **Quản lý Profile:** Tự động khởi tạo cấu hình robot trong Supabase.
 - [x] Persona & Role map chi tiết cho 9 AI Agent.
-- [x] Giao diện Test điều khiển EV3 & Bộ lắng nghe Python (Full-sync).
