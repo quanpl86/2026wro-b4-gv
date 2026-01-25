@@ -93,6 +93,15 @@ def init_hardware(config):
         ev3.screen.print("❌ HW Error")
         print("Init Error:", e)
 
+def stop_robot():
+    """Dừng robot ngay lập tức và giữ vị trí (Hard Brake)"""
+    global robot, motors
+    if robot:
+        robot.stop()
+        # Ép bánh xe dừng hẳn và khóa vị trí
+        if 'left' in motors: motors['left'].hold()
+        if 'right' in motors: motors['right'].hold()
+
 def on_message(topic, msg):
     global robot, motors
     try:
@@ -122,7 +131,7 @@ def on_message(topic, msg):
                 elif direction == "backward": robot.drive(-linear_speed, 0)
                 elif direction == "left": robot.drive(0, -angular_speed)
                 elif direction == "right": robot.drive(0, angular_speed)
-                elif direction == "stop": robot.stop()
+                elif direction == "stop": stop_robot()
                 
             elif action == "aux_move":
                 port_key = parts[1]
@@ -134,16 +143,17 @@ def on_message(topic, msg):
                     angle = value * 360 if unit == "rotations" else value
                     # Sử dụng wait=False để không làm treo vòng lặp xử lý lệnh
                     # Điều này cho phép robot vừa chạy bánh xe vừa quay arm
+                    # default 'then' is Stop.HOLD
                     motor.run_angle(500, angle, wait=False)
                         
             elif action == "stop":
-                # Chỉ dừng bánh xe (DriveBase)
-                if robot: robot.stop()
+                stop_robot()
                 
             elif action == "emergency":
-                # Dừng TOÀN BỘ robot và các động cơ phụ
-                if robot: robot.stop()
-                for m in motors.values(): m.stop()
+                # Dừng TOÀN BỘ robot và các động cơ phụ ngay lập tức
+                stop_robot()
+                for m in motors.values():
+                    m.stop() # Passive stop for aux motors if needed, or m.hold()
 
     except Exception as e:
         print("Msg Error:", e)
