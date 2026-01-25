@@ -13,11 +13,41 @@ motors = {}
 sensors = {}
 robot = None
 
+# --- CẤU HÌNH CLOUD (Để lấy IP động) ---
+SB_URL = "https://dwvcscwhrlbtlawxarqc.supabase.co"
+SB_KEY = "sb_publishable_AgzdmjQRng0okfomuCCKZQ_joAdBSsk"
+
 # Cấu hình MQTT
-MQTT_BROKER = "192.168.0.137" # Sẽ được cập nhật từ dashboard
+MQTT_BROKER = "192.168.0.137" # Fallback IP
 CLIENT_ID = "ev3_heritage_keeper"
 TOPIC_CMD = "wro/robot/commands"
 TOPIC_CFG = "wro/robot/config"
+
+def get_hub_ip_from_supabase():
+    """Truy vấn Supabase REST API để lấy Hub IP mới nhất từ Dashboard"""
+    import urequests as requests
+    url = "{}/rest/v1/robot_profiles?select=hub_ip&is_active=eq.true&limit=1".format(SB_URL)
+    headers = {
+        "apikey": SB_KEY,
+        "Authorization": "Bearer {}".format(SB_KEY)
+    }
+    
+    ev3.screen.print("Cloud Sync...")
+    try:
+        response = requests.get(url, headers=headers)
+        data = response.json()
+        response.close()
+        
+        if data and len(data) > 0:
+            ip = data[0].get("hub_ip")
+            if ip:
+                print("✅ Found Hub IP: {}".format(ip))
+                return ip
+    except Exception as e:
+        print("⚠️ Cloud Sync Failed: {}".format(e))
+    
+    print("⚠️ Using Fallback IP: {}".format(MQTT_BROKER))
+    return MQTT_BROKER
 
 def get_port(port_name):
     """Chuyển chuỗi 'outA' hoặc 'in1' thành đối tượng Port"""
@@ -195,7 +225,15 @@ def on_message(topic, msg):
         print("Msg Error:", e)
 
 def run():
+    global MQTT_BROKER
+    
+    # 1. Lấy IP động từ Supabase Dashboard
+    MQTT_BROKER = get_hub_ip_from_supabase()
+    
+    ev3.screen.clear()
+    ev3.screen.print("Broker: {}".format(MQTT_BROKER))
     ev3.screen.print("📡 Connecting...")
+    
     try:
         client = MQTTClient(CLIENT_ID, MQTT_BROKER)
         client.set_callback(on_message)
