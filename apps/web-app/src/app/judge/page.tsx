@@ -21,6 +21,7 @@ export default function JudgePage() {
     const [currentTime, setCurrentTime] = useState('');
     const [wsStatus, setWsStatus] = useState('Disconnected');
     const [hubIp, setHubIp] = useState<string | null>(null);
+    const [wsError, setWsError] = useState<string | null>(null);
 
     // Telemetry State
     const [batteryLevel, setBatteryLevel] = useState(100);
@@ -45,12 +46,16 @@ export default function JudgePage() {
                 setHubIp(DEFAULT_HUB_IP);
                 return;
             }
-            const { data } = await supabase
-                .from('robot_profiles')
-                .select('hub_ip')
-                .eq('is_active', true)
-                .single();
-            setHubIp(data?.hub_ip || DEFAULT_HUB_IP);
+            try {
+                const { data } = await supabase
+                    .from('robot_profiles')
+                    .select('hub_ip')
+                    .eq('is_active', true)
+                    .single();
+                setHubIp(data?.hub_ip || DEFAULT_HUB_IP);
+            } catch (err) {
+                setHubIp(DEFAULT_HUB_IP);
+            }
         };
         getHubIp();
     }, [isAuthorized]);
@@ -60,34 +65,48 @@ export default function JudgePage() {
         if (!isAuthorized || !hubIp) return;
 
         const connectWs = () => {
-            const socket = new WebSocket(`ws://${hubIp}:8765`);
-            const start = Date.now();
+            try {
+                const isHttps = window.location.protocol === 'https:';
+                const isLocal = hubIp.includes('localhost') || hubIp.includes('127.0.0.1');
 
-            socket.onopen = () => {
-                setWsStatus('Connected');
-                setLatency(Date.now() - start);
-                addLog('Secure bridge established.', 'system');
-            };
+                if (isHttps && !isLocal) {
+                    setWsError("Mixed Content: Link HTTPS chặn kết nối 'ws' tới IP. Hãy bật 'Insecure content' trong cài đặt trình duyệt.");
+                    return;
+                }
 
-            socket.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'telemetry') {
-                        if (data.battery !== undefined) setBatteryLevel(data.battery);
-                        if (data.pos) {
-                            setRobotPos(data.pos);
-                            setPath(prev => [...prev, data.pos].slice(-100)); // Keep last 100 points
+                const socket = new WebSocket(`ws://${hubIp}:8765`);
+                const start = Date.now();
+
+                socket.onopen = () => {
+                    setWsStatus('Connected');
+                    setWsError(null);
+                    setLatency(Date.now() - start);
+                    addLog('Secure bridge established.', 'system');
+                };
+
+                socket.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'telemetry') {
+                            if (data.battery !== undefined) setBatteryLevel(data.battery);
+                            if (data.pos) {
+                                setRobotPos(data.pos);
+                                setPath(prev => [...prev, data.pos].slice(-100)); // Keep last 100 points
+                            }
                         }
-                    }
-                } catch (e) { }
-            };
+                    } catch (e) { }
+                };
 
-            socket.onclose = () => {
-                setWsStatus('Disconnected');
-                setTimeout(connectWs, 3000);
-            };
+                socket.onclose = () => {
+                    setWsStatus('Disconnected');
+                    setTimeout(connectWs, 3000);
+                };
 
-            wsRef.current = socket;
+                wsRef.current = socket;
+            } catch (err) {
+                console.error("[WS] Security error:", err);
+                setWsError("Kết nối bị từ chối bởi trình duyệt.");
+            }
         };
 
         connectWs();
@@ -112,7 +131,7 @@ export default function JudgePage() {
     }
 
     return (
-        <div className="flex-1 p-6 md:p-8 flex flex-col gap-6 h-screen max-h-screen bg-slate-950 overflow-hidden">
+        <div className="flex-1 p-6 md:p-8 flex flex-col gap-6 h-screen max-h-screen bg-slate-950 overflow-hidden text-white font-sans">
             {/* TOP BAR */}
             <div className="flex justify-between items-center bg-slate-900/40 backdrop-blur-md p-5 rounded-[32px] border border-white/10 shadow-2xl">
                 <div className="flex items-center gap-5">
@@ -162,7 +181,7 @@ export default function JudgePage() {
                             value={wsStatus === 'Connected' ? 'ONLINE' : 'OFFLINE'}
                             icon="🛰️"
                             status={wsStatus === 'Connected' ? 'success' : 'critical'}
-                            subtext={`Latency: ${latency}ms`}
+                            subtext={wsError ? "SECURITY BLOCK" : `Latency: ${latency}ms`}
                         />
                         <JudgeStatsCard
                             title="Battery Level"
@@ -182,6 +201,23 @@ export default function JudgePage() {
 
                     {/* Map Area */}
                     <div className="flex-1 bg-slate-900/30 border border-white/5 rounded-[40px] relative overflow-hidden group shadow-inner">
+                        {wsError ? (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
+                                <div className="bg-red-600/90 p-8 rounded-[40px] max-w-md border border-white/10 shadow-2xl animate-in zoom-in duration-300">
+                                    <h3 className="text-lg font-black uppercase tracking-tighter mb-2 italic">⚠️ Connection Blocked (Mixed Content)</h3>
+                                    <p className="text-sm font-medium leading-relaxed mb-6 opacity-90">
+                                        Trình duyệt đang chặn kết nối không bảo mật tới Laptop Hub ({hubIp}).
+                                        Để tiếp tục, hãy bật <b>"Insecure content"</b> trong cài đặt trang web này.
+                                    </p>
+                                    <div className="p-4 bg-black/30 rounded-2xl text-[10px] font-mono border border-white/5 space-y-1">
+                                        <p>1. Nhấn icon "Ổ khóa" / "Settings"</p>
+                                        <p>2. Chọn "Site Settings"</p>
+                                        <p>3. Tìm "Insecure content" → Chuyển thành "ALLOW"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : null}
+
                         <LiveMap currentPos={robotPos} path={path} />
 
                         {/* Live Badge */}

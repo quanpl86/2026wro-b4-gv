@@ -18,8 +18,8 @@ export default function VisionPage() {
     const [isVisionActive, setIsVisionActive] = useState(true);
     const [detectedSite, setDetectedSite] = useState<string | null>(null);
     const [fps, setFps] = useState(0);
-    const [isDebugView, setIsDebugView] = useState(false);
     const [hubIp, setHubIp] = useState<string | null>(null);
+    const [wsError, setWsError] = useState<string | null>(null);
 
     // Fetch Dynamic Hub IP from Supabase
     useEffect(() => {
@@ -29,39 +29,49 @@ export default function VisionPage() {
                 return;
             }
             try {
-                const { data, error } = await supabase
+                const { data } = await supabase
                     .from('robot_profiles')
                     .select('hub_ip')
                     .eq('is_active', true)
                     .single();
 
-                if (data && data.hub_ip) {
-                    console.log(`[Vision] Using Hub IP: ${data.hub_ip}`);
-                    setHubIp(data.hub_ip);
-                } else {
-                    console.warn(`[Vision] No active profile IP found, using default: ${DEFAULT_HUB_IP}`);
-                    setHubIp(DEFAULT_HUB_IP);
-                }
+                setHubIp(data?.hub_ip || DEFAULT_HUB_IP);
             } catch (err) {
-                console.error("[Vision] Error fetching hub IP:", err);
                 setHubIp(DEFAULT_HUB_IP);
             }
         };
         getHubIp();
     }, []);
 
-    // WebSocket Persistence (Depends on hubIp)
+    // WebSocket Persistence
     useEffect(() => {
         if (!hubIp) return;
 
         const connectWs = () => {
-            const socket = new WebSocket(`ws://${hubIp}:8765`);
-            socket.onopen = () => setWsStatus('Connected');
-            socket.onclose = () => {
-                setWsStatus('Disconnected');
-                setTimeout(connectWs, 2000);
-            };
-            wsRef.current = socket;
+            try {
+                // Security check: browsers block ws:// from https:// pages for non-localhost IPs
+                const isHttps = window.location.protocol === 'https:';
+                const isLocal = hubIp.includes('localhost') || hubIp.includes('127.0.0.1');
+
+                if (isHttps && !isLocal) {
+                    setWsError("Mixed Content: Netlify (HTTPS) chặn kết nối 'ws' tới IP nội bộ. Hãy vào 'Site Settings' của trình duyệt và cho phép 'Insecure content'.");
+                    return;
+                }
+
+                const socket = new WebSocket(`ws://${hubIp}:8765`);
+                socket.onopen = () => {
+                    setWsStatus('Connected');
+                    setWsError(null);
+                };
+                socket.onclose = () => {
+                    setWsStatus('Disconnected');
+                    setTimeout(connectWs, 3000);
+                };
+                wsRef.current = socket;
+            } catch (err: any) {
+                console.error("[WS Error]", err);
+                setWsError("Trình duyệt từ chối kết nối WebSocket. Kiểm tra IP và thiết lập bảo mật.");
+            }
         };
         connectWs();
         return () => wsRef.current?.close();
@@ -90,7 +100,6 @@ export default function VisionPage() {
                     };
                 }
             } catch (err) {
-                console.error("Camera Error:", err);
                 setStatus('Camera Failed');
             }
         }
@@ -103,9 +112,9 @@ export default function VisionPage() {
 
     // QR Detection Loop
     useEffect(() => {
-        let frameCount = 0;
-        let lastTime = performance.now();
         let animationFrameId: number;
+        let lastTime = performance.now();
+        let frameCount = 0;
 
         const detect = () => {
             if (!isVisionActive || !videoRef.current || !canvasRef.current) {
@@ -122,24 +131,17 @@ export default function VisionPage() {
                 return;
             }
 
-            // Sync size
             if (canvas.width !== video.videoWidth) {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
             }
 
-            // Draw frame
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "dontInvert",
-            });
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
 
             if (code) {
                 const siteName = code.data;
-
-                // Draw QR location
                 context.strokeStyle = "#00FF00";
                 context.lineWidth = 4;
                 context.beginPath();
@@ -150,13 +152,7 @@ export default function VisionPage() {
                 context.closePath();
                 context.stroke();
 
-                // Draw label
-                context.fillStyle = "yellow";
-                context.font = "bold 24px Arial";
-                context.fillText(siteName, code.location.topLeftCorner.x, code.location.topLeftCorner.y - 10);
-
                 if (siteName !== detectedSite) {
-                    console.log(`%c[QR] DETECTED: ${siteName}`, "color: #00ff00; font-weight: bold; font-size: 14px;");
                     setDetectedSite(siteName);
                     sendWsCommand('stop');
                 }
@@ -164,7 +160,6 @@ export default function VisionPage() {
                 setDetectedSite(null);
             }
 
-            // FPS
             frameCount++;
             const now = performance.now();
             if (now - lastTime >= 1000) {
@@ -192,43 +187,44 @@ export default function VisionPage() {
                             <span className="text-2xl font-black italic tracking-tighter">QR VISION</span>
                             <div className={`w-3 h-3 rounded-full animate-pulse shadow-lg ${wsStatus === 'Connected' ? 'bg-green-500 shadow-green-500' : 'bg-red-500 shadow-red-500'}`} />
                         </div>
-                        <span className="text-[10px] text-slate-400 font-mono">
-                            FPS: {fps} | Status: <span className="text-yellow-400">{status}</span>
+                        <span className="text-[10px] text-slate-400 font-mono italic uppercase">
+                            HUB: {hubIp || 'fetching...'} | FPS: {fps}
                         </span>
                     </div>
 
-                    <button onClick={() => router.push('/dashboard/test-control')} className="pointer-events-auto px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 text-xs font-bold">
-                        BACK TO PAD
+                    <button onClick={() => router.push('/dashboard/test-control')} className="pointer-events-auto px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-xs font-bold">
+                        CLOSE
                     </button>
                 </div>
 
                 <div className="flex-1 flex items-center justify-center p-8">
-                    {detectedSite && (
+                    {wsError && (
+                        <div className="bg-red-600 text-white p-6 rounded-3xl shadow-2xl max-w-sm animate-in fade-in zoom-in duration-300">
+                            <h3 className="font-black mb-1 uppercase tracking-widest text-[10px]">⚠️ Security Block</h3>
+                            <p className="text-xs font-bold leading-relaxed">{wsError}</p>
+                            <div className="mt-4 p-3 bg-black/20 rounded-xl text-[9px] font-bold uppercase tracking-wider">
+                                Settings &gt; Site Settings &gt; Insecure Content &gt; ALLOW
+                            </div>
+                        </div>
+                    )}
+
+                    {detectedSite && !wsError && (
                         <div className="bg-green-500 text-black px-12 py-6 rounded-3xl animate-bounce shadow-[0_0_50px_rgba(34,197,94,0.5)] flex flex-col items-center">
-                            <span className="text-sm font-black uppercase tracking-widest opacity-60">QR Code Identified</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Heritage Identified</span>
                             <h2 className="text-4xl font-black italic tracking-tighter text-center">{detectedSite}</h2>
-                            <span className="mt-2 px-3 py-1 bg-black/10 rounded-full text-[10px] font-bold uppercase">Mission Objective Found</span>
                         </div>
                     )}
                 </div>
 
                 <div className="p-6 bg-gradient-to-t from-black/80 to-transparent pointer-events-auto">
-                    <div className="flex justify-between items-end gap-4">
-                        <div className="flex flex-col gap-2">
-                            <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Vision System v2.0</span>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setIsVisionActive(!isVisionActive)}
-                                    className={`px-6 py-3 rounded-2xl font-black italic tracking-tighter transition-all ${isVisionActive ? 'bg-green-600 text-white shadow-[0_0_30px_rgba(22,163,74,0.4)]' : 'bg-slate-800 text-slate-500'}`}
-                                >
-                                    {isVisionActive ? 'QR MODULE: ACTIVE' : 'QR MODULE: STANDBY'}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-4">
-                            <button onClick={() => sendWsCommand('emergency')} className="px-6 py-3 bg-red-600 rounded-2xl font-black text-sm animate-pulse">STOP</button>
-                        </div>
+                    <div className="flex justify-between items-center">
+                        <button
+                            onClick={() => setIsVisionActive(!isVisionActive)}
+                            className={`px-8 py-3 rounded-2xl font-black italic tracking-tighter transition-all ${isVisionActive ? 'bg-green-600 shadow-[0_0_30px_rgba(22,163,74,0.3)]' : 'bg-slate-800 text-slate-500'}`}
+                        >
+                            {isVisionActive ? 'SCANNING...' : 'PAUSED'}
+                        </button>
+                        <button onClick={() => sendWsCommand('emergency')} className="px-8 py-3 bg-red-600 rounded-2xl font-black tracking-tighter">EMERGENCY STOP</button>
                     </div>
                 </div>
             </div>
