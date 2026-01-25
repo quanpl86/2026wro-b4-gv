@@ -2,6 +2,7 @@ import os
 import time
 import json
 import asyncio
+import socket
 import websockets
 import paho.mqtt.client as mqtt
 from db_client import db
@@ -17,6 +18,19 @@ MQTT_PORT = 1883
 MQTT_TOPIC_CMD = "wro/robot/commands"
 MQTT_TOPIC_CFG = "wro/robot/config"
 WS_PORT = 8765
+
+def get_local_ip():
+    """Tự động phát hiện địa chỉ IP của máy tính này trong mạng nội bộ"""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # Không cần kết nối thực sự, chỉ để lấy IP interface
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
 
 # Init MQTT
 mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -163,6 +177,13 @@ async def supabase_poll():
             await asyncio.sleep(1)
 
 async def main():
+    local_ip = get_local_ip()
+    print("\n" + "="*50)
+    print(f"📢  AI BRAIN HUB IS STARTING")
+    print(f"🌐  Local IP Address: {local_ip}")
+    print(f"🔗  Web Dashboard Hub IP: {local_ip}")
+    print("="*50 + "\n")
+    
     # Chạy song song WebSocketBroadcaster, WS Server và Supabase Polling
     await asyncio.gather(
         start_ws(),
