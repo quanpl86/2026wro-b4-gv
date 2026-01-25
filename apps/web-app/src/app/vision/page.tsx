@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import jsQR from 'jsqr';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
-const HUB_IP = process.env.NEXT_PUBLIC_HUB_IP || 'localhost';
-const WS_URL = `ws://${HUB_IP}:8765`;
+const DEFAULT_HUB_IP = process.env.NEXT_PUBLIC_HUB_IP || 'localhost';
 
 export default function VisionPage() {
     const router = useRouter();
@@ -19,11 +19,39 @@ export default function VisionPage() {
     const [detectedSite, setDetectedSite] = useState<string | null>(null);
     const [fps, setFps] = useState(0);
     const [isDebugView, setIsDebugView] = useState(false);
+    const [hubIp, setHubIp] = useState<string | null>(null);
 
-    // WebSocket Persistence
+    // Fetch Dynamic Hub IP from Supabase
     useEffect(() => {
+        const getHubIp = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('robot_profiles')
+                    .select('hub_ip')
+                    .eq('is_active', true)
+                    .single();
+
+                if (data && data.hub_ip) {
+                    console.log(`[Vision] Using Hub IP: ${data.hub_ip}`);
+                    setHubIp(data.hub_ip);
+                } else {
+                    console.warn(`[Vision] No active profile IP found, using default: ${DEFAULT_HUB_IP}`);
+                    setHubIp(DEFAULT_HUB_IP);
+                }
+            } catch (err) {
+                console.error("[Vision] Error fetching hub IP:", err);
+                setHubIp(DEFAULT_HUB_IP);
+            }
+        };
+        getHubIp();
+    }, []);
+
+    // WebSocket Persistence (Depends on hubIp)
+    useEffect(() => {
+        if (!hubIp) return;
+
         const connectWs = () => {
-            const socket = new WebSocket(WS_URL);
+            const socket = new WebSocket(`ws://${hubIp}:8765`);
             socket.onopen = () => setWsStatus('Connected');
             socket.onclose = () => {
                 setWsStatus('Disconnected');
@@ -33,7 +61,7 @@ export default function VisionPage() {
         };
         connectWs();
         return () => wsRef.current?.close();
-    }, []);
+    }, [hubIp]);
 
     const sendWsCommand = (command: string, params: object = {}) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {

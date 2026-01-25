@@ -67,6 +67,7 @@ export default function RobotSettingsPage() {
                 forward: "ArrowUp", backward: "ArrowDown", left: "ArrowLeft", right: "ArrowRight",
                 aux1: "KeyQ", aux2: "KeyE"
             },
+            hub_ip: "192.168.0.137",
             is_active: true
         };
 
@@ -106,7 +107,7 @@ export default function RobotSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white p-8 font-sans">
+        <div className="min-h-screen bg-slate-950 text-white p-8 pb-20 font-sans">
             <div className="max-w-2xl mx-auto">
                 <header className="mb-12">
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-2">
@@ -116,6 +117,26 @@ export default function RobotSettingsPage() {
                 </header>
 
                 <div className="space-y-6">
+                    {/* Network Settings */}
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
+                        <h2 className="text-xl font-semibold mb-4 text-blue-400 flex items-center">
+                            🌐 Network Settings
+                        </h2>
+                        <div className="flex flex-col space-y-2">
+                            <label className="text-xs text-slate-400 uppercase font-bold tracking-wider">AI Brain (Hub) IP Address</label>
+                            <input
+                                type="text"
+                                value={profile.hub_ip || ''}
+                                onChange={(e) => setProfile({ ...profile, hub_ip: e.target.value })}
+                                placeholder="e.g. 192.168.1.15 or localhost"
+                                className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-blue-500 font-mono"
+                            />
+                            <p className="text-[10px] text-slate-500 italic mt-1">
+                                IP này giúp Robot Eyes (Điện thoại) tìm thấy Laptop của bạn trên mạng Wi-Fi.
+                            </p>
+                        </div>
+                    </section>
+
                     {/* Motor Ports */}
                     <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
                         <h2 className="text-xl font-semibold mb-4 text-purple-400 flex items-center">

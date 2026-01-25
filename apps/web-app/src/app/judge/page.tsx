@@ -6,9 +6,9 @@ import MissionTimeline from '@/components/judge/MissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
 import LiveMap from '@/components/judge/LiveMap';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
-const HUB_IP = process.env.NEXT_PUBLIC_HUB_IP || 'localhost';
-const WS_URL = `ws://${HUB_IP}:8765`;
+const DEFAULT_HUB_IP = process.env.NEXT_PUBLIC_HUB_IP || 'localhost';
 
 export default function JudgePage() {
     const router = useRouter();
@@ -19,8 +19,8 @@ export default function JudgePage() {
 
     // UI Local State
     const [currentTime, setCurrentTime] = useState('');
-    const [fps, setFps] = useState(0);
     const [wsStatus, setWsStatus] = useState('Disconnected');
+    const [hubIp, setHubIp] = useState<string | null>(null);
 
     // Telemetry State
     const [batteryLevel, setBatteryLevel] = useState(100);
@@ -37,12 +37,26 @@ export default function JudgePage() {
         { id: '4', label: 'Về đích', status: 'pending' as const },
     ];
 
-    // WebSocket Connection
+    // Fetch Dynamic Hub IP
     useEffect(() => {
         if (!isAuthorized) return;
+        const getHubIp = async () => {
+            const { data } = await supabase
+                .from('robot_profiles')
+                .select('hub_ip')
+                .eq('is_active', true)
+                .single();
+            setHubIp(data?.hub_ip || DEFAULT_HUB_IP);
+        };
+        getHubIp();
+    }, [isAuthorized]);
+
+    // WebSocket Connection (Depends on hubIp)
+    useEffect(() => {
+        if (!isAuthorized || !hubIp) return;
 
         const connectWs = () => {
-            const socket = new WebSocket(WS_URL);
+            const socket = new WebSocket(`ws://${hubIp}:8765`);
             const start = Date.now();
 
             socket.onopen = () => {
@@ -53,7 +67,7 @@ export default function JudgePage() {
 
             socket.onmessage = (event) => {
                 try {
-                    const data = json_parse(event.data);
+                    const data = JSON.parse(event.data);
                     if (data.type === 'telemetry') {
                         if (data.battery !== undefined) setBatteryLevel(data.battery);
                         if (data.pos) {
@@ -74,7 +88,7 @@ export default function JudgePage() {
 
         connectWs();
         return () => wsRef.current?.close();
-    }, [isAuthorized]);
+    }, [isAuthorized, hubIp]);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -218,8 +232,4 @@ export default function JudgePage() {
             `}</style>
         </div>
     );
-}
-
-function json_parse(str: string) {
-    try { return JSON.parse(str); } catch (e) { return {}; }
 }
