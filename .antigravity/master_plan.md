@@ -43,6 +43,11 @@ Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính
 - [ ] Tối ưu hóa độ trễ phản hồi hệ thống < 200ms.
 - [x] **Deployment:** Cấu hình `netlify.toml` sẵn sàng cho CI/CD.
 
+### Phase 5: Independence & Standalone Deployment [FUTURE]
+- [ ] **Hardware Bridge:** Thay thế Laptop bằng **Raspberry Pi** cài đặt sẵn `AI Brain Bridge`.
+- [ ] **Cloud MQTT:** Chuyển đổi từ MQTT Local sang **HiveMQ Cloud/EMQX Cloud** để Robot kết nối Internet trực tiếp.
+- [ ] **Mobile Control:** Tối ưu hóa giao diện điều khiển trên điện thoại (4G/5G).
+
 ---
 
 ## 🛠️ 4. Quy Trình Làm Việc & Ngôn Ngữ (Protocols)

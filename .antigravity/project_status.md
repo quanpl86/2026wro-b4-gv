@@ -34,3 +34,4 @@
 ## 📈 Next Steps
 1. Implement object detection logic for `The Observer`.
 2. Expand `aux_settings` for more complex robot behaviors.
+3. Research & Prototype **Raspberry Pi standalone bridge**.
