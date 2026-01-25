@@ -84,8 +84,10 @@ def init_hardware(config):
         # 3. Khởi tạo DriveBase
         robot = DriveBase(motors['left'], motors['right'], wheel_diameter=56, axle_track=114)
         
-        # Tăng giới hạn tốc độ và gia tốc của DriveBase
-        robot.settings(600, 600, 300, 300)
+        # Tăng giới hạn tốc độ và ĐẶC BIỆT tăng gia tốc/giảm tốc để dừng khựng
+        # settings(speed, acceleration, turn_rate, turn_acceleration)
+        # Tăng acceleration lên 3000 để robot đạt tốc độ và DỪNG ngay lập tức
+        robot.settings(600, 3000, 300, 1500)
         
         ev3.screen.print("✅ HW Ready")
         print("🤖 Robot Profile: {}".format(config.get('name', 'Unknown')))
@@ -96,11 +98,16 @@ def init_hardware(config):
 def stop_robot():
     """Dừng robot ngay lập tức và giữ vị trí (Hard Brake)"""
     global robot, motors
-    if robot:
-        robot.stop()
-        # Ép bánh xe dừng hẳn và khóa vị trí
+    try:
+        # Dừng logic DriveBase
+        if robot:
+            robot.stop()
+        # Ép buộc khóa motor (Thực hiện kể cả khi robot.stop() đang chạy)
         if 'left' in motors: motors['left'].hold()
         if 'right' in motors: motors['right'].hold()
+        print("🛑 Hard Brake Applied")
+    except:
+        pass
 
 def on_message(topic, msg):
     global robot, motors
