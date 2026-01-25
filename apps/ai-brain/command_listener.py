@@ -60,8 +60,42 @@ def execute_mqtt(mqtt_msg):
     print(f"📡 MQTT [OUT]: {mqtt_msg}")
 
 # --- WebSocket Server (High Speed Bridge) ---
+connected_clients = set()
+
+async def broadcast_telemetry():
+    print("📡 Telemetry Broadcaster Started")
+    base_x, base_y = 100, 100
+    while True:
+        if connected_clients:
+            # Simulate robot moving in a small circle
+            import math
+            angle = time.time() * 0.5
+            x = base_x + int(math.cos(angle) * 50)
+            y = base_y + int(math.sin(angle) * 50)
+            
+            telemetry = json.dumps({
+                "type": "telemetry",
+                "battery": 98 if (time.time() % 600) > 300 else 99,
+                "pos": {"x": x, "y": y},
+                "latency": 15
+            })
+            
+            # Broadcast to all
+            disconnected = set()
+            for ws in connected_clients:
+                try:
+                    await ws.send(telemetry)
+                except:
+                    disconnected.add(ws)
+            
+            for ws in disconnected:
+                connected_clients.remove(ws)
+                
+        await asyncio.sleep(1.0) # Send every 1s
+
 async def ws_handler(websocket):
-    print(f"🔗 Vision Client Connected")
+    print(f"🔗 Client Connected: {websocket.remote_address}")
+    connected_clients.add(websocket)
     try:
         async for message in websocket:
             try:
@@ -80,7 +114,11 @@ async def ws_handler(websocket):
             except Exception as e:
                 print(f"⚠️ WS Msg Error: {e}")
     except websockets.exceptions.ConnectionClosed:
-        print("🔌 Vision Client Disconnected")
+        pass
+    finally:
+        if websocket in connected_clients:
+            connected_clients.remove(websocket)
+        print(f"🔌 Client Disconnected: {websocket.remote_address}")
 
 async def start_ws():
     print(f"🚀 High-Speed Bridge running on ws://0.0.0.0:{WS_PORT}")
@@ -125,10 +163,11 @@ async def supabase_poll():
             await asyncio.sleep(1)
 
 async def main():
-    # Chạy song song WebSocket và Supabase Polling
+    # Chạy song song WebSocketBroadcaster, WS Server và Supabase Polling
     await asyncio.gather(
         start_ws(),
-        supabase_poll()
+        supabase_poll(),
+        broadcast_telemetry()
     )
 
 if __name__ == "__main__":
@@ -137,3 +176,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         mqtt_client.loop_stop()
         print("👋 Shutdown")
+

@@ -8,3 +8,6 @@ supabase
 paho-mqtt
 requests
 python-dotenv
+qrcode
+pillow
+websockets

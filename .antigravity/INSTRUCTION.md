@@ -21,14 +21,15 @@ npm run start
 ## 🖥️ 2. Các chức năng chính (Main Functions)
 
 ### A. Giao diện Web (Storyteller)
-- **Dashboard:** Theo dõi trạng thái robot và sa bàn thời gian thực.
-- **Trình chiếu Di sản:** Tự động hiển thị nội dung video/hình ảnh khi robot đến trạm.
-- **Interactive Quiz:** Tham gia trả lời câu hỏi để tích điểm ngay trên Tablet.
-- **EV3 Test UI:** Truy cập `/dashboard/test-control` để kiểm tra khả năng di chuyển của Robot.
+- **Judge Portal:** Truy cập `/judge` để theo dõi toàn bộ hành trình. Mã PIN bảo mật: **2026**.
+- **Vision (Observer):** Truy cập `/vision` trên điện thoại/máy tính bảng gắn trên Robot để nhận diện **QR Code** Di sản.
+- **Trình chiếu Di sản:** Tự động hiển thị nội dung khi QR Code được nhận diện thành công.
+- **Interactive Quiz:** Tham gia trả lời câu hỏi tích điểm (Phase 5).
+- **EV3 Test UI:** Truy cập `/dashboard/test-control` để kiểm tra phần cứng.
 
 ### B. Bộ não AI (AI Brain)
-- **Observer (Nhìn):** Để camera Laptop hướng về phía sa bàn. Robot sẽ nhận diện các mô hình đặt trên bàn.
-- **Listener (Nghe):** Nói "Robot ơi" để kích hoạt, sau đó đưa ra khẩu lệnh (ví dụ: "Kể chuyện trạm này đi").
+- **Observer (Nhìn):** Sử dụng `jsQR` engine tích hợp trực tiếp trên Browser để nhận diện Heritage Sites qua camera môi trường.
+- **Listener (Nghe):** Nói "Robot ơi" để kích hoạt, sau đó đưa ra khẩu lệnh (Vosk engine).
 
 ### C. Điều khiển Phần cứng (Operator)
 - **Tự động:** Robot dò line và dừng tại các trạm đã định nghĩa.

@@ -6,52 +6,49 @@ Hệ thống **The Heritage Keeper** được thiết kế để hoạt động 
 graph TD
     %% Tầng Cảm biến (Robot Eyes)
     subgraph Eyes_Unit ["📱 Robot Eyes (Smartphone trên Robot)"]
-        VisionAI["Web Vision Mode (ArUco Detection)"]
+        VisionAI["Web Vision Mode (jsQR Detection)"]
         CamStream["Camera Stream (Live View)"]
     end
 
     %% Tầng Tương tác (Judge Portal)
     subgraph Portal_Unit ["📑 Judge Portal (Tablet / iPad)"]
         InteractUI["Next.js App (Interactive UI)"]
+        Telemetry["Real-time Telemetry (Battery/Map)"]
         MiniGames["Mini Games (Di sản)"]
-        AIAssistant["Chat AI Assistant (Voice)"]
     end
 
     %% Tầng Hub Trung tâm (Central Hub)
     subgraph Hub_Unit ["💻 Central Hub (Laptop / RPi)"]
         MQTT_Broker["MQTT Broker (Central Hub)"]
-        AIEngine["AI Processing Hub (LLM)"]
+        WSHub["WS Telemetry Broadcaster"]
     end
 
     %% Tầng Thực thi (Physical Robots)
     subgraph Hardware_Layer ["🤖 Hardware Layer (Physical)"]
         EV3_Robot["Robot Di động (Main Bot)"]
         EV3_Stations["Mô hình tĩnh (Static Models)"]
-        ESP32_Effects["LED Effects (ESP32)"]
     end
 
     %% Luồng dữ liệu
-    VisionAI -- "Tín hiệu Nhận diện (MQTT)" --> MQTT_Broker
-    InteractUI -- "Lệnh tương tác" --> MQTT_Broker
+    VisionAI -- "Tín hiệu Nhận diện (WS)" --> WSHub
+    WSHub -- "Lệnh điều khiển" --> MQTT_Broker
+    WSHub -- "Broadcast Telemetry" --> InteractUI
     MQTT_Broker -- "Điều khiển cử động" --> EV3_Robot
-    MQTT_Broker -- "Kích hoạt hiệu ứng" --> EV3_Stations
-    MQTT_Broker -- "Trạng thái Realtime" --> InteractUI
-    CamStream -. "Video (WebRTC/Nami)" .-> InteractUI
-    AIEngine <--> InteractUI
+    InteractUI -- "Lệnh Judge" --> MQTT_Broker
 ```
 
 ## 📐 Phân vai các thiết bị (Device Roles)
 
 ### 1. 📱 Robot Eyes (Smartphone gắn trên lưng Robot)
 - **Nhiệm vụ:** Là "đôi mắt" của Robot.
-- **Tính năng:** Chỉ chạy chế độ **Vision Mode**. Liên tục quét ArUco markers để tìm Di sản. Khi thấy mã, nó bắn trực tiếp lệnh điều khiển Robot qua MQTT. Ngoài ra, nó có thể stream video về máy tính bảng.
+- **Tính năng:** Chạy chế độ **Vision Mode**. Sử dụng engine `jsQR` để quét QR Codes Di sản. Khi thấy mã, nó gửi tín hiệu về Hub trung tâm qua WebSocket cực nhanh.
 
 ### 2. 📑 Judge Portal (Máy tính bảng cho Ban giám khảo)
-- **Nhiệm vụ:** Là cửa ngõ trải nghiệm.
+- **Nhiệm vụ:** Giám sát hành trình và chấm điểm.
 - **Tính năng:** 
-    - Hiển thị video trực tiếp từ điện thoại Robot.
-    - Chạy các **Mini-games** tương tác tại mỗi điểm dừng.
-    - Tích hợp **AI Assistant** để trò chuyện và tra cứu thông tin di sản.
+    - Hiển thị **Live Map** với hệ thống trace đường đi thời gian thực.
+    - Nhận dữ liệu Telemetry (Pin, vị trí) trực tiếp từ Hub.
+    - Cung cấp giao diện Mini-games tương tác.
 
 ### 3. 💻 Central Hub (Laptop hoặc Raspberry Pi)
 - **Nhiệm vụ:** Là "Hệ điều hành" trung tâm.

@@ -30,23 +30,35 @@ Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính
 - [x] **Security:** .env protocols and RLS foundation.
 - [x] **Cloud Sync:** GitHub Repository linked and first push completed.
 
-### Phase 3: Intelligence & Physical Action [CURRENT]
-- [x] **EV3 Priority Test:** Xây dựng UI điều khiển động cơ và kiểm tra luồng MQTT từ Web -> Robot.
-- [x] **Hardware Control:** Robot di chuyển mượt mà, tốc độ cao (600mm/s), độ trễ thấp.
-- [x] **Keyboard Mapping:** Đồng bộ phím bấm bàn phím với các lệnh điều khiển Robot.
-- [ ] **Vision Module:** Nhận diện mô hình qua camera laptop.
-- [ ] **Voice Module:** Tiếp nhận khẩu lệnh tiếng Việt Offline.
-- [ ] **Emotional LED:** LED NeoPixel phản ánh trạng thái robot.
+### Phase 3: Intelligence & Physical Action [DONE]
+- [x] **Advanced Robot Control Suite:**
+    - [x] Create `robot_profiles` table in Supabase.
+    - [x] Build Configuration UI (Port Mapping, Speeds).
+    - [x] Implement Advanced Motor Control Panel (Rotations/Degrees).
+    - [x] Implement Sensor Feedback System (Infrastructure ready).
+- [x] **System Tuning & Configuration:**
+    - [x] Move Aux Motor settings to Settings page.
+    - [x] Simplify Aux Motor control panel.
+    - [x] Update Robot Profile to store Aux Motor & Sensor config.
+    - [x] Optimize Landscape Mode for mobile.
+    - [x] Implement Inline Notifications.
+    - [x] Fix EV3 Hard Brake & State Conflict issues.
+- [x] **'The Observer' v1:** Verify Python Vision Logic.
 
-### Phase 4: Polish & Performance
-- [ ] Thiết kế UI "Future Innovators" (Premium glassmorphism).
-- [ ] Tối ưu hóa độ trễ phản hồi hệ thống < 200ms.
-- [x] **Deployment:** Cấu hình `netlify.toml` sẵn sàng cho CI/CD.
+### Phase 4: The Observer 2.0 (QR Vision Upgrade) [DONE]
+- [x] Build dedicated `/vision` page on Web App.
+- [x] **Upgrade:** Migrated from ArUco to `jsQR` for ultra-robust detection.
+- [x] Implement high-speed WebSocket (Hub <-> Browser) with telemetry broadcast.
 
-### Phase 5: Independence & Standalone Deployment [FUTURE]
-- [ ] **Hardware Bridge:** Thay thế Laptop bằng **Raspberry Pi** cài đặt sẵn `AI Brain Bridge`.
-- [ ] **Cloud MQTT:** Chuyển đổi từ MQTT Local sang **HiveMQ Cloud/EMQX Cloud** để Robot kết nối Internet trực tiếp.
-- [ ] **Mobile Control:** Tối ưu hóa giao diện điều khiển trên điện thoại (4G/5G).
+### Phase 5: The Storyteller 2.0 (Interactive Judge Portal) [DONE]
+- [x] Dashboard tương tác cho Giám khảo (iPad Layout) với bảo mật PIN (2026).
+- [x] Tích hợp bản đồ Live Journey Mapping (SVG/Canvas) theo thời gian thực.
+- [/] Hệ thống Mini-games (Quiz, Xếp hình Di sản) tại trạm dừng (Pending implementation).
+
+### Phase 6: Core AI & Distributed Hub [FUTURE]
+- [ ] Triển khai AI Assistant (Voice Chat) trên Tablet.
+- [ ] Chuyển đổi sang Raspberry Pi (Central Hub) cố định trên sa bàn.
+- [ ] Phối hợp đồng thời Robot di động và các Robot trạm mô hình.
 
 ---
 
