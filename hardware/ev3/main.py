@@ -94,26 +94,33 @@ def init_hardware(config):
     except Exception as e:
         ev3.screen.print("❌ HW Error")
         print("Init Error:", e)
+# Biến tránh spam lệnh
+last_payload = ""
 
 def stop_robot():
     """Dừng robot ngay lập tức và giữ vị trí (Hard Brake)"""
     global robot, motors
     try:
-        # Dừng logic DriveBase
         if robot:
             robot.stop()
-        # Ép buộc khóa motor (Thực hiện kể cả khi robot.stop() đang chạy)
+        # Nghỉ chút ít để tránh xung đột trạng thái phần cứng
+        time.sleep(0.01)
         if 'left' in motors: motors['left'].hold()
         if 'right' in motors: motors['right'].hold()
         print("🛑 Hard Brake Applied")
-    except:
-        pass
+    except Exception as e:
+        print("⚠️ Stop Error:", e)
 
 def on_message(topic, msg):
-    global robot, motors
+    global robot, motors, last_payload
     try:
         topic_str = topic.decode("utf-8")
         payload = msg.decode("utf-8")
+        
+        # Chặn lệnh lặp lại quá nhanh (Spam)
+        if payload == last_payload:
+            return
+        last_payload = payload
         
         if topic_str == TOPIC_CFG:
             # Nhận cấu hình mới
