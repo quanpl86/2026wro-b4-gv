@@ -30,102 +30,106 @@ def get_port(port_name):
 def init_hardware(config):
     """Khởi tạo lại phần cứng dựa trên cấu hình nhận được"""
     global motors, sensors, robot
+    
+    # Dừng mọi hoạt động hiện tại trước khi khởi tạo mới
     try:
-        ev3.screen.clear()
-        ev3.screen.print("Initializing...")
-        
-        m_ports = config.get("motor_ports", {})
-        l_port = m_ports.get('left', 'outB')
-        r_port = m_ports.get('right', 'outC')
-        
-        # Kiểm tra xung đột cổng
-        if l_port == r_port:
-            print("❌ Lỗi: Cổng Motor Trái và Phải đang trùng nhau ({})!".format(l_port))
-            ev3.screen.print("Port Conflict!")
-            return
+        if robot: robot.stop()
+        for m in motors.values():
+            try: m.stop()
+            except: pass
+        time.sleep(0.5) # Đợi phần cứng ổn định
+    except:
+        pass
 
-        # 1. Khởi tạo Motors
-        motors = {}
-        motors['left'] = Motor(get_port(l_port))
-        motors['right'] = Motor(get_port(r_port))
-        
-        if m_ports.get('aux1'):
-            motors['aux1'] = Motor(get_port(m_ports.get('aux1')))
-        if m_ports.get('aux2'):
-            motors['aux2'] = Motor(get_port(m_ports.get('aux2')))
+    # Thử khởi tạo tối đa 3 lần nếu gặp lỗi EPERM
+    for attempt in range(3):
+        try:
+            ev3.screen.clear()
+            ev3.screen.print("Initializing...")
+            
+            m_ports = config.get("motor_ports", {})
+            l_port = m_ports.get('left', 'outB')
+            r_port = m_ports.get('right', 'outC')
+            
+            # Kiểm tra xung đột cổng
+            if l_port == r_port:
+                print("❌ Lỗi: Cổng Motor Trái và Phải đang trùng nhau ({})!".format(l_port))
+                ev3.screen.print("Port Conflict!")
+                return
 
-        # 2. Khởi tạo Sensors
-        sensors = {}
-        s_config = config.get("sensor_config", {})
-        for port_name in ["in1", "in2", "in3", "in4"]:
-            s_port = get_port(port_name)
-            cfg = s_config.get(port_name)
-            if not cfg or cfg.get('type') == 'none':
-                continue
-                
-            s_type = cfg.get('type')
-            try:
-                if s_type == 'color':
-                    s_obj = ColorSensor(s_port)
-                    # Mode will be handled during reading or via specific logic if needed
-                    # Pybricks ColorSensor modes are accessed via methods like .color(), .reflection(), .ambient()
-                    sensors[port_name] = {"obj": s_obj, "type": "color", "mode": cfg.get('mode', 'color')}
-                elif s_type == 'ultrasonic':
-                    sensors[port_name] = {"obj": UltrasonicSensor(s_port), "type": "ultrasonic"}
-                elif s_type == 'gyro':
-                    sensors[port_name] = {"obj": GyroSensor(s_port), "type": "gyro"}
-                elif s_type == 'touch':
-                    sensors[port_name] = {"obj": TouchSensor(s_port), "type": "touch"}
-                
-                print("📡 Port {}: Initialized {}".format(port_name, s_type))
-            except Exception as e:
-                print("⚠️ Port {}: Failed to init {} - {}".format(port_name, s_type, e))
+            # 1. Khởi tạo Motors
+            new_motors = {}
+            new_motors['left'] = Motor(get_port(l_port))
+            new_motors['right'] = Motor(get_port(r_port))
+            
+            if m_ports.get('aux1'):
+                new_motors['aux1'] = Motor(get_port(m_ports.get('aux1')))
+            if m_ports.get('aux2'):
+                new_motors['aux2'] = Motor(get_port(m_ports.get('aux2')))
 
-        # 3. Khởi tạo DriveBase
-        robot = DriveBase(motors['left'], motors['right'], wheel_diameter=56, axle_track=114)
-        
-        # Tăng giới hạn tốc độ và ĐẶC BIỆT là Gia tốc/Giảm tốc (Acceleration/Deceleration)
-        # 12000 mm/s^2 là mức cực hạn để dừng khựng ngay lập tức.
-        robot.settings(600, 4000, 300, 12000)
-        
-        ev3.screen.print("✅ HW Ready")
-        print("🤖 Robot Profile: {}".format(config.get('name', 'Unknown')))
-    except Exception as e:
-        ev3.screen.print("❌ HW Error")
-        print("Init Error:", e)
+            # 2. Khởi tạo Sensors
+            new_sensors = {}
+            s_config = config.get("sensor_config", {})
+            for port_name in ["in1", "in2", "in3", "in4"]:
+                s_port = get_port(port_name)
+                cfg = s_config.get(port_name)
+                if not cfg or cfg.get('type') == 'none':
+                    continue
+                    
+                s_type = cfg.get('type')
+                try:
+                    if s_type == 'color':
+                        s_obj = ColorSensor(s_port)
+                        new_sensors[port_name] = {"obj": s_obj, "type": "color", "mode": cfg.get('mode', 'color')}
+                    elif s_type == 'ultrasonic':
+                        new_sensors[port_name] = {"obj": UltrasonicSensor(s_port), "type": "ultrasonic"}
+                    elif s_type == 'gyro':
+                        new_sensors[port_name] = {"obj": GyroSensor(s_port), "type": "gyro"}
+                    elif s_type == 'touch':
+                        new_sensors[port_name] = {"obj": TouchSensor(s_port), "type": "touch"}
+                    
+                    print("📡 Port {}: Initialized {}".format(port_name, s_type))
+                except Exception as e:
+                    print("⚠️ Port {}: Failed to init {} - {}".format(port_name, s_type, e))
+
+            # 3. Khởi tạo DriveBase
+            new_robot = DriveBase(new_motors['left'], new_motors['right'], wheel_diameter=56, axle_track=114)
+            new_robot.settings(600, 4000, 300, 12000)
+            
+            # Cập nhật biến toàn cục sau khi khởi tạo thành công
+            motors = new_motors
+            sensors = new_sensors
+            robot = new_robot
+            
+            ev3.screen.print("✅ HW Ready")
+            print("🤖 Robot Profile: {}".format(config.get('name', 'Unknown')))
+            return # Thành công!
+            
+        except Exception as e:
+            print("Init Attempt {} Failed: {}".format(attempt + 1, e))
+            time.sleep(0.5)
+            if attempt == 2:
+                ev3.screen.print("❌ HW Error")
 
 # Biến tránh spam lệnh
 last_payload = ""
 
 def stop_robot():
-    """Dừng robot ngay lập tức và khóa bánh (Hard Brake) với độ tin cậy tuyệt đối"""
+    """Dừng robot ngay lập tức (Hard Brake) - Tối ưu tốc độ phản hồi"""
     global robot, motors, last_payload
-    last_payload = "" # Reset ngay để chấp nhận lệnh tiếp theo
+    last_payload = "" 
     try:
         if robot:
-            # 1. Yêu cầu DriveBase dừng ngay lập tức
             robot.stop()
-        
-        # 2. Thử khóa motor độc lập để triệt tiêu quán tính (Thử tối đa 10 lần)
-        # Chúng ta dùng vòng lặp để đợi DriveBase giải phóng quyền điều khiển (Ownership)
-        for i in range(10):
-            try:
-                # Thử khóa từng motor. Nếu lỗi ở một motor, cái kia vẫn được thử.
-                if 'left' in motors: 
-                    try: motors['left'].hold()
-                    except: pass
-                if 'right' in motors: 
-                    try: motors['right'].hold()
-                    except: pass
-                
-                # Kiểm tra xem đã khóa được cả 2 chưa (nếu không văng lỗi là thành công)
-                # Nếu đã khóa xong thì thoát vòng lặp
-                print("🛑 Precision Brake Engaged ({}ms)".format((i+1)*10))
-                break
-            except:
-                time.sleep(0.01) # Chờ 10ms rồi thử lại
-    except Exception as e:
-        print("⚠️ Stop Logic Error:", e)
+        # Khóa bánh ngay lập tức không chờ đợi
+        if 'left' in motors:
+            try: motors['left'].hold()
+            except: pass
+        if 'right' in motors:
+            try: motors['right'].hold()
+            except: pass
+    except:
+        pass
 
 def on_message(topic, msg):
     global robot, motors, last_payload
@@ -144,7 +148,7 @@ def on_message(topic, msg):
             init_hardware(config)
             
         elif topic_str == TOPIC_CMD:
-            # Nhận lệnh điều khiển
+            # print("📩 CMD:", payload) # Uncomment nếu cần debug lệnh
             parts = payload.split(":")
             action = parts[0]
             
@@ -180,10 +184,12 @@ def on_message(topic, msg):
                 stop_robot()
                 
             elif action == "emergency":
-                # Dừng TOÀN BỘ robot và các động cơ phụ ngay lập tức
                 stop_robot()
+                # Dừng tất cả motor khác
                 for m in motors.values():
-                    m.stop() # Passive stop for aux motors if needed, or m.hold()
+                    try: m.hold()
+                    except: pass
+                print("🆘 EMERGENCY STOP")
 
     except Exception as e:
         print("Msg Error:", e)
@@ -201,7 +207,8 @@ def run():
         
         while True:
             client.check_msg()
-            time.sleep(0.05) # Độ trễ thấp
+            # Loop nhanh gấn 10 lần để không bỏ lỡ lệnh
+            time.sleep(0.005)
             
     except Exception as e:
         ev3.screen.print("❌ Fail")
