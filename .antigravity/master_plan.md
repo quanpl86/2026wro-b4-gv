@@ -1,0 +1,60 @@
+# 🏁 ANTIGRAVYTI MASTER PLAN (WRO 2026)
+
+> **QUY ĐỊNH BẮT BUỘC:** Mọi AI Agent khi bắt đầu phiên làm việc hoặc tham gia vào dự án PHẢI đọc và nắm rõ Master Plan này để đảm bảo sự nhất quán trong triển khai.
+
+## 🎯 1. Executive Vision
+Biến các sa bàn di sản tĩnh thành một **Hệ sinh thái di sản sống động** (Phygital System). Robot không chỉ là thiết bị di chuyển mà còn là một hướng dẫn viên thông minh, kết nối thế giới vật lý với không gian kỹ thuật số qua Web và AI.
+
+## 🏗️ 2. Hệ Sinh Thái Công Nghệ (Infrastructure)
+Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính:
+
+| Module | Công Nghệ | Vai Trò |
+| :--- | :--- | :--- |
+| **Web App** | Next.js 14, Tailwind, Supabase | Giao diện tương tác cho giám khảo/khách tham quan. |
+| **AI Brain** | Python, OpenCV, Vosk, MQTT | Bộ não local xử lý Thị giác, Thính giác và Logic điều phối. |
+| **Hardware** | EV3 (MicroPython), ESP32 (C++) | Cánh tay thực thi (Di chuyển Robot và Hiệu ứng ánh sáng). |
+
+---
+
+## 📅 3. Lộ Trình Triển Khai (Roadmap)
+
+### Phase 1: Foundation & Core Setup (Current)
+- [x] Monorepo structure initialization.
+- [x] AI Agent detailed job descriptions and storage plan.
+- [x] Master Plan & Mandatory protocols.
+- [ ] **Next Step:** Supabase Cloud configuration & SQL migrations.
+
+### Phase 2: Connectivity & Synergy
+- [ ] **Real-time Bridge:** Hoàn thiện Supabase client cho cả Web và Python.
+- [ ] **MQTT Orchestration:** Thiết lập các topic liên lạc nôi bộ độ trễ thấp.
+- [ ] **Interaction Loop:** Thử nghiệm luồng Lệnh -> DB -> Thực thi -> Phản hồi.
+
+### Phase 3: Intelligence & Physical Action
+- [ ] **Vision Module:** Nhận diện mô hình qua camera laptop.
+- [ ] **Voice Module:** Tiếp nhận khẩu lệnh tiếng Việt Offline.
+- [ ] **Hardware Control:** Robot di chuyển mượt mà, LED NeoPixel phản ánh cảm xúc.
+
+### Phase 4: Polish & Performance
+- [ ] Thiết kế UI "Future Innovators" (Premium glassmorphism).
+- [ ] Tối ưu hóa độ trễ phản hồi hệ thống < 200ms.
+- [ ] Triển khai Web lên Netlify.
+
+---
+
+## 🛠️ 4. Quy Trình Làm Việc & Ngôn Ngữ (Protocols)
+1.  **Giao tiếp 100% Tiếng Việt:** Toàn bộ quá trình thảo luận, kế hoạch và báo cáo giữa các Agent và User phải sử dụng tiếng Việt chuyên nghiệp.
+2.  **Xác thực đa tầng:** 
+    - Sau khi hoàn thành Task: Nhờ User review.
+    - Sau khi hoàn thành Phase: Nhờ User xác nhận tổng thể.
+3.  **Git Commitment:** Ngay sau khi công việc được User xác nhận hoàn thành (Approve), Agent có trách nhiệm nhắc nhở User thực hiện `git commit` và `git push` để đảm bảo an toàn dữ liệu.
+
+## ⚙️ 5. Core Technical Standards
+1.  **Unified Source of Truth:** Mọi cấu hình Station ID, MQTT Topic phải lấy từ `packages/shared-config/config.json`.
+2.  **Stateless Hardware:** Robot không giữ logic phức tạp, chỉ thực thi lệnh từ Commander.
+3.  **Real-time First:** Ưu tiên Supabase Realtime cho các sự kiện UI và MQTT cho các lệnh phần cứng.
+4.  **Premium Aesthetics:** Giao diện Web phải mang tính hiện đại, tương lai để WOW người xem.
+
+## 🚥 5. Key Performance Indicators (KPIs)
+- **Latent:** Thời gian từ khi AI nhận diện đến khi Robot hành động < 500ms.
+- **Accuracy:** Độ chính xác nhận diện Voice/Vision > 90%.
+- **Sync:** Trạng thái trên Web và vị trí thực của Robot đồng bộ 100%.

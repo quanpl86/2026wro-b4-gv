@@ -1,0 +1,10 @@
+flask
+fastapi
+uvicorn
+opencv-python
+vosk
+pyaudio
+supabase
+paho-mqtt
+requests
+python-dotenv

@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+.env
+.next/
+dist/
+build/
+venv/
+__pycache__/
+*.pyc
+.antigravity copy/
+package-lock.json
