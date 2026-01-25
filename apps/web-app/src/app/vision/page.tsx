@@ -5,7 +5,7 @@ import jsQR from 'jsqr';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-const DEFAULT_HUB_IP = process.env.NEXT_PUBLIC_HUB_IP || 'localhost';
+const DEFAULT_HUB_IP = 'localhost';
 
 export default function VisionPage() {
     const router = useRouter();

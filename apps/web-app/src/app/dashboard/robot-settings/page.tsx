@@ -67,7 +67,7 @@ export default function RobotSettingsPage() {
                 forward: "ArrowUp", backward: "ArrowDown", left: "ArrowLeft", right: "ArrowRight",
                 aux1: "KeyQ", aux2: "KeyE"
             },
-            hub_ip: "192.168.0.137",
+            hub_ip: "localhost",
             is_active: true
         };
 

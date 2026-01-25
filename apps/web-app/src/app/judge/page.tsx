@@ -8,7 +8,7 @@ import LiveMap from '@/components/judge/LiveMap';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-const DEFAULT_HUB_IP = process.env.NEXT_PUBLIC_HUB_IP || 'localhost';
+const DEFAULT_HUB_IP = 'localhost';
 
 export default function JudgePage() {
     const router = useRouter();
