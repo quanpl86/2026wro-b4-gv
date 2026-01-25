@@ -12,11 +12,13 @@ MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
 TOPIC_CMD = "wro/robot/commands"
 
 # Mapping Marker IDs to Heritage Sites and Actions
-# Example: ID 0 -> Trang An -> Stop and maybe rotate aux motor
 SITES = {
     0: {"name": "Tràng An", "action": "stop"},
     1: {"name": "Cột Cờ Kỳ Đài", "action": "stop"},
-    2: {"name": "Chùa Một Cột", "action": "stop"}
+    2: {"name": "Chùa Một Cột", "action": "stop"},
+    17: {"name": "Test Marker (ID 17)", "action": "stop"},
+    34: {"name": "Test Marker (ID 34)", "action": "stop"},
+    42: {"name": "Test Marker (ID 42)", "action": "stop"}
 }
 
 # MQTT Setup
@@ -38,61 +40,103 @@ def run_vision():
     if not cap.isOpened():
         print("❌ Cannot open camera")
         return
+    
+    # TỐI ƯU 1: Cố định độ phân giải thấp để tăng tốc độ xử lý
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-    # ArUco Settings
-    # Try different dictionary if needed (4x4_50 is standard)
+    # ArUco Settings (Tăng độ nhạy tối đa)
     aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
     parameters = aruco.DetectorParameters()
+    
+    # TINH CHỈNH ĐỘ NHẠY: Giúp nhận diện tốt hơn trên màn hình điện thoại
+    parameters.adaptiveThreshWinSizeMin = 3
+    parameters.adaptiveThreshWinSizeMax = 23
+    parameters.adaptiveThreshWinSizeStep = 5 # Quét kỹ hơn
+    parameters.adaptiveThreshConstant = 7
+    parameters.minMarkerPerimeterRate = 0.05 # Nhận diện cả mã nhỏ/xa
+    parameters.polygonalApproxAccuracyRate = 0.05
+    
     detector = aruco.ArucoDetector(aruco_dict, parameters)
 
-    print("👁️ The Observer is watching...")
+    print("👁️ The Observer is watching (Super Optimized Mode)...")
     
+    # Khởi tạo các biến theo dõi
     last_detected_id = -1
     last_detection_time = 0
+    frame_count = 0
+    start_time = time.time()
+    
+    # Biến cho visual persistence (giữ khung hình mượt mà)
+    persistence_counter = 0
+    last_corners = None
+    last_id_text = ""
 
     while True:
-        ret, frame = cap.read()
+        ret, original_frame = cap.read()
         if not ret:
+            print("⚠️ Failed to grab frame")
             break
+        
+        # Resize nhẹ để cân bằng giữa tốc độ và độ chính xác
+        frame = cv2.resize(original_frame, (640, 480))
+        
+        frame_count += 1
+        current_time = time.time()
+        fps = frame_count / (current_time - start_time) if (current_time - start_time) > 0 else 0
 
-        # Convert to grayscale
+        # Chuyển xám đơn giản (Bỏ equalizeHist vì gây lóa trên màn hình điện thoại)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
         # Detect ArUco markers
         corners, ids, rejected = detector.detectMarkers(gray)
 
+        # Mặc định trạng thái "Searching"
+        status_color = (0, 0, 255) # Đỏ
+        
         if ids is not None:
-            # Draw markers
-            aruco.drawDetectedMarkers(frame, corners, ids)
+            status_color = (0, 255, 0) # Xanh lá
+            persistence_counter = 10 # Giữ khung hình trong 10 frame tiếp theo
             
             for i in range(len(ids)):
                 marker_id = int(ids[i][0])
+                marker_corners = corners[i].reshape((4, 2)).astype(int)
+                last_corners = marker_corners
                 
-                # Check if this is a known site
+                # Xác định tên di sản
                 if marker_id in SITES:
-                    site = SITES[marker_id]
-                    
-                    # Prevent rapid re-triggering (debounce)
-                    current_time = time.time()
-                    if marker_id != last_detected_id or (current_time - last_detection_time > 5):
-                        print(f"🚩 Spotted: {site['name']} (ID: {marker_id})")
-                        
-                        # Trigger Action
-                        if site['action'] == "stop":
-                            send_robot_command("stop")
-                        
-                        last_detected_id = marker_id
-                        last_detection_time = current_time
+                    site_name = SITES[marker_id]['name']
+                else:
+                    site_name = f"Unknown ({marker_id})"
+                
+                last_id_text = site_name
 
-                    # Visual feedback on frame
-                    cv2.putText(frame, f"SITE: {site['name']}", (10, 50), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                # Logic điều khiển Robot (Debounce 2 giây)
+                if marker_id != last_detected_id or (current_time - last_detection_time > 2):
+                    print(f"🎯 LOCKED-ON [ID {marker_id}]: {site_name}")
+                    send_robot_command("stop")
+                    last_detected_id = marker_id
+                    last_detection_time = current_time
+
+        # Hiển thị PERSISTENCE (Khung hình giữ lại để tránh bị nháy)
+        if persistence_counter > 0 and last_corners is not None:
+            # Vẽ khung xanh bảo vệ quanh mã
+            cv2.polylines(frame, [last_corners], True, (0, 255, 0), 4)
+            # Ghi thông tin mục tiêu
+            cv2.putText(frame, f"TARGET: {last_id_text}", (10, 80), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 255), 2)
+            persistence_counter -= 1
+
+        # Hiển thị FPS và Trạng thái LED (To hơn)
+        cv2.putText(frame, f"FPS: {fps:.1f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        cv2.rectangle(frame, (600, 10), (630, 40), status_color, -1) 
 
         # Show preview
         cv2.imshow('Antigravyti - The Observer', frame)
 
         # Key to exit
         if cv2.waitKey(1) & 0xFF == ord('q'):
+            print("⏹️ Stopping Vision AI...")
             break
 
     cap.release()
