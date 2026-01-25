@@ -8,6 +8,7 @@ export default function RobotSettingsPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
     const [profile, setProfile] = useState<any>(null);
 
     useEffect(() => {
@@ -33,11 +34,16 @@ export default function RobotSettingsPage() {
             .eq('id', profile.id);
 
         if (error) {
-            alert('Lỗi: ' + error.message);
+            setSaveStatus({ type: 'error', message: 'Lỗi: ' + error.message });
             setSaving(false);
         } else {
-            alert('✅ Đã lưu cấu hình! Đang chuyển sang bảng điều khiển...');
-            router.push('/dashboard/test-control');
+            setSaveStatus({ type: 'success', message: '✅ Đã lưu cấu hình thành công!' });
+            setSaving(false);
+
+            // Tự động chuyển trang sau 1.5 giây hoặc để người dùng tự nhấn
+            setTimeout(() => {
+                router.push('/dashboard/test-control');
+            }, 1500);
         }
     };
 
@@ -293,13 +299,28 @@ export default function RobotSettingsPage() {
                         </div>
                     </section>
 
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-2xl font-bold text-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-50"
-                    >
-                        {saving ? 'Đang lưu...' : 'LƯU CẤU HÌNH'}
-                    </button>
+                    <div className="space-y-4">
+                        {saveStatus.type && (
+                            <div className={`p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 ${saveStatus.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                                }`}>
+                                <span className="text-lg">{saveStatus.type === 'success' ? '✨' : '❌'}</span>
+                                <span className="font-bold text-sm tracking-tight">{saveStatus.message}</span>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-2xl font-bold text-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
+                        >
+                            {saving ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ĐANG LƯU...
+                                </>
+                            ) : 'LƯU CẤU HÌNH'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

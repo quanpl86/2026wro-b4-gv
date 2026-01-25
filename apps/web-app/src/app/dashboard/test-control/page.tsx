@@ -11,6 +11,16 @@ export default function GameControllerPage() {
     const [profile, setProfile] = useState<any>(null);
 
     const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
+    const [isLandscape, setIsLandscape] = useState(true);
+
+    useEffect(() => {
+        const checkOrientation = () => {
+            setIsLandscape(window.innerWidth > window.innerHeight);
+        };
+        checkOrientation();
+        window.addEventListener('resize', checkOrientation);
+        return () => window.removeEventListener('resize', checkOrientation);
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -93,18 +103,28 @@ export default function GameControllerPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-2 md:p-8 font-sans overflow-x-hidden selection:bg-none">
+        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-2 md:p-8 font-sans overflow-hidden selection:bg-none">
+            {/* Orientation Lock Overlay */}
+            {!isLandscape && (
+                <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center p-8 text-center md:hidden">
+                    <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                        <span className="text-4xl text-blue-400">🔄</span>
+                    </div>
+                    <h2 className="text-2xl font-black italic tracking-tighter mb-2">VUI LÒNG XOAY NGANG</h2>
+                    <p className="text-slate-400 text-sm max-w-[200px]">Xoay màn hình ngang để có trải nghiệm điều khiển Robot tốt nhất.</p>
+                </div>
+            )}
             {/* Background Glows */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                 <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full" />
                 <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-64 h-64 bg-purple-500/10 blur-[100px] rounded-full" />
             </div>
 
-            <div className="relative w-full max-w-7xl min-h-[90vh] md:min-h-0 md:aspect-[21/10] bg-slate-900/40 border border-slate-800 rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 backdrop-blur-3xl shadow-[0_0_100px_-20px_rgba(0,0,0,1)] flex flex-col md:flex-row items-stretch gap-8 transition-all select-none touch-none">
+            <div className={`relative w-full max-w-7xl h-full max-h-screen md:min-h-0 md:aspect-[21/10] bg-slate-900/40 border border-slate-800 rounded-[2rem] md:rounded-[3rem] p-4 md:p-12 backdrop-blur-3xl shadow-[0_0_100px_-20px_rgba(0,0,0,1)] flex flex-row items-stretch gap-4 md:gap-8 transition-all select-none touch-none`}>
 
                 {/* LEFT: D-PAD (Directional) */}
-                <div className="flex-1 flex flex-col items-center justify-center order-2 md:order-1">
-                    <div className="relative w-56 h-56 lg:w-72 lg:h-72 grid grid-cols-3 gap-3 p-2 bg-slate-800/20 rounded-[2.5rem] border border-slate-700/30">
+                <div className="flex-1 flex flex-col items-center justify-center order-1">
+                    <div className="relative w-44 h-44 sm:w-56 sm:h-56 lg:w-72 lg:h-72 grid grid-cols-3 gap-2 sm:gap-3 p-2 bg-slate-800/20 rounded-[2rem] sm:rounded-[2.5rem] border border-slate-700/30">
                         <div />
                         <DPadButton
                             icon="↑"
@@ -146,9 +166,9 @@ export default function GameControllerPage() {
                 </div>
 
                 {/* CENTER: CORE SYSTEM */}
-                <div className="w-px bg-gradient-to-b from-transparent via-slate-800 to-transparent hidden md:block order-2" />
+                <div className="w-px bg-gradient-to-b from-transparent via-slate-800 to-transparent order-2" />
 
-                <div className="flex-[0.6] flex flex-col items-center justify-between py-2 md:py-4 order-1 md:order-3">
+                <div className="flex-[0.4] sm:flex-[0.6] flex flex-col items-center justify-between py-2 sm:py-4 order-3">
                     <header className="text-center group cursor-pointer" onClick={() => router.push('/')}>
                         <h1 className="text-xl md:text-3xl font-black italic tracking-tighter bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent group-hover:from-blue-400 transition-all">
                             EV3 CONTROLLER
@@ -160,10 +180,10 @@ export default function GameControllerPage() {
                         <button
                             onMouseDown={() => sendCommand('emergency')}
                             onTouchStart={() => sendCommand('emergency')}
-                            className="group relative w-20 h-20 md:w-28 md:h-28 rounded-full bg-red-500/10 border-4 border-red-500/20 flex items-center justify-center transition-all hover:bg-red-500/20 hover:border-red-500/40 active:scale-90 shadow-lg shadow-red-900/10"
+                            className="group relative w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 rounded-full bg-red-500/10 border-4 border-red-500/20 flex items-center justify-center transition-all hover:bg-red-500/20 hover:border-red-500/40 active:scale-90 shadow-lg shadow-red-900/10"
                         >
                             <div className="absolute inset-0 bg-red-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
-                            <span className="text-red-500 font-black text-[10px] md:text-[14px] leading-tight z-10 tracking-tighter">EMERGENCY<br />STOP</span>
+                            <span className="text-red-500 font-black text-[8px] sm:text-[10px] lg:text-[14px] leading-tight z-10 tracking-tighter">EMERGENCY<br />STOP</span>
                         </button>
 
                         <div className="text-center">
@@ -184,7 +204,7 @@ export default function GameControllerPage() {
                     </div>
                 </div>
 
-                <div className="h-px md:h-auto md:w-px bg-gradient-to-r md:bg-gradient-to-b from-transparent via-slate-800 to-transparent order-4" />
+                <div className="w-px bg-gradient-to-b from-transparent via-slate-800 to-transparent order-4" />
 
                 {/* RIGHT: ACTION PANEL (Aux Motors) */}
                 <div className="flex-1 flex flex-col justify-center order-5">

@@ -34,6 +34,29 @@ create table command_queue (
   status text default 'pending',
   created_at timestamptz default now()
 );
+
+### Table: robot_profiles
+Lưu ý: Nếu bạn chưa có bảng này, hãy chạy lệnh sau:
+```sql
+create table robot_profiles (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  motor_ports jsonb default '{}'::jsonb,
+  sensor_config jsonb default '{}'::jsonb,
+  speed_profile jsonb default '{"forward": 100, "turn": 50}'::jsonb,
+  aux_settings jsonb default '{}'::jsonb,
+  key_mappings jsonb default '{}'::jsonb,
+  is_active boolean default false,
+  updated_at timestamptz default now()
+);
+```
+
+### ⚡ CẬP NHẬT TRƯỜNG HỢP LỖI SCHEMA CACHE:
+Nếu bạn nhận được lỗi `"Could not find column sensor_config"`, hãy chạy lệnh SQL này để nâng cấp bảng:
+```sql
+ALTER TABLE robot_profiles 
+ADD COLUMN IF NOT EXISTS sensor_config JSONB DEFAULT '{}'::jsonb;
+```
 ```
 
 ### B. Bật Realtime (Quan trọng nhất)
