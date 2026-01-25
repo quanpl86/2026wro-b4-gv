@@ -84,10 +84,10 @@ def init_hardware(config):
         # 3. Khởi tạo DriveBase
         robot = DriveBase(motors['left'], motors['right'], wheel_diameter=56, axle_track=114)
         
-        # Tăng giới hạn tốc độ và ĐẶC BIỆT tăng gia tốc/giảm tốc để dừng khựng
+        # Tăng giới hạn tốc độ và ĐẶC BIỆT tăng giảm tốc để dừng khựng
         # settings(speed, acceleration, turn_rate, turn_acceleration)
-        # Tăng acceleration lên 3000 để robot đạt tốc độ và DỪNG ngay lập tức
-        robot.settings(600, 3000, 300, 1500)
+        # Giảm tốc 5000 là mức cực cao để triệt tiêu quán tính
+        robot.settings(600, 3000, 300, 5000)
         
         ev3.screen.print("✅ HW Ready")
         print("🤖 Robot Profile: {}".format(config.get('name', 'Unknown')))
@@ -98,16 +98,22 @@ def init_hardware(config):
 last_payload = ""
 
 def stop_robot():
-    """Dừng robot ngay lập tức và giữ vị trí (Hard Brake)"""
-    global robot, motors
+    """Dừng robot ngay lập tức và giữ vị trí (Hard Brake) với cơ chế thử lại"""
+    global robot, motors, last_payload
+    last_payload = "" # Reset để luôn chấp nhận lệnh mới ngay sau khi dừng
     try:
         if robot:
             robot.stop()
-        # Nghỉ chút ít để tránh xung đột trạng thái phần cứng
-        time.sleep(0.01)
-        if 'left' in motors: motors['left'].hold()
-        if 'right' in motors: motors['right'].hold()
-        print("🛑 Hard Brake Applied")
+        
+        # Thử khóa motor tối đa 3 lần nếu bị báo 'Invalid State' do DriveBase bận
+        for i in range(3):
+            try:
+                if 'left' in motors: motors['left'].hold()
+                if 'right' in motors: motors['right'].hold()
+                print("🛑 Hard Brake Applied (Try {})".format(i+1))
+                break
+            except:
+                time.sleep(0.02) # Chờ 20ms thực tế để phần cứng giải phóng
     except Exception as e:
         print("⚠️ Stop Error:", e)
 
