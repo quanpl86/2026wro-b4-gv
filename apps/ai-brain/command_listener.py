@@ -1,29 +1,32 @@
 import os
 import time
 import json
+import asyncio
+import websockets
 import paho.mqtt.client as mqtt
 from db_client import db
 from dotenv import load_dotenv
+from threading import Thread
 
 # Load env
 load_dotenv()
 
-# --- Cấu hình MQTT ---
+# --- Config ---
 MQTT_BROKER = "localhost" 
 MQTT_PORT = 1883
 MQTT_TOPIC_CMD = "wro/robot/commands"
 MQTT_TOPIC_CFG = "wro/robot/config"
+WS_PORT = 8765
 
-# Khởi tạo MQTT Client
+# Init MQTT
 mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
 def on_connect(client, userdata, flags, reason_code, properties=None):
     if reason_code == 0:
-        print(f"✅ Đã kết nối MQTT Broker")
-        # Gửi cấu hình ngay khi kết nối
+        print(f"✅ Connected to MQTT Broker")
         send_current_config()
     else:
-        print(f"❌ Lỗi kết nối MQTT: {reason_code}")
+        print(f"❌ MQTT Connect Failed: {reason_code}")
 
 mqtt_client.on_connect = on_connect
 
@@ -34,7 +37,6 @@ except Exception as e:
     print(f"⚠️ MQTT Offline: {e}")
 
 def get_active_profile():
-    """Lấy cấu hình robot đang hoạt động"""
     try:
         response = db.table("robot_profiles").select("*").eq("is_active", True).single().execute()
         return response.data
@@ -42,7 +44,6 @@ def get_active_profile():
         return None
 
 def send_current_config():
-    """Gửi cấu hình port và speed hiện tại xuống robot"""
     profile = get_active_profile()
     if profile:
         config_msg = json.dumps({
@@ -52,101 +53,87 @@ def send_current_config():
             "speeds": profile.get('speed_profile', {})
         })
         mqtt_client.publish(MQTT_TOPIC_CFG, config_msg, retain=True)
-        print(f"⚙️ Đã đồng bộ cấu hình Robot: {profile['name']}")
+        print(f"⚙️ Sync Profile: {profile['name']}")
 
-def process_command(cmd_id, target, command, params):
-    print(f"\n🚀 [ADVANCED] LỆNH MỚI:")
-    print(f"   - ID: {cmd_id} | CMD: {command}")
-    
-    mqtt_msg = f"{command}"
-    
-    if command == "move":
-        # Sử dụng tốc độ từ params hoặc mặc định
-        direction = params.get('direction', 'stop')
-        speed = params.get('speed', 100)
-        mqtt_msg = f"move:{direction}:{speed}"
-        
-    elif command == "aux_move":
-        # Lệnh cho động cơ phụ: aux_move:port_key:value:unit
-        port_key = params.get('port', 'aux1')
-        value = params.get('value', 0)
-        unit = params.get('unit', 'rotations')
-        mqtt_msg = f"aux_move:{port_key}:{value}:{unit}"
-        
-    elif command == "stop":
-        mqtt_msg = "stop"
-
-    elif command == "emergency":
-        mqtt_msg = "emergency"
-
-    # Gửi lệnh
+def execute_mqtt(mqtt_msg):
     mqtt_client.publish(MQTT_TOPIC_CMD, mqtt_msg)
-    print(f"📡 Đã gửi MQTT: {mqtt_msg}")
-    
-    # Cập nhật hoàn thành
-    db.table("command_queue").update({"status": "completed"}).eq("id", cmd_id).execute()
-    print(f"✅ Xong lệnh {cmd_id}")
+    print(f"📡 MQTT [OUT]: {mqtt_msg}")
 
-def listen_advanced():
-    print("="*50)
-    print("🔥 ANTIGRAVYTI AI BRAIN - ADVANCED CONTROL MODE")
-    print("⚡ Hỗ trợ: Dynamic Config, Aux Motors, Precision Move")
-    print("="*50)
-    
-    # Dọn dẹp hàng đợi cũ (lệnh lỗi thời)
-    db.table("command_queue").update({"status": "skipped"}).eq("status", "pending").eq("target", "ev3_robot").execute()
+# --- WebSocket Server (High Speed Bridge) ---
+async def ws_handler(websocket):
+    print(f"🔗 Vision Client Connected")
+    try:
+        async for message in websocket:
+            try:
+                data = json.loads(message)
+                cmd = data.get('command')
+                params = data.get('params', {})
+                
+                # Biến đổi lệnh JSON thành chuỗi MQTT EV3
+                mqtt_msg = f"{cmd}"
+                if cmd == "move":
+                    mqtt_msg = f"move:{params.get('direction', 'stop')}:{params.get('speed', 100)}"
+                elif cmd == "aux_move":
+                    mqtt_msg = f"aux_move:{params.get('port', 'aux1')}:{params.get('value', 0)}:{params.get('unit', 'rotations')}"
+                
+                execute_mqtt(mqtt_msg)
+            except Exception as e:
+                print(f"⚠️ WS Msg Error: {e}")
+    except websockets.exceptions.ConnectionClosed:
+        print("🔌 Vision Client Disconnected")
 
+async def start_ws():
+    print(f"🚀 High-Speed Bridge running on ws://0.0.0.0:{WS_PORT}")
+    async with websockets.serve(ws_handler, "0.0.0.0", WS_PORT):
+        await asyncio.Future() # Keep running
+
+# --- Supabase Listener (Legacy/General) ---
+async def supabase_poll():
+    print("📋 Supabase Listener Active")
     last_config_check = 0
-    
     while True:
         try:
-            # Tự động đồng bộ config mỗi 10 giây
             if time.time() - last_config_check > 10:
                 send_current_config()
                 last_config_check = time.time()
 
-            # Lấy tất cả lệnh đang chờ (GIỮ LẠI THỨ TỰ THỜI GIAN)
-            response = db.table("command_queue")\
-                .select("*")\
-                .eq("status", "pending")\
-                .eq("target", "ev3_robot")\
-                .order("created_at")\
-                .execute()
-            
+            response = db.table("command_queue").select("*").eq("status", "pending").eq("target", "ev3_robot").order("created_at").execute()
             pending_cmds = response.data
             
             if pending_cmds:
-                # Nếu có quá nhiều lệnh đang chờ (lag), chỉ giữ các lệnh gần đây nhất
-                # Nhưng phải cẩn thận không bỏ lỡ lệnh 'stop' cuối cùng
-                if len(pending_cmds) > 10:
-                    print(f"⚠️ Phát hiện lag ({len(pending_cmds)} lệnh). Đang tối ưu...")
-                    # Chỉ lấy 5 lệnh gần nhất
-                    to_skip = pending_cmds[:-5]
-                    to_process = pending_cmds[-5:]
-                    
-                    for cmd in to_skip:
-                        db.table("command_queue").update({"status": "skipped"}).eq("id", cmd['id']).execute()
-                    
-                    pending_cmds = to_process
+                if len(pending_cmds) > 5:
+                    to_skip = pending_cmds[:-3]
+                    for s in to_skip:
+                        db.table("command_queue").update({"status": "skipped"}).eq("id", s['id']).execute()
+                    pending_cmds = pending_cmds[-3:]
 
                 for cmd in pending_cmds:
-                    # Kiểm tra độ trễ (nếu lệnh được gửi quá 1.5 giây trước thì bỏ qua để an toàn)
-                    # Giả định created_at là UTC. 
-                    # parse created_at manually for simple comparison or assume it's fresh enough if pulled just now
-                    # Để đơn giản và chính xác hơn cho robot, ta cứ xử lý theo thứ tự.
+                    c = cmd['command']
+                    p = cmd['params']
+                    mqtt_msg = f"{c}"
+                    if c == "move":
+                        mqtt_msg = f"move:{p.get('direction', 'stop')}:{p.get('speed', 100)}"
+                    elif c == "aux_move":
+                        mqtt_msg = f"aux_move:{p.get('port', 'aux1')}:{p.get('value', 0)}:{p.get('unit', 'rotations')}"
                     
-                    process_command(cmd['id'], cmd['target'], cmd['command'], cmd['params'])
+                    execute_mqtt(mqtt_msg)
+                    db.table("command_queue").update({"status": "completed"}).eq("id", cmd['id']).execute()
             
-            # Tăng tần suất lấy lệnh (0.05s thay vì 0.1s) để mượt hơn
-            time.sleep(0.05)
-            
-        except KeyboardInterrupt:
-            print("\n👋 Đang tắt...")
-            mqtt_client.loop_stop()
-            break
+            await asyncio.sleep(0.05)
         except Exception as e:
-            print(f"⚠️ Lỗi: {e}")
-            time.sleep(0.5)
+            print(f"⚠️ Supabase Error: {e}")
+            await asyncio.sleep(1)
+
+async def main():
+    # Chạy song song WebSocket và Supabase Polling
+    await asyncio.gather(
+        start_ws(),
+        supabase_poll()
+    )
 
 if __name__ == "__main__":
-    listen_advanced()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        mqtt_client.loop_stop()
+        print("👋 Shutdown")

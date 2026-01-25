@@ -202,6 +202,12 @@ export default function GameControllerPage() {
                         >
                             ⚙️ SETTINGS
                         </button>
+                        <button
+                            onClick={() => router.push('/vision')}
+                            className="px-4 py-2 bg-blue-600/20 rounded-xl text-[10px] text-blue-400 hover:text-white transition-all border border-blue-500/30 hover:bg-blue-600/30 uppercase font-bold animate-pulse"
+                        >
+                            👁️ VISION MODE
+                        </button>
                     </div>
                 </div>
 
