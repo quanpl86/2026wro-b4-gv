@@ -11,8 +11,10 @@
 ## 📈 3. Trạng thái Triển khai (Live Status)
 - **Phase 1 (Foundation):** Đã hoàn thành (Cấu trúc monorepo, 9 Agent Personas).
 - **Phase 2 (Connectivity):** Đã hoàn thành (Kết nối Supabase, GitHub Sync).
-- **Phase 3 (Intelligence):** Đang triển khai (Đã hoàn thành điều hướng Robot cơ bản, đang chuẩn bị cho Vision & Voice).
-- **Phase 5 (Independence):** Đã lên kế hoạch (Triển khai standalone trên Raspberry Pi & Cloud MQTT).
+- **Phase 3 (Intelligence):** Đã hoàn thành (Điều hướng cơ bản, Motor Tune).
+- **Phase 4 (QR Vision):** Đã hoàn thành (Migrated ArUco -> QR engine, jsQR integration).
+- **Phase 5 (The Storyteller):** Đang triển khai (Hoàn thành Judge Portal, Live Map tracking, Dynamic Hub IP).
+- **Phase 6 (Independence):** Đã lên kế hoạch (Mini-games, RPi Hub).
 
 ---
 
@@ -20,17 +22,17 @@
 > **QUY TẮC CỨNG:** Mọi AI Agent khi thực hiện một tính năng mới hoặc thay đổi quan trọng trong logic dự án PHẢI cập nhật thông tin đó vào file `PROJECT_INFO.md` này.
 
 ### Cách thức đồng bộ:
-1. **Kiểm tra:** Trước khi bắt đầu task, Agent đọc `PROJECT_INFO.md` để nắm bắt tình hình thực tế.
+1. **Kiểm tra:** Trước khi bắt đầu task, Agent đọc `PROJECT_INFO.md` và thư mục `.antigravity` để nắm bắt tình hình.
 2. **Thực thi:** Triển khai code/tính năng.
-3. **Cập nhật:** Sau khi xác nhận tính năng đã chạy (verified), Agent phải cập nhật phần **3. Trạng thái Triển khai** và thêm thông tin mới vào mục **5. Tính năng hiện hữu**.
+3. **Cập nhật:** Sau khi xác nhận tính năng đã chạy (verified), Agent phải cập nhật phần **3. Trạng thái Triển khai** và mục **5. Tính năng hiện hữu**.
 
 ---
 
 ## ✅ 5. Tính năng hiện hữu (Latest Features)
-- [x] Hệ thống Monorepo ổn định & GitHub Auto-sync.
-- [x] Giao diện điều khiển **EV3 Controller** (Dark mode, glassmorphism).
-- [x] **Keyboard Mapping:** Điều khiển robot bằng WASD, Phím mũi tên hoặc phím gán tự chọn.
-- [x] **Hiệu suất cao:** Scale tốc độ robot lên 600mm/s với phản hồi thời gian thực (<100ms).
-- [x] **Chẩn đoán thông minh:** Tự động phát hiện xung đột cổng motor trên UI và màn hình EV3.
-- [x] **Quản lý Profile:** Tự động khởi tạo cấu hình robot trong Supabase.
-- [x] Persona & Role map chi tiết cho 9 AI Agent.
+- [x] **QR Site Recognition:** Nhận diện các di sản bằng QR code độ chính xác cao.
+- [x] **Interactive Judge Portal:** Dashboard iPad-optimized với mã PIN bảo mật (2026).
+- [x] **Live Journey Mapping:** Trình diễn lộ trình Robot thời gian thực dưới dạng bản đồ số hóa.
+- [x] **Zero-Config Networking:** Tự động khám phá IP của Hub trên mọi mạng Wi-Fi.
+- [x] **Cấu hình Robot linh hoạt:** Thiết lập cổng Motor/Sensor và Tốc độ ngay trên trình duyệt.
+- [x] **Keyboard Mapping:** Điều khiển thủ công bằng WASD/Mũi tên với layout tùy biến.
+- [x] **Hệ sinh thái AI Roles:** 9 Agent chuyên biệt giúp phát triển dự án quy mô lớn.
