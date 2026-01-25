@@ -103,7 +103,7 @@ export default function GameControllerPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-2 md:p-8 font-sans overflow-hidden selection:bg-none">
+        <div className="fixed inset-0 bg-slate-950 text-white flex items-center justify-center p-2 md:p-8 font-sans overflow-hidden selection:bg-none touch-none overscroll-none">
             {/* Orientation Lock Overlay */}
             {!isLandscape && (
                 <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center p-8 text-center md:hidden">
@@ -120,7 +120,7 @@ export default function GameControllerPage() {
                 <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-64 h-64 bg-purple-500/10 blur-[100px] rounded-full" />
             </div>
 
-            <div className={`relative w-full max-w-7xl h-full max-h-screen md:min-h-0 md:aspect-[21/10] bg-slate-900/40 border border-slate-800 rounded-[2rem] md:rounded-[3rem] p-4 md:p-12 backdrop-blur-3xl shadow-[0_0_100px_-20px_rgba(0,0,0,1)] flex flex-row items-stretch gap-4 md:gap-8 transition-all select-none touch-none`}>
+            <div className={`relative w-[95%] h-[90%] md:w-full max-w-7xl md:h-full max-h-screen md:min-h-0 md:aspect-[21/10] bg-slate-900/40 border border-slate-800 rounded-[2rem] md:rounded-[3rem] p-4 md:p-12 backdrop-blur-3xl shadow-[0_0_100px_-20px_rgba(0,0,0,1)] flex flex-row items-stretch gap-4 md:gap-8 transition-all select-none touch-none`}>
 
                 {/* LEFT: D-PAD (Directional) */}
                 <div className="flex-1 flex flex-col items-center justify-center order-1">
