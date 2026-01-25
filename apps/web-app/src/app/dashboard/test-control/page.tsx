@@ -14,12 +14,13 @@ export default function GameControllerPage() {
     const [isLandscape, setIsLandscape] = useState(true);
 
     useEffect(() => {
-        const checkOrientation = () => {
-            setIsLandscape(window.innerWidth > window.innerHeight);
+        const mq = window.matchMedia('(orientation: landscape)');
+        const checkOrientation = (e: MediaQueryListEvent | MediaQueryList) => {
+            setIsLandscape(e.matches);
         };
-        checkOrientation();
-        window.addEventListener('resize', checkOrientation);
-        return () => window.removeEventListener('resize', checkOrientation);
+        checkOrientation(mq);
+        mq.addEventListener('change', checkOrientation);
+        return () => mq.removeEventListener('change', checkOrientation);
     }, []);
 
     useEffect(() => {
@@ -168,7 +169,7 @@ export default function GameControllerPage() {
                 {/* CENTER: CORE SYSTEM */}
                 <div className="w-px bg-gradient-to-b from-transparent via-slate-800 to-transparent order-2" />
 
-                <div className="flex-[0.4] sm:flex-[0.6] flex flex-col items-center justify-between py-2 sm:py-4 order-3">
+                <div className="flex-[0.4] sm:flex-[0.6] flex-shrink-0 flex flex-col items-center justify-between py-2 sm:py-4 order-3">
                     <header className="text-center group cursor-pointer" onClick={() => router.push('/')}>
                         <h1 className="text-xl md:text-3xl font-black italic tracking-tighter bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent group-hover:from-blue-400 transition-all">
                             EV3 CONTROLLER
@@ -186,9 +187,9 @@ export default function GameControllerPage() {
                             <span className="text-red-500 font-black text-[8px] sm:text-[10px] lg:text-[14px] leading-tight z-10 tracking-tighter">EMERGENCY<br />STOP</span>
                         </button>
 
-                        <div className="text-center">
+                        <div className="text-center min-w-[100px] md:min-w-[120px]">
                             <span className="text-[8px] md:text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-1">Link Status</span>
-                            <div className={`w-24 md:w-28 py-1 rounded-full border text-[10px] md:text-xs font-bold transition-all flex items-center justify-center mx-auto ${loading ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 animate-pulse' : 'bg-green-500/10 border-green-500/20 text-green-400'}`}>
+                            <div className={`w-full py-1 rounded-full border text-[10px] md:text-xs font-bold transition-all flex items-center justify-center mx-auto ${loading ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 animate-pulse' : 'bg-green-500/10 border-green-500/20 text-green-400'}`}>
                                 {loading ? 'SENDING' : 'ONLINE'}
                             </div>
                         </div>
