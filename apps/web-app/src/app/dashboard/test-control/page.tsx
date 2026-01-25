@@ -188,8 +188,8 @@ export default function GameControllerPage() {
 
                         <div className="text-center">
                             <span className="text-[8px] md:text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-1">Link Status</span>
-                            <div className={`px-4 py-1 rounded-full border text-[10px] md:text-xs font-bold transition-all ${loading ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 animate-pulse' : 'bg-green-500/10 border-green-500/20 text-green-400'}`}>
-                                {loading ? 'SENDING...' : 'ONLINE'}
+                            <div className={`w-24 md:w-28 py-1 rounded-full border text-[10px] md:text-xs font-bold transition-all flex items-center justify-center mx-auto ${loading ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 animate-pulse' : 'bg-green-500/10 border-green-500/20 text-green-400'}`}>
+                                {loading ? 'SENDING' : 'ONLINE'}
                             </div>
                         </div>
                     </div>
@@ -248,7 +248,7 @@ function DPadButton({ icon, label, kLabel, onPress, onRelease }: {
             onMouseLeave={onRelease}
             onTouchStart={(e) => { e.preventDefault(); onPress(); }}
             onTouchEnd={(e) => { e.preventDefault(); onRelease(); }}
-            className="group relative flex flex-col items-center justify-center rounded-2xl border transition-all active:scale-95 bg-slate-800/80 border-slate-700 hover:bg-slate-700 hover:border-slate-600 shadow-xl"
+            className="group relative flex flex-col items-center justify-center rounded-2xl border transition-all active:brightness-125 bg-slate-800/80 border-slate-700 hover:bg-slate-700 hover:border-slate-600 shadow-xl"
         >
             <span className="text-2xl transition-transform group-hover:scale-110 text-blue-400">{icon}</span>
             {kLabel && (
@@ -270,15 +270,17 @@ function GameAuxRow({ title, color, kLabel, defaultValue, onSend }: { title: str
         <button
             onMouseDown={() => onSend(defaultValue.value, defaultValue.unit)}
             onTouchStart={() => onSend(defaultValue.value, defaultValue.unit)}
-            className={`w-full bg-slate-800/40 p-5 md:p-8 rounded-[2rem] border backdrop-blur-md transition-all active:scale-95 group text-left flex items-center justify-between ${colorStyles[color]}`}
+            className={`w-full bg-slate-800/40 p-5 md:p-8 rounded-[2rem] border backdrop-blur-md transition-all active:brightness-125 group text-left flex items-center justify-between ${colorStyles[color]}`}
         >
             <div className="flex flex-col">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 h-5 mb-1">
                     <span className="text-[10px] font-black tracking-widest opacity-50 uppercase">{title}</span>
-                    {kLabel && (
+                    {kLabel ? (
                         <span className="px-1.5 py-0.5 bg-slate-900/50 border border-slate-700 rounded text-[9px] font-mono text-slate-500 group-hover:text-current transition-colors">
                             {kLabel}
                         </span>
+                    ) : (
+                        <div className="w-4 h-4" /> // Spacer to prevent jumps
                     )}
                 </div>
                 <span className="text-lg md:text-2xl font-black italic tracking-tighter group-hover:translate-x-1 transition-transform">ACTIVATE</span>
