@@ -86,7 +86,7 @@ def init_hardware(config):
         
         # Tăng giới hạn tốc độ và ĐẶC BIỆT tăng giảm tốc cực đại để dừng khựng
         # settings(speed, acceleration, turn_rate, turn_acceleration)
-        # Giảm tốc 10000 để triệt tiêu hoàn toàn quán tính ngay lập tức
+        # 10000 là mức giảm tốc rất cao để triệt tiêu quán tính ngay khi DriveBase.stop()
         robot.settings(600, 3000, 300, 10000)
         
         ev3.screen.print("✅ HW Ready")
@@ -94,6 +94,7 @@ def init_hardware(config):
     except Exception as e:
         ev3.screen.print("❌ HW Error")
         print("Init Error:", e)
+
 # Biến tránh spam lệnh
 last_payload = ""
 
@@ -102,27 +103,24 @@ def stop_robot():
     global robot, motors, last_payload
     last_payload = "" # Luôn sẵn sàng nhận lệnh mới sau khi dừng
     try:
+        # 1. Dừng DriveBase để bắt đầu giải phóng quyền điều khiển motor
         if robot:
-            # 1. Ra lệnh cho DriveBase dừng ngay
             robot.stop()
         
-        # 2. Thử ép motor sang chế độ khóa (HOLD)
-        # Chúng ta thử nhiều lần vì DriveBase có thể chưa kịp nhả motor ngay
-        for i in range(5):
+        # 2. Đợi một khoảng rất ngắn để EV3 Hardware cập nhật trạng thái
+        # Thử khóa motor tối đa 10 lần (tổng 100ms) để dứt điểm lỗi 'Invalid State'
+        for i in range(10):
             try:
-                # Thử dùng brake() trước (nhẹ nhàng hơn) sau đó mới hold()
-                if 'left' in motors: 
-                    motors['left'].brake()
-                    motors['left'].hold()
-                if 'right' in motors: 
-                    motors['right'].brake()
-                    motors['right'].hold()
-                print("🛑 Hard Brake Applied (Try {})".format(i+1))
-                return # Thành công thì thoát
+                # Ép buộc motor giữ vị trí (HOLD)
+                # Khi lệnh này thành công, motor sẽ bị khóa cứng
+                if 'left' in motors: motors['left'].hold()
+                if 'right' in motors: motors['right'].hold()
+                print("🛑 Hard Brake Engaged ({}ms)".format((i+1)*10))
+                return
             except:
                 time.sleep(0.01) # Đợi 10ms rồi thử lại
     except Exception as e:
-        print("⚠️ Stop Logic Error:", e)
+        print("⚠️ Final Stop Error:", e)
 
 def on_message(topic, msg):
     global robot, motors, last_payload
