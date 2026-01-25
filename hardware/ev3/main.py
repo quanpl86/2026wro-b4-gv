@@ -85,9 +85,8 @@ def init_hardware(config):
         robot = DriveBase(motors['left'], motors['right'], wheel_diameter=56, axle_track=114)
         
         # Tăng giới hạn tốc độ và ĐẶC BIỆT tăng giảm tốc cực đại để dừng khựng
-        # settings(speed, acceleration, turn_rate, turn_acceleration)
-        # 10000 là mức giảm tốc rất cao để triệt tiêu quán tính ngay khi DriveBase.stop()
-        robot.settings(600, 3000, 300, 10000)
+        # Deceleration 8000 là mức dư sức dừng khựng với 56mm wheels
+        robot.settings(600, 2000, 300, 8000)
         
         ev3.screen.print("✅ HW Ready")
         print("🤖 Robot Profile: {}".format(config.get('name', 'Unknown')))
@@ -99,28 +98,32 @@ def init_hardware(config):
 last_payload = ""
 
 def stop_robot():
-    """Dừng robot ngay lập tức và giữ vị trí (Hard Brake) với cơ chế phòng lỗi"""
+    """Dừng robot ngay lập tức và giữ vị trí (Hard Brake) với cơ chế phòng lỗi cao cấp"""
     global robot, motors, last_payload
     last_payload = "" # Luôn sẵn sàng nhận lệnh mới sau khi dừng
     try:
-        # 1. Dừng DriveBase để bắt đầu giải phóng quyền điều khiển motor
+        # 1. Yêu cầu DriveBase dừng logic trước
         if robot:
-            robot.stop()
+            try: robot.stop()
+            except: pass
         
-        # 2. Đợi một khoảng rất ngắn để EV3 Hardware cập nhật trạng thái
-        # Thử khóa motor tối đa 10 lần (tổng 100ms) để dứt điểm lỗi 'Invalid State'
-        for i in range(10):
-            try:
-                # Ép buộc motor giữ vị trí (HOLD)
-                # Khi lệnh này thành công, motor sẽ bị khóa cứng
-                if 'left' in motors: motors['left'].hold()
-                if 'right' in motors: motors['right'].hold()
-                print("🛑 Hard Brake Engaged ({}ms)".format((i+1)*10))
-                return
-            except:
-                time.sleep(0.01) # Đợi 10ms rồi thử lại
+        # 2. Nghỉ một chút để DriveBase giải phóng quyền điều khiển Motor
+        time.sleep(0.04)
+        
+        # 3. Thử khóa từng motor độc lập (Tránh bị lỗi cái này kéo theo cái kia)
+        for m_name in ['left', 'right']:
+            if m_name in motors:
+                for i in range(5):
+                    try:
+                        motors[m_name].hold()
+                        break # Thành công motor này, chuyển sang motor tiếp theo
+                    except:
+                        if i == 4: print("⚠️ Failed to hold {}".format(m_name))
+                        time.sleep(0.02)
+        
+        print("🛑 Hard Brake Engaged")
     except Exception as e:
-        print("⚠️ Final Stop Error:", e)
+        print("⚠️ Stop Error:", e)
 
 def on_message(topic, msg):
     global robot, motors, last_payload
