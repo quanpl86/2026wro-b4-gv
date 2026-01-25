@@ -30,7 +30,7 @@ Tài liệu chi tiết về cấu trúc bảng, quan hệ dữ liệu và phân 
 - `id`: `uuid` (Primary Key)
 - `name`: `text` (e.g., "EV3 v1.0")
 - `motor_ports`: `jsonb` (e.g., `{"left": "outB", "right": "outC", "aux1": "outA", "aux2": "outD"}`)
-- `sensor_ports`: `jsonb` (e.g., `{"color": "in1", "ultrasonic": "in2"}`)
+- `sensor_config`: `jsonb` (Cấu hình chi tiết 4 cổng vào: `{"in1": {"type": "color", "mode": "reflected"}, "in2": {"type": "ultrasonic"}}`)
 - `speed_profile`: `jsonb` (e.g., `{"forward": 100, "turn": 60}`)
 - `aux_settings`: `jsonb` (Cấu hình bước quay cho Loader/Grappler)
 - `key_mappings`: `jsonb` (Ánh xạ phím bàn phím: `"forward": "KeyW"`)

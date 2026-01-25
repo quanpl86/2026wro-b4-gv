@@ -46,7 +46,12 @@ export default function RobotSettingsPage() {
         const defaultProfile = {
             name: "EV3 v1.0",
             motor_ports: { left: "outB", right: "outC", aux1: "outA", aux2: "outD" },
-            sensor_ports: { color: "in1", ultrasonic: "in2", touch: "in4", gyro: "in3" },
+            sensor_config: {
+                in1: { type: 'color', mode: 'color' },
+                in2: { type: 'ultrasonic' },
+                in3: { type: 'gyro' },
+                in4: { type: 'touch' }
+            },
             speed_profile: { forward: 100, backward: 100, turn: 50 },
             aux_settings: {
                 aux1: { value: 1, unit: 'rotations' },
@@ -163,21 +168,23 @@ export default function RobotSettingsPage() {
                     {/* Sensor Ports */}
                     <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
                         <h2 className="text-xl font-semibold mb-4 text-blue-400 flex items-center">
-                            📡 Cấu hình Cảm biến
+                            📡 Cấu hình Cảm biến (Ports 1-4)
                         </h2>
-                        <div className="grid grid-cols-2 gap-4">
-                            <PortInput
-                                label="Cảm biến Màu"
-                                value={profile.sensor_ports.color}
-                                options={['in1', 'in2', 'in3', 'in4']}
-                                onChange={(val: string) => setProfile({ ...profile, sensor_ports: { ...profile.sensor_ports, color: val } })}
-                            />
-                            <PortInput
-                                label="Cảm biến Siêu âm"
-                                value={profile.sensor_ports.ultrasonic}
-                                options={['in1', 'in2', 'in3', 'in4']}
-                                onChange={(val: string) => setProfile({ ...profile, sensor_ports: { ...profile.sensor_ports, ultrasonic: val } })}
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {['in1', 'in2', 'in3', 'in4'].map((port) => (
+                                <SensorConfigInput
+                                    key={port}
+                                    port={port}
+                                    config={profile.sensor_config?.[port] || { type: 'none' }}
+                                    onChange={(newCfg: any) => setProfile({
+                                        ...profile,
+                                        sensor_config: {
+                                            ...(profile.sensor_config || {}),
+                                            [port]: newCfg
+                                        }
+                                    })}
+                                />
+                            ))}
                         </div>
                     </section>
 
@@ -392,4 +399,56 @@ function getKeyLabel(code: string) {
         .replace('Arrow', '')
         .replace('Digit', '')
         .toUpperCase();
+}
+
+function SensorConfigInput({ port, config, onChange }: any) {
+    const sensorTypes = [
+        { id: 'none', label: 'None', icon: '⚪' },
+        { id: 'color', label: 'Color', icon: '🌈' },
+        { id: 'ultrasonic', label: 'Ultrasonic', icon: '🦇' },
+        { id: 'gyro', label: 'Gyro', icon: '🌀' },
+        { id: 'touch', label: 'Touch', icon: '🔘' }
+    ];
+
+    const colorModes = [
+        { id: 'color', label: 'Color ID' },
+        { id: 'reflected', label: 'Reflected' },
+        { id: 'ambient', label: 'Ambient' }
+    ];
+
+    return (
+        <div className="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50 space-y-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">Input Port {port.replace('in', '')}</span>
+                <span className="text-xs font-bold text-blue-400/60 uppercase">{config.type}</span>
+            </div>
+
+            <div className="grid grid-cols-5 gap-1.5">
+                {sensorTypes.map((t) => (
+                    <button
+                        key={t.id}
+                        title={t.label}
+                        onClick={() => onChange({ type: t.id, mode: t.id === 'color' ? 'color' : undefined })}
+                        className={`py-2 rounded-lg border text-lg transition-all ${config.type === t.id ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-900/50 border-slate-800 text-slate-600 hover:border-slate-600'}`}
+                    >
+                        {t.icon}
+                    </button>
+                ))}
+            </div>
+
+            {config.type === 'color' && (
+                <div className="flex gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                    {colorModes.map((m) => (
+                        <button
+                            key={m.id}
+                            onClick={() => onChange({ ...config, mode: m.id })}
+                            className={`flex-1 py-1.5 rounded-lg border text-[9px] font-bold uppercase transition-all ${config.mode === m.id ? 'bg-purple-500/20 border-purple-500 text-purple-400' : 'bg-slate-900/50 border-slate-800 text-slate-500 hover:border-slate-600'}`}
+                        >
+                            {m.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }

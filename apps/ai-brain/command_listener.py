@@ -46,9 +46,10 @@ def send_current_config():
     profile = get_active_profile()
     if profile:
         config_msg = json.dumps({
-            "motor_ports": profile['motor_ports'],
-            "sensor_ports": profile['sensor_ports'],
-            "speeds": profile['speed_profile']
+            "name": profile.get("name", "Robot"),
+            "motor_ports": profile.get('motor_ports', {}),
+            "sensor_config": profile.get('sensor_config', {}),
+            "speeds": profile.get('speed_profile', {})
         })
         mqtt_client.publish(MQTT_TOPIC_CFG, config_msg, retain=True)
         print(f"⚙️ Đã đồng bộ cấu hình Robot: {profile['name']}")

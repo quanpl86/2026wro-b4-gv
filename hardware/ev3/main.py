@@ -54,14 +54,41 @@ def init_hardware(config):
         if m_ports.get('aux2'):
             motors['aux2'] = Motor(get_port(m_ports.get('aux2')))
 
-        # 2. Khởi tạo DriveBase
+        # 2. Khởi tạo Sensors
+        sensors = {}
+        s_config = config.get("sensor_config", {})
+        for port_name in ["in1", "in2", "in3", "in4"]:
+            s_port = get_port(port_name)
+            cfg = s_config.get(port_name)
+            if not cfg or cfg.get('type') == 'none':
+                continue
+                
+            s_type = cfg.get('type')
+            try:
+                if s_type == 'color':
+                    s_obj = ColorSensor(s_port)
+                    # Mode will be handled during reading or via specific logic if needed
+                    # Pybricks ColorSensor modes are accessed via methods like .color(), .reflection(), .ambient()
+                    sensors[port_name] = {"obj": s_obj, "type": "color", "mode": cfg.get('mode', 'color')}
+                elif s_type == 'ultrasonic':
+                    sensors[port_name] = {"obj": UltrasonicSensor(s_port), "type": "ultrasonic"}
+                elif s_type == 'gyro':
+                    sensors[port_name] = {"obj": GyroSensor(s_port), "type": "gyro"}
+                elif s_type == 'touch':
+                    sensors[port_name] = {"obj": TouchSensor(s_port), "type": "touch"}
+                
+                print("📡 Port {}: Initialized {}".format(port_name, s_type))
+            except Exception as e:
+                print("⚠️ Port {}: Failed to init {} - {}".format(port_name, s_type, e))
+
+        # 3. Khởi tạo DriveBase
         robot = DriveBase(motors['left'], motors['right'], wheel_diameter=56, axle_track=114)
         
-        # Tăng giới hạn tốc độ và gia tốc của DriveBase (Mặc định thường bị giới hạn thấp)
-        # straight_speed, straight_acceleration, turn_rate, turn_acceleration
+        # Tăng giới hạn tốc độ và gia tốc của DriveBase
         robot.settings(600, 600, 300, 300)
         
         ev3.screen.print("✅ HW Ready")
+        print("🤖 Robot Profile: {}".format(config.get('name', 'Unknown')))
     except Exception as e:
         ev3.screen.print("❌ HW Error")
         print("Init Error:", e)
