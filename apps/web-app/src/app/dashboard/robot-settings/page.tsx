@@ -16,6 +16,10 @@ export default function RobotSettingsPage() {
     }, []);
 
     const fetchProfile = async () => {
+        if (!supabase) {
+            setLoading(false);
+            return;
+        }
         const { data, error } = await supabase
             .from('robot_profiles')
             .select('*')
@@ -27,6 +31,7 @@ export default function RobotSettingsPage() {
     };
 
     const handleSave = async () => {
+        if (!supabase) return;
         setSaving(true);
         const { error } = await supabase
             .from('robot_profiles')

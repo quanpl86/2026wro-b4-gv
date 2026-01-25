@@ -24,6 +24,10 @@ export default function VisionPage() {
     // Fetch Dynamic Hub IP from Supabase
     useEffect(() => {
         const getHubIp = async () => {
+            if (!supabase) {
+                setHubIp(DEFAULT_HUB_IP);
+                return;
+            }
             try {
                 const { data, error } = await supabase
                     .from('robot_profiles')

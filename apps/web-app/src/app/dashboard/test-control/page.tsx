@@ -63,6 +63,7 @@ export default function GameControllerPage() {
     }, [profile, activeKeys]);
 
     const fetchProfile = async () => {
+        if (!supabase) return;
         const { data } = await supabase
             .from('robot_profiles')
             .select('*')
@@ -76,6 +77,7 @@ export default function GameControllerPage() {
     }, []);
 
     const sendCommand = async (command: string, params: object = {}) => {
+        if (!supabase) return;
         setLoading(true);
         try {
             const { error } = await supabase

@@ -41,6 +41,10 @@ export default function JudgePage() {
     useEffect(() => {
         if (!isAuthorized) return;
         const getHubIp = async () => {
+            if (!supabase) {
+                setHubIp(DEFAULT_HUB_IP);
+                return;
+            }
             const { data } = await supabase
                 .from('robot_profiles')
                 .select('hub_ip')

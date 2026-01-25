@@ -34,6 +34,7 @@ Tài liệu chi tiết về cấu trúc bảng, quan hệ dữ liệu và phân 
 - `speed_profile`: `jsonb` (e.g., `{"forward": 100, "turn": 60}`)
 - `aux_settings`: `jsonb` (Cấu hình bước quay cho Loader/Grappler)
 - `key_mappings`: `jsonb` (Ánh xạ phím bàn phím: `"forward": "KeyW"`)
+- `hub_ip`: `text` (Địa chỉ IP của AI Brain Hub)
 - `is_active`: `boolean`
 - `updated_at`: `timestamptz`
 
