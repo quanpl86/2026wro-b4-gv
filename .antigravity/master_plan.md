@@ -41,7 +41,7 @@ Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính
 ### Phase 4: Polish & Performance
 - [ ] Thiết kế UI "Future Innovators" (Premium glassmorphism).
 - [ ] Tối ưu hóa độ trễ phản hồi hệ thống < 200ms.
-- [ ] Triển khai Web lên Netlify.
+- [x] **Deployment:** Cấu hình `netlify.toml` sẵn sàng cho CI/CD.
 
 ---
 

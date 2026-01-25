@@ -1,7 +1,7 @@
 # 📊 Project Status: Antigravyti (WRO 2026)
 
 ## 📍 Current Phase: Phase 3 (Intelligence & Physical Action)
-**Status:** 🟢 Healthy | **Progress:** 45%
+**Status:** 🟢 Healthy | **Progress:** 50%
 
 ---
 
@@ -15,6 +15,7 @@
 - [x] **Speed Calibration:** Unlocked 600mm/s max speed on EV3 hardware.
 - [x] **Keyboard Mapping:** Versatile key binding system (WASD/Arrows/Custom).
 - [x] **UI Branding:** Rebranded to "EV3 Controller".
+- [x] **Netlify Configuration:** Added `netlify.toml` for monorepo auto-deployment.
 
 ## 🚧 In Progress
 - [ ] Transitioning to Phase 3: Designing Vision & Voice logic.
