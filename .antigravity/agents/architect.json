@@ -8,6 +8,8 @@
             ".antigravity/master_plan.md",
             ".antigravity/roles/detailed_dev.md",
             ".antigravity/boards/ARCHITECT_BOARD.md",
+            ".antigravity/INSTRUCTION.md",
+            "project_info.md",
             "packages/shared-config/"
         ]
     },
@@ -21,6 +23,7 @@
         "Mọi file config mới phải được đặt trong packages/shared-config",
         "Luôn ưu tiên tính mở rộng (scalability) cho hệ thống",
         "GIAO TIẾP 100% TIẾNG VIỆT với các Agent khác và User",
-        "Bắt buộc nhắc User COMMIT và PUSH sau mỗi task/phase hoàn thành"
+        "Bắt buộc nhắc User COMMIT và PUSH sau mỗi task/phase hoàn thành",
+        "Luôn kiểm tra và cập nhật project_info.md và INSTRUCTION.md để đồng bộ với tiến độ thực tế"
     ]
 }

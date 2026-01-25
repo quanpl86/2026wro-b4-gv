@@ -1,65 +1,62 @@
-import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white font-sans selection:bg-blue-500/30">
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-600/10 blur-[120px] rounded-full" />
+      </div>
+
+      <main className="relative z-10 flex flex-col items-center text-center px-6">
+        <div className="mb-6 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-sm font-medium text-blue-400 animate-fade-in">
+          WRO 2026: The Heritage Keeper
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent italic">
+          EV3 CONTROLLER
+        </h1>
+
+        <p className="max-w-xl text-lg md:text-xl text-slate-400 mb-12 leading-relaxed">
+          Hệ sinh thái di sản thông minh kết hợp AI Brain và Robot EV3.
+          Khám phá tương lai của việc bảo tồn văn hóa.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link
+            href="/dashboard/test-control"
+            className="group relative px-8 py-4 bg-blue-600 rounded-2xl font-bold text-lg transition-all hover:bg-blue-500 hover:scale-105 active:scale-95 shadow-[0_0_40px_-10px_rgba(37,99,235,0.5)]"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Mở Dashboard Test
+            <span className="ml-2 transition-transform group-hover:translate-x-1 inline-block">→</span>
+          </Link>
+
+          <Link
+            href="/dashboard/robot-settings"
+            className="px-8 py-4 bg-purple-600/20 border border-purple-500/20 text-purple-400 rounded-2xl font-bold text-lg backdrop-blur-md transition-all hover:bg-purple-600/30"
           >
-            Documentation
-          </a>
+            Cấu hình Robot
+          </Link>
+
+          <Link
+            href="/.antigravity/INSTRUCTION.md"
+            className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-bold text-lg backdrop-blur-md transition-all hover:bg-white/10"
+          >
+            Tài liệu
+          </Link>
+        </div>
+
+        <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 opacity-40 grayscale group hover:opacity-100 transition-opacity">
+          {["Next.js", "Python AI", "Supabase", "MQTT"].map((tech) => (
+            <div key={tech} className="text-sm font-bold tracking-widest uppercase">{tech}</div>
+          ))}
         </div>
       </main>
+
+      <footer className="absolute bottom-10 text-slate-600 text-sm">
+        © 2026 Antigravyti Team. All rights reserved.
+      </footer>
     </div>
   );
 }

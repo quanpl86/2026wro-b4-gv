@@ -8,6 +8,7 @@
 ## 3. Workflow & Version Control (Quy trình & Git)
 - **Xác thực từ User:** Sau khi hoàn thành mỗi Task hoặc mỗi Phase, Agent PHẢI thông báo cho User để kiểm tra và xác nhận.
 - **Git Protocol:** Ngay sau khi User nhấn "Approve" hoặc xác nhận công việc hoàn thành, Agent PHẢI nhắc nhở User thực hiện **Commit** và **Push** mã nguồn lên GitHub để lưu trữ tiến độ.
+- **Project Info & Instruction Sync:** Agent PHẢI cập nhật cả file `project_info.md` và `.antigravity/INSTRUCTION.md` sau khi hoàn thành hoặc hiệu chỉnh bất kỳ chức năng nào của dự án để đảm bảo tài liệu luôn khớp với thực tế triển khai.
 
 ## 4. Unified Configuration
 - NEVER hardcode values like MQTT topics or Station IDs in separate files.

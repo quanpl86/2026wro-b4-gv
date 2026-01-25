@@ -18,21 +18,25 @@ Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính
 
 ## 📅 3. Lộ Trình Triển Khai (Roadmap)
 
-### Phase 1: Foundation & Core Setup (Current)
-- [x] Monorepo structure initialization.
+### Phase 1: Foundation & Core Setup [DONE]
+- [x] Monorepo structure initialization (Next.js & Python).
 - [x] AI Agent detailed job descriptions and storage plan.
-- [x] Master Plan & Mandatory protocols.
-- [ ] **Next Step:** Supabase Cloud configuration & SQL migrations.
+- [x] Master Plan & Mandatory protocols established.
+- [x] Personas JSON & Task Boards defined for all 9 Agents.
 
-### Phase 2: Connectivity & Synergy
-- [ ] **Real-time Bridge:** Hoàn thiện Supabase client cho cả Web và Python.
-- [ ] **MQTT Orchestration:** Thiết lập các topic liên lạc nôi bộ độ trễ thấp.
-- [ ] **Interaction Loop:** Thử nghiệm luồng Lệnh -> DB -> Thực thi -> Phản hồi.
+### Phase 2: Connectivity & Synergy [DONE]
+- [x] **Real-time Bridge:** Supabase client initialized for Web & Python.
+- [x] **Audio/Vision Foundation:** OpenCV, Vosk, Pyaudio (verified).
+- [x] **Security:** .env protocols and RLS foundation.
+- [x] **Cloud Sync:** GitHub Repository linked and first push completed.
 
-### Phase 3: Intelligence & Physical Action
+### Phase 3: Intelligence & Physical Action [CURRENT]
+- [x] **EV3 Priority Test:** Xây dựng UI điều khiển động cơ và kiểm tra luồng MQTT từ Web -> Robot.
+- [x] **Hardware Control:** Robot di chuyển mượt mà, tốc độ cao (600mm/s), độ trễ thấp.
+- [x] **Keyboard Mapping:** Đồng bộ phím bấm bàn phím với các lệnh điều khiển Robot.
 - [ ] **Vision Module:** Nhận diện mô hình qua camera laptop.
 - [ ] **Voice Module:** Tiếp nhận khẩu lệnh tiếng Việt Offline.
-- [ ] **Hardware Control:** Robot di chuyển mượt mà, LED NeoPixel phản ánh cảm xúc.
+- [ ] **Emotional LED:** LED NeoPixel phản ánh trạng thái robot.
 
 ### Phase 4: Polish & Performance
 - [ ] Thiết kế UI "Future Innovators" (Premium glassmorphism).
