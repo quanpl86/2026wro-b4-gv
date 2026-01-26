@@ -8,9 +8,10 @@ export type MascotEmotion = 'neutral' | 'happy' | 'thinking' | 'excited' | 'talk
 interface AIAvatarProps {
     emotion?: MascotEmotion;
     isTalking?: boolean;
+    size?: number;
 }
 
-export default function AIAvatar({ emotion = 'neutral', isTalking = false }: AIAvatarProps) {
+export default function AIAvatar({ emotion = 'neutral', isTalking = false, size = 192 }: AIAvatarProps) {
     const [currentPose, setCurrentPose] = useState<number>(0);
 
     // Mapping emotions to sprite grid indices (2x2 grid)
@@ -39,7 +40,10 @@ export default function AIAvatar({ emotion = 'neutral', isTalking = false }: AIA
     };
 
     return (
-        <div className="relative w-48 h-48 flex items-center justify-center">
+        <div
+            className="relative flex items-center justify-center"
+            style={{ width: size, height: size }}
+        >
             {/* Glow Effect */}
             <motion.div
                 animate={{

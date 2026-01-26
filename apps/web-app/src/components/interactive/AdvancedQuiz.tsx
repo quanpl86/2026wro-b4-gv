@@ -345,34 +345,34 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
             >
                 {/* REWARD PHASE */}
                 {phase === 'reward' ? (
-                    <div className="p-12 flex flex-col items-center justify-center text-center h-[500px] relative overflow-hidden">
+                    <div className="p-8 md:p-10 flex flex-col items-center justify-center text-center min-h-[450px] relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-t from-purple-900/40 via-transparent to-transparent pointer-events-none" />
 
                         <motion.div
                             initial={{ scale: 0, rotate: -180 }}
                             animate={{ scale: 1, rotate: 0 }}
                             transition={{ type: "spring", bounce: 0.5 }}
-                            className="mb-8"
+                            className="mb-6 mt-2 relative z-10"
                         >
                             <HeritageBadge
                                 image={badgeImage || ''}
                                 siteName={stationId}
                                 tier={getBadgeTier()}
-                                size={250}
+                                size={200}
                             />
                         </motion.div>
 
-                        <h2 className="text-4xl font-black text-white uppercase mb-4 tracking-widest">
+                        <h2 className="text-3xl md:text-4xl font-black text-white uppercase mb-3 tracking-widest relative z-10">
                             New Badge Unlocked!
                         </h2>
-                        <p className="text-slate-400 text-lg mb-8 max-w-md">
+                        <p className="text-slate-400 text-base md:text-lg mb-8 max-w-md relative z-10">
                             Chúc mừng bạn đã hoàn thành thử thách và nhận được huy hiệu danh giá này.
                         </p>
 
-                        <div className="flex gap-4">
+                        <div className="flex gap-4 relative z-10">
                             <button
                                 onClick={onClose}
-                                className="px-10 py-4 bg-white text-black font-black uppercase rounded-2xl hover:scale-105 transition-transform shadow-xl shadow-white/10"
+                                className="px-8 py-3 bg-white text-black font-black uppercase rounded-2xl hover:scale-105 transition-transform shadow-xl shadow-white/10"
                             >
                                 Collect & Close
                             </button>

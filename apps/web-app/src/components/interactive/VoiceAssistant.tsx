@@ -5,11 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface VoiceAssistantProps {
     onCommand: (text: string, lang: string) => void;
-    activeLanguage: 'vi-VN' | 'en-US';
-    onLanguageChange: (lang: 'vi-VN' | 'en-US') => void;
+    lang: 'vi-VN' | 'en-US';
+    onLangChange: (lang: 'vi-VN' | 'en-US') => void;
+    isListening?: boolean;
+    isTalking?: boolean;
 }
 
-export default function VoiceAssistant({ onCommand, activeLanguage, onLanguageChange }: VoiceAssistantProps) {
+export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLangChange, isListening: propIsListening, isTalking }: VoiceAssistantProps) {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState('');
     const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -214,7 +216,7 @@ export default function VoiceAssistant({ onCommand, activeLanguage, onLanguageCh
                             <span className="text-xl">{inputMode === 'text' ? '🎙️' : '⌨️'}</span>
                         </button>
                         <button
-                            onClick={() => onLanguageChange(activeLanguage === 'vi-VN' ? 'en-US' : 'vi-VN')}
+                            onClick={() => onLangChange(activeLanguage === 'vi-VN' ? 'en-US' : 'vi-VN')}
                             className="w-12 h-12 rounded-2xl bg-slate-900 border border-white/10 flex flex-col items-center justify-center hover:border-purple-500/40 transition-all font-black text-[10px]"
                         >
                             <span className="text-lg opacity-80">{activeLanguage === 'vi-VN' ? '🇻🇳' : '🇺🇸'}</span>

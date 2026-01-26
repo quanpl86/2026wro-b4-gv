@@ -14,8 +14,8 @@
 - **Phase 2 (Connectivity):** Đã hoàn thành (Kết nối Supabase, GitHub Sync).
 - **Phase 3 (Intelligence):** Đã hoàn thành (Điều hướng cơ bản, Motor Tune).
 - **Phase 4 (QR Vision):** Đã hoàn thành (Migrated ArUco -> QR engine, jsQR integration).
-- **Phase 5 (The Storyteller):** Đang triển khai (Hoàn thành Judge Portal, Live Map tracking, Dynamic Hub IP).
-- **Phase 6 (Independence):** Đang triển khai (Hoàn thành Gemini AI Smart Guide, Hybrid Chat, Simulator, Phygital Arena, Game Mastery, Heritage FlipBook, Advanced Quiz Engine và Digital Badge Collection).
+- **Phase 5 (The Storyteller):** Đã hoàn thành (Judge Portal, Live Map tracking, Mini-games, Digital Badges).
+- **Phase 6 (Immersive Upgrade):** Đang triển khai (Hoàn thành Gemini AI Smart Guide, Adaptive Map Editor, Cloud Storage Integration, Responsive Map Calibration).
 
 ---
 
@@ -40,3 +40,6 @@
 - [x] **Gemini 2.5/3 Heritage Guide:** Tích hợp AI thế hệ mới để thuyết minh di sản và nhận diện ý định điều khiển (Intent Control).
 - [x] **Hybrid AI Chat (Thoại & Chữ):** Cho phép tương tác song song bằng giọng nói và văn bản ngay trên Dashboard.
 - [x] **Heritage Simulator:** Môi trường giả lập 100% Phygital giúp kiểm tra kịch bản di sản mà không cần robot vật lý.
+- [x] **Adaptive Map Editor:** Công cụ quản trị cho phép kéo thả, căn chỉnh vị trí di sản và robot trực tiếp trên Web.
+- [x] **Supabase Storage Integration:** Hỗ trợ tải ảnh sa bàn thực tế lên Cloud để làm hình nền bản đồ.
+- [x] **Responsive Map Logic:** Thuật toán tự động cân tỷ lệ, đảm bảo Pins luôn đúng vị trí trên mọi loại màn hình.

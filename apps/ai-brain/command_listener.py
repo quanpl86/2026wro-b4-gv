@@ -18,7 +18,15 @@ MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
 MQTT_TOPIC_CMD = "wro/robot/commands"
 MQTT_TOPIC_CFG = "wro/robot/config"
+MQTT_TOPIC_TELEMETRY = "wro/robot/telemetry"
 WS_PORT = 8765
+
+# Global Telemetry State
+current_telemetry = {
+    "battery": 100,
+    "pos": {"x": 0, "y": 0},
+    "latency": 0
+}
 
 def get_local_ip():
     """Tự động phát hiện địa chỉ IP của máy tính này trong mạng nội bộ"""
@@ -39,11 +47,23 @@ mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 def on_connect(client, userdata, flags, reason_code, properties=None):
     if reason_code == 0:
         print(f"✅ Connected to MQTT Broker")
+        client.subscribe(MQTT_TOPIC_TELEMETRY)
         send_current_config()
     else:
         print(f"❌ MQTT Connect Failed: {reason_code}")
 
+def on_message(client, userdata, msg):
+    global current_telemetry
+    try:
+        if msg.topic == MQTT_TOPIC_TELEMETRY:
+            data = json.loads(msg.payload.decode())
+            current_telemetry.update(data)
+            # print(f"📊 Telemetry Update: {current_telemetry}")
+    except Exception as e:
+        print(f"⚠️ Telemetry Parse Error: {e}")
+
 mqtt_client.on_connect = on_connect
+mqtt_client.on_message = on_message
 
 try:
     mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
@@ -79,25 +99,19 @@ connected_clients = set()
 
 async def broadcast_telemetry():
     print("📡 Telemetry Broadcaster Started")
-    base_x, base_y = 100, 100
+    global current_telemetry
     while True:
         if connected_clients:
-            # Simulate robot moving in a small circle
-            import math
-            angle = time.time() * 0.5
-            x = base_x + int(math.cos(angle) * 50)
-            y = base_y + int(math.sin(angle) * 50)
-            
             telemetry = json.dumps({
                 "type": "telemetry",
-                "battery": 98 if (time.time() % 600) > 300 else 99,
-                "pos": {"x": x, "y": y},
-                "latency": 15
+                "battery": current_telemetry["battery"],
+                "pos": current_telemetry["pos"],
+                "latency": current_telemetry["latency"]
             })
             
             # Broadcast to all
             disconnected = set()
-            for ws in connected_clients:
+            for ws in list(connected_clients):
                 try:
                     await ws.send(telemetry)
                 except:

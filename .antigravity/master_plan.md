@@ -53,10 +53,13 @@ Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính
 ### Phase 5: The Storyteller 2.0 (Interactive Judge Portal) [DONE]
 - [x] Dashboard tương tác cho Giám khảo (iPad Layout) với bảo mật PIN (2026).
 - [x] Tích hợp bản đồ Live Journey Mapping (SVG/Canvas) theo thời gian thực.
-- [/] Hệ thống Mini-games (Quiz, Xếp hình Di sản) tại trạm dừng (Pending implementation).
+- [x] Hệ thống Mini-games (Quiz, Multimedia FlipBook, Digital Badges) tại trạm dừng.
+- [x] Hệ thống Lưu trữ Game Session & Kết quả thi đấu nâng cao.
 
-### Phase 6: Core AI & Distributed Hub [FUTURE]
-- [ ] Triển khai AI Assistant (Voice Chat) trên Tablet.
+### Phase 6: Core AI & Distributed Hub [IN-PROGRESS]
+- [x] Triển khai AI Assistant (Voice Chat & Gemini LLM) trên Tablet.
+- [x] Nâng cấp Bản đồ: Adaptive Map Editor & Cloud Image Hosting (Supabase Storage).
+- [x] Hệ thống Responsive Map Calibration (Chống lệch vị trí đa thiết bị).
 - [ ] Chuyển đổi sang Raspberry Pi (Central Hub) cố định trên sa bàn.
 - [ ] Phối hợp đồng thời Robot di động và các Robot trạm mô hình.
 

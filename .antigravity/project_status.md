@@ -1,7 +1,7 @@
 # 📊 Project Status: Antigravyti (WRO 2026)
 
-## 📍 Current Phase: Phase 5 (Mini-games & Heritage Interaction)
-**Status:** 🔄 Implementing | **Progress:** 85%
+## 📍 Current Phase: Phase 6 (Core AI & Distributed Hub)
+**Status:** 🔄 Implementing | **Progress:** 92%
 
 ---
 
@@ -11,10 +11,12 @@
 - [x] **Phase 3 (Intelligence):** Advanced Robot Control Suite, EV3 integration stabilized.
 - [x] **Phase 4 (QR Vision):** High-speed QR detection, heritage site recognition (DONE).
 - [x] **Phase 5 (Judge Portal):** Secure dashboard, PIN entry (2026), Live Map tracking (DONE).
+- [x] **Phase 6 (Immersive Upgrade):** Adaptive Map Editor, Cloud Image Hosting, Responsive Map Calibration (DONE).
 
 ## 🚧 In Progress
 - [ ] **Mini-games System:** Quiz & Heritage Puzzle logic integration.
-- [ ] **Voice Assistant (v1):** Basic Vosk integration on Python Hub.
+- [ ] **Voice Assistant (v2):** Complex Gemini Intent Control & Proactive storytelling.
+- [ ] **Hardware Sync:** Coordinate EV3 with static station robots.
 
 ## 📋 Ongoing Tasks
 - [ ] Designing Quiz UI widgets for stop-points.

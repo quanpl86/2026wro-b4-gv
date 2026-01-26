@@ -47,7 +47,7 @@
                     "voice_text": "Bạn đã sẵn sàng cho thử thách chưa? Hãy bắt đầu ngay nhé."
                 }
             ],
-            "badge_image": "https://images.unsplash.com/photo-1528127269322-81bef7291366?q=80&w=400",
+            "badge_image": "/assets/badges/trang_an.png",
             "quiz_data": [
                 {
                     "id": "q1",
@@ -132,7 +132,7 @@
                     "voice_text": "Hãy tham gia câu hỏi để tìm hiểu thêm về biểu tượng này."
                 }
             ],
-            "badge_image": "https://images.unsplash.com/photo-1528127269322-81bef7291366?q=80&w=400",
+            "badge_image": "/assets/badges/cot_co.png",
             "quiz_data": [
                 {
                     "id": "q1",
@@ -207,7 +207,7 @@
                     "voice_text": "Bạn đã sẵn sàng thử thách kiến thức về kỳ quan này chưa?"
                 }
             ],
-            "badge_image": "https://images.unsplash.com/photo-1528127269322-81bef7291366?q=80&w=400",
+            "badge_image": "/assets/badges/vinh_ha_long.png",
             "quiz_data": [
                 {
                     "id": "q1",
@@ -278,7 +278,7 @@
                     "voice_text": "Hãy cùng kiểm tra kiến thức về phố cổ nhé."
                 }
             ],
-            "badge_image": "https://images.unsplash.com/photo-1528127269322-81bef7291366?q=80&w=400",
+            "badge_image": "/assets/badges/pho_co_hoi_an.png",
             "quiz_data": [
                 {
                     "id": "q1",

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import JudgeStatsCard from '@/components/judge/JudgeStatsCard';
-import MissionTimeline from '@/components/judge/MissionTimeline';
+import VerticalMissionTimeline from '@/components/judge/VerticalMissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
 import ImmersiveArena from '@/components/judge/ImmersiveArena';
 import ScoreLeaderboard from '@/components/judge/ScoreLeaderboard';
@@ -12,7 +11,8 @@ import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import config from '../../../../../packages/shared-config/config.json'; // Importing from shared-config
+import config from '../../../../../packages/shared-config/config.json';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const DEFAULT_HUB_IP = 'localhost';
 
@@ -20,87 +20,90 @@ export default function JudgePage() {
     const router = useRouter();
     const wsRef = useRef<WebSocket | null>(null);
 
-    // Auth State
+    // Auth & Session
     const [isAuthorized, setIsAuthorized] = useState(false);
+    const [sessionId, setSessionId] = useState<string | null>(null);
 
-    // UI Local State
+    // UI State
     const [currentTime, setCurrentTime] = useState('');
     const [wsStatus, setWsStatus] = useState('Disconnected');
     const [hubIp, setHubIp] = useState<string | null>(null);
-    const [wsError, setWsError] = useState<string | null>(null);
     const [activeQuizStation, setActiveQuizStation] = useState<string | null>(null);
     const [voiceLang, setVoiceLang] = useState<'vi-VN' | 'en-US'>('vi-VN');
     const [showBadges, setShowBadges] = useState(false);
-    const [sessionScores, setSessionScores] = useState<Record<string, number>>({});
+    const [currentSubtitle, setCurrentSubtitle] = useState<string>("Hệ thống đang chờ lệnh...");
+    const [isEditorMode, setIsEditorMode] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [backgroundUrl, setBackgroundUrl] = useState<string | undefined>(undefined);
+    const [mapSites, setMapSites] = useState([
+        {
+            id: 'cot_co',
+            name: 'Cột cờ Hà Nội',
+            description: 'Biểu tượng lịch sử của thủ đô.',
+            icon: '🚩',
+            badge: '/assets/badges/cot_co.png',
+            posX: 44.5, posY: 24.5,
+            color: 'from-red-500 to-rose-600'
+        },
+        {
+            id: 'vinh_ha_long',
+            name: 'Vịnh Hạ Long',
+            description: 'Kỳ quan thiên nhiên thế giới.',
+            icon: '⛵',
+            badge: '/assets/badges/vinh_ha_long.png',
+            posX: 51.5, posY: 22.5,
+            color: 'from-blue-400 to-cyan-600'
+        },
+        {
+            id: 'trang_an',
+            name: 'Tràng An',
+            description: 'Di sản thế giới kép Ninh Bình.',
+            icon: '⛰️',
+            badge: '/assets/badges/trang_an.png',
+            posX: 43.5, posY: 28.5,
+            color: 'from-emerald-400 to-teal-600'
+        },
+        {
+            id: 'pho_co_hoi_an',
+            name: 'Hội An',
+            description: 'Đô thị cổ được bảo tồn nguyên vẹn.',
+            icon: '🏮',
+            badge: '/assets/badges/pho_co_hoi_an.png',
+            posX: 54.5, posY: 53.5,
+            color: 'from-orange-400 to-amber-600'
+        }
+    ]);
 
-    // Telemetry State
+    // Telemetry
     const [batteryLevel, setBatteryLevel] = useState(100);
     const [latency, setLatency] = useState(0);
     const [currentScore, setCurrentScore] = useState(0);
-    const [robotPos, setRobotPos] = useState({ x: 100, y: 100 });
+    const [sessionScores, setSessionScores] = useState<Record<string, number>>({});
+    const [robotPos, setRobotPos] = useState({ x: 0, y: 0 }); // Start at TP HCM (0,0 maps to South)
     const [path, setPath] = useState<{ x: number, y: number }[]>([]);
-    const [logs, setLogs] = useState<{ time: string, msg: string, type: string }[]>([]);
+
+    // AI State
     const [mascotEmotion, setMascotEmotion] = useState<MascotEmotion>('neutral');
     const [isAITalking, setIsAITalking] = useState(false);
-    const [sessionId, setSessionId] = useState<string | null>(null);
 
-    // Create Game Session on Auth
+    // --- EFFECTS & LOGIC ---
+
+    // Session Init
     useEffect(() => {
         if (!isAuthorized || !supabase) return;
-
         const initSession = async () => {
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from('game_sessions')
                 .insert({ player_name: 'Judge', status: 'active' })
                 .select()
                 .single();
-
-            if (data) {
-                setSessionId(data.id);
-                console.log("🎮 Session Started:", data.id);
-            }
+            if (data) setSessionId(data.id);
         };
         initSession();
     }, [isAuthorized]);
 
-    const handleScoreUpdate = async (points: number, stationId: string) => {
-        const newScore = currentScore + points;
-        setCurrentScore(newScore);
-
-        // Update per-station score for badges
-        setSessionScores(prev => ({
-            ...prev,
-            [stationId]: (prev[stationId] || 0) + points
-        }));
-
-        setMascotEmotion('excited');
-        setTimeout(() => setMascotEmotion('neutral'), 3000);
-
-        if (sessionId && supabase) {
-            // Update Session Total
-            await supabase
-                .from('game_sessions')
-                .update({ score: newScore })
-                .eq('id', sessionId);
-
-            // Log granular event
-            await supabase.from('game_scores').insert({
-                session_id: sessionId,
-                event_type: 'quiz_pass',
-                station_id: stationId,
-                points: points
-            });
-        }
-    };
-
-    const missionSteps = [
-        { id: '1', label: 'Khám phá Tràng An', status: 'completed' as const },
-        { id: '2', label: 'Thu thập Vật phẩm', status: 'current' as const },
-        { id: '3', label: 'Giải đố Cột cờ', status: 'pending' as const },
-        { id: '4', label: 'Về đích', status: 'pending' as const },
-    ];
-
-    // Fetch Dynamic Hub IP
+    // Fetch Hub IP
     useEffect(() => {
         if (!isAuthorized) return;
         const getHubIp = async () => {
@@ -111,284 +114,393 @@ export default function JudgePage() {
             try {
                 const { data } = await supabase
                     .from('robot_profiles')
-                    .select('hub_ip')
+                    .select('hub_ip, map_config')
                     .eq('is_active', true)
                     .single();
-                setHubIp(data?.hub_ip || DEFAULT_HUB_IP);
+
+                if (data?.hub_ip) {
+                    setHubIp(data.hub_ip);
+                    console.log("🔗 Hub IP Synced:", data.hub_ip);
+                } else {
+                    setHubIp(DEFAULT_HUB_IP);
+                }
+
+                // Sync Map Config if exists
+                if ((data as any)?.map_config) {
+                    const config = (data as any).map_config;
+                    if (config.sites) setMapSites(config.sites);
+                    if (config.robot_home) setRobotPos(config.robot_home);
+                    if (config.background_url) setBackgroundUrl(config.background_url);
+                    console.log("🗺️ Map Config Synced from Supabase");
+                }
             } catch (err) {
+                console.warn("Failed to fetch Hub IP, defaulting to localhost");
                 setHubIp(DEFAULT_HUB_IP);
             }
         };
         getHubIp();
     }, [isAuthorized]);
 
-    // WebSocket Connection (Depends on hubIp)
+    // Clock
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date().toLocaleTimeString('vi-VN'));
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // WebSocket (Robot Connection)
     useEffect(() => {
         if (!isAuthorized || !hubIp) return;
 
         const connectWs = () => {
             try {
-                const socket = new WebSocket(`ws://${hubIp}:8765`);
-                const start = Date.now();
+                const wsUrl = `ws://${hubIp}:8765`;
+                const socket = new WebSocket(wsUrl);
 
-                socket.onopen = () => {
-                    setWsStatus('Connected');
-                    setWsError(null);
-                    setLatency(Date.now() - start);
-                    addLog('Secure bridge established.', 'system');
-                };
-
+                socket.onopen = () => setWsStatus('Connected');
                 socket.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        if (data.type === 'telemetry') {
-                            if (data.battery !== undefined) setBatteryLevel(data.battery);
-                            if (data.pos) {
-                                setRobotPos(data.pos);
-                                setPath(prev => [...prev, data.pos].slice(-100)); // Keep last 100 points
-                            }
-                        } else if (data.type === 'event' && data.event === 'site_discovered') {
-                            console.log("📍 Station Discovered via WS:", data.station_id);
-                            setActiveQuizStation(data.station_id);
-                            addLog(`Mục tiêu được tìm thấy: ${data.site_name || data.station_id}`, 'system');
-                        } else if (data.type === 'voice_response') {
-                            // Trigger TTS in VoiceAssistant component via custom event
-                            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
-                            addLog(`AI: ${data.text}`, 'system');
-
-                            // 🐱 Update Mascot Appearance
-                            if (data.emotion) setMascotEmotion(data.emotion);
-                            setIsAITalking(true);
-                            setTimeout(() => setIsAITalking(false), 5000); // Reset after 5s or sync with TTS event
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'telemetry') {
+                        setBatteryLevel(data.battery || 100);
+                        setRobotPos(data.pos || { x: 0, y: 0 });
+                        if (data.pos) {
+                            setPath(prev => [...prev, data.pos].slice(-50));
                         }
-                    } catch (e) { }
+                        setLatency(data.latency || 0);
+                    } else if (data.type === 'voice_response') {
+                        setCurrentSubtitle(data.text);
+                        setMascotEmotion('talking');
+                        setIsAITalking(true);
+                        window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
+                        setTimeout(() => {
+                            setIsAITalking(false);
+                            setMascotEmotion('neutral');
+                        }, Math.min(data.text.length * 50, 5000) + 1000);
+                    }
                 };
-
                 socket.onclose = () => {
                     setWsStatus('Disconnected');
                     setTimeout(connectWs, 3000);
                 };
-
                 wsRef.current = socket;
             } catch (err) {
-                console.error("[WS] Security error:", err);
-                setWsError("Kết nối bị từ chối bởi trình duyệt.");
+                console.error("WS Error", err);
             }
         };
-
         connectWs();
         return () => wsRef.current?.close();
     }, [isAuthorized, hubIp]);
 
-    const handleVoiceCommand = (text: string, lang: string) => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({
-                command: 'voice_command',
-                params: { text, lang }
-            }));
-            addLog(`Giọng nói [${lang}]: ${text}`, 'info');
+    // Handle Score
+    const handleScoreUpdate = async (points: number, stationId: string) => {
+        const newScore = currentScore + points;
+        setCurrentScore(newScore);
+
+        setSessionScores(prev => ({ ...prev, [stationId]: (prev[stationId] || 0) + points }));
+
+        setMascotEmotion('excited');
+        setTimeout(() => setMascotEmotion('neutral'), 3000);
+
+        if (sessionId && supabase) {
+            await supabase.from('game_sessions').update({ score: newScore }).eq('id', sessionId);
+            await supabase.from('game_scores').insert({
+                session_id: sessionId,
+                event_type: 'quiz_pass',
+                station_id: stationId,
+                points: points
+            });
         }
     };
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            const now = new Date();
-            setCurrentTime(now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
-
-    const addLog = (msg: string, type = 'info') => {
-        const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        setLogs(prev => [{ time, msg, type }, ...prev].slice(0, 50));
+    const handleVoiceCommand = (text: string, lang: string) => {
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            setCurrentSubtitle("⚠️ Hệ thống mất kết nối, vui lòng thử lại sau.");
+            return;
+        }
+        wsRef.current.send(JSON.stringify({
+            command: 'voice_command',
+            params: { text, lang }
+        }));
+        setMascotEmotion('thinking');
+        setCurrentSubtitle(`Đang xử lý: "${text}"...`);
     };
 
+    const handlePosUpdate = (siteId: string, x: number, y: number) => {
+        setMapSites(prev => prev.map(site =>
+            site.id === siteId ? { ...site, posX: x, posY: y } : site
+        ));
+    };
 
+    const handleRobotPosUpdate = (x: number, y: number) => {
+        setRobotPos({ x, y });
+    };
 
-    if (!isAuthorized) {
-        return <JudgePinModal onSuccess={() => setIsAuthorized(true)} />;
-    }
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !supabase) return;
+
+        setIsUploading(true);
+        setCurrentSubtitle("🛰️ Đang tải ảnh bản đồ lên hệ thống...");
+
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `map_${Date.now()}.${fileExt}`;
+            const filePath = `custom/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('maps')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('maps')
+                .getPublicUrl(filePath);
+
+            setBackgroundUrl(publicUrl);
+            setCurrentSubtitle("✅ Tải ảnh bản đồ thành công!");
+        } catch (err: any) {
+            console.error("Upload Error", err);
+            setCurrentSubtitle(`❌ Lỗi tải ảnh: ${err.message || "Kiểm tra quyền truy cập Storage"}`);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const saveMapConfig = async () => {
+        if (!supabase) return;
+        try {
+            const fullConfig = {
+                sites: mapSites,
+                robot_home: robotPos,
+                background_url: backgroundUrl
+            };
+
+            const { error } = await supabase
+                .from('robot_profiles')
+                .update({ map_config: fullConfig } as any)
+                .eq('is_active', true);
+
+            if (error) throw error;
+            setIsEditorMode(false);
+            setCurrentSubtitle("✅ Đã lưu cấu hình bản đồ và vị trí Robot thành công!");
+        } catch (err: any) {
+            console.error("Save Error Details:", err);
+            const msg = err.message || "Vui lòng kiểm tra lại Database schema (Phase 6.14 SQL)";
+            setCurrentSubtitle(`❌ Lỗi: ${msg}`);
+        }
+    };
+
+    const missionSteps = [
+        { id: 'start', label: 'Tp. Hồ Chí Minh', status: 'completed' as const, icon: '🏙️' },
+        { id: 'hoi_an', label: 'Hội An', status: 'current' as const, icon: '🏮' },
+        { id: 'trang_an', label: 'Tràng An', status: 'pending' as const, icon: '⛰️' },
+        { id: 'ha_long', label: 'Vịnh Hạ Long', status: 'pending' as const, icon: '⛵' },
+        { id: 'cot_co', label: 'Cột cờ Hà Nội', status: 'pending' as const, icon: '🚩' },
+        { id: 'finish', label: 'Hoàn thành', status: 'pending' as const, icon: '🏆' },
+    ];
+
+    if (!isAuthorized) return <JudgePinModal onSuccess={() => setIsAuthorized(true)} />;
 
     return (
-        <div className="flex-1 p-6 md:p-8 flex flex-col gap-6 h-screen max-h-screen bg-slate-950 overflow-hidden text-white font-sans">
-            {/* TOP BAR */}
-            <div className="flex justify-between items-center bg-slate-900/40 backdrop-blur-md p-5 rounded-[32px] border border-white/10 shadow-2xl">
-                <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(124,58,237,0.3)] ring-1 ring-white/20">
-                        <span className="text-3xl">📜</span>
+        <div className="h-screen w-screen bg-slate-950 flex flex-col text-white overflow-hidden font-sans selection:bg-purple-500/30">
+
+            {/* --- TOP BAR --- */}
+            <header className="h-16 bg-slate-900/60 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 z-50 shrink-0 shadow-lg">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-900/20">
+                        <span className="text-xl">🇻🇳</span>
                     </div>
                     <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-black italic tracking-tighter uppercase bg-gradient-to-r from-white via-white to-slate-500 bg-clip-text text-transparent">
-                                The Storyteller
-                            </h1>
-                            <div className="px-2 py-0.5 rounded-md bg-purple-500/20 border border-purple-500/30 text-[8px] font-black tracking-widest text-purple-400 uppercase">
-                                v2.0 Final
-                            </div>
-                        </div>
-                        <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5 opacity-60 italic">World Robot Olympiad 2026 • Live Surveillance</p>
+                        <h1 className="text-lg font-black tracking-tighter uppercase bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                            Heritage Keeper
+                        </h1>
+                        <span className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Vietnam Edition • 2026</span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-8">
-                    <div className="text-right">
-                        <div className="text-3xl font-black font-mono tracking-tighter text-white tabular-nums">{currentTime}</div>
-                        <div className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-0.5 flex items-center justify-end gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                            Precise Local Time
-                        </div>
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-white/5">
+                        <div className={`w-2 h-2 rounded-full ${wsStatus === 'Connected' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                        <span className={`text-xs font-bold ${wsStatus === 'Connected' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {wsStatus === 'Connected' ? `ONLINE (${latency}ms)` : 'OFFLINE'}
+                        </span>
                     </div>
-                    <div className="h-12 w-px bg-white/10" />
-                    <button
-                        onClick={() => router.push('/')}
-                        className="w-14 h-14 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 active:scale-95 transition-all group"
-                    >
-                        <span className="text-2xl group-hover:scale-125 transition-transform">🏠</span>
-                    </button>
+
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-white/5">
+                        <span className="text-yellow-400 text-xs">⚡</span>
+                        <span className="text-xs font-bold text-slate-300">{batteryLevel}%</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-white/5">
+                        <span className="text-blue-400 text-xs">💎</span>
+                        <span className="text-xs font-bold text-white">{currentScore} PTS</span>
+                    </div>
+
+                    <div className="h-6 w-px bg-white/10 mx-2" />
+                    <div className="text-xl font-black font-mono tracking-tight text-slate-200">{currentTime}</div>
                 </div>
-            </div>
+            </header>
 
-            {/* MAIN CONTENT GRID */}
-            <div className="flex-1 grid grid-cols-12 gap-6 min-h-0">
+            {/* --- MAIN 3-COLUMN CONTENT --- */}
+            <div className="flex-1 flex min-h-0 relative">
 
-                {/* LEFT: STATUS & MAP */}
-                <div className="col-span-8 flex flex-col gap-6 h-full min-h-0">
-                    {/* Status Row */}
-                    <div className="grid grid-cols-3 gap-6">
-                        <JudgeStatsCard
-                            title="Robot Connection"
-                            value={wsStatus === 'Connected' ? 'ONLINE' : 'OFFLINE'}
-                            icon="🛰️"
-                            status={wsStatus === 'Connected' ? 'success' : 'critical'}
-                            subtext={wsError ? "SECURITY BLOCK" : `Latency: ${latency}ms`}
-                        />
-                        <JudgeStatsCard
-                            title="Battery Level"
-                            value={`${batteryLevel}%`}
-                            icon="⚡"
-                            status={batteryLevel > 20 ? 'normal' : 'critical'}
-                            subtext={batteryLevel > 20 ? "Mission Capable" : "Immediate RTB"}
-                        />
-                        <JudgeStatsCard
-                            title="Global Points"
-                            value={currentScore}
-                            icon="💎"
-                            status="warning"
-                            subtext="Live Scoring Feed"
-                        />
-                    </div>
-
-                    {/* LEFT: INTERACTIVE ARENA */}
-                    <div className="col-span-8 h-full min-h-0">
-                        <ImmersiveArena currentPos={robotPos} path={path} onSiteDiscover={setActiveQuizStation} />
-                    </div>
-                    {wsError ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
-                            <div className="bg-red-600/90 p-8 rounded-[40px] max-w-md border border-white/10 shadow-2xl animate-in zoom-in duration-300">
-                                <h3 className="text-lg font-black uppercase tracking-tighter mb-2 italic">⚠️ Connection Blocked (Mixed Content)</h3>
-                                <p className="text-sm font-medium leading-relaxed mb-6 opacity-90">
-                                    Trình duyệt đang chặn kết nối không bảo mật tới Laptop Hub ({hubIp}).
-                                    Để tiếp tục, hãy bật <b>"Insecure content"</b> trong cài đặt trang web này.
-                                </p>
-                                <div className="p-4 bg-black/30 rounded-2xl text-[10px] font-mono border border-white/5 space-y-1">
-                                    <p>1. Nhấn icon "Ổ khóa" / "Settings"</p>
-                                    <p>2. Chọn "Site Settings"</p>
-                                    <p>3. Tìm "Insecure content" → Chuyển thành "ALLOW"</p>
-                                </div>
-                            </div>
-                        </div>
-                    ) : null}
-
-                    {/* Live Badge */}
-                    <div className="absolute top-8 left-8 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-500 text-[10px] font-black tracking-[0.2em] uppercase rounded-2xl flex items-center gap-3 backdrop-blur-md">
-                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 absolute left-4" />
-                        Telemetry: Live
-                    </div>
+                {/* LEFT: MISSION TRACKING (Col 1-2 equivalent) */}
+                <div className="w-[300px] shrink-0 z-10">
+                    <VerticalMissionTimeline steps={missionSteps} />
                 </div>
 
-                {/* RIGHT: TIMELINE & LOGS */}
-                <div className="col-span-4 h-full min-h-0 flex flex-col gap-6">
-                    <div className="bg-slate-900/40 border border-white/5 rounded-[40px] p-2 flex-1 flex flex-col min-h-0 shadow-2xl">
-                        <div className="p-6 pb-2">
-                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-6 px-2">Objective Tracker</h3>
-                            <MissionTimeline steps={missionSteps} />
-                            <div className="mt-6 border-t border-white/5 pt-6">
-                                <ScoreLeaderboard />
-                            </div>
-                        </div>
+                {/* MIDDLE: VIETNAM MAP (Main Focus) */}
+                <div className="flex-1 relative flex flex-col bg-slate-900/10">
+                    <div className="flex-1 relative p-10">
+                        <ImmersiveArena
+                            robotPos={robotPos}
+                            path={path}
+                            onSiteDiscover={setActiveQuizStation}
+                            isEditorMode={isEditorMode}
+                            sites={mapSites}
+                            onPosUpdate={handlePosUpdate}
+                            onRobotPosUpdate={handleRobotPosUpdate}
+                            backgroundUrl={backgroundUrl}
+                        />
 
-                        <div className="mt-auto p-4 flex flex-col gap-4">
-                            <div className="h-[260px] bg-black/40 border border-white/5 rounded-[32px] p-5 font-mono text-[11px] flex flex-col shadow-inner">
-                                <div className="flex justify-between items-center mb-4 pb-4 border-b border-white/5">
-                                    <span className="text-slate-500 font-bold uppercase tracking-widest">Surveillance Logs</span>
-                                    <span className="px-2 py-0.5 bg-blue-500/20 rounded text-blue-400 text-[8px] font-bold">STREAMING</span>
-                                </div>
-                                <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-                                    {logs.length === 0 && (
-                                        <div className="h-full flex items-center justify-center text-slate-700 italic">No logs received...</div>
-                                    )}
-                                    {logs.map((log, i) => (
-                                        <div key={i} className="flex gap-4 animate-in fade-in slide-in-from-left-2 duration-300">
-                                            <span className="text-slate-600 shrink-0">[{log.time}]</span>
-                                            <span className={`${log.type === 'system' ? 'text-blue-400' : 'text-slate-300'}`}>{log.msg}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                        {/* Editor Controls */}
+                        <div className="absolute top-14 right-14 flex flex-col gap-3 z-[60]">
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                            />
 
-                            {/* QUICK ACTION */}
-                            <button className="w-full py-4 bg-red-600/10 border border-red-600/30 rounded-3xl text-red-500 text-[10px] font-black tracking-widest uppercase hover:bg-red-600 hover:text-white transition-all">
-                                🚨 Emergency Pause
+                            <button
+                                onClick={() => setIsEditorMode(!isEditorMode)}
+                                className={`px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border-2 
+                                    ${isEditorMode ? 'bg-orange-600 border-white text-white shadow-xl' : 'bg-slate-800/80 border-white/10 text-slate-400 hover:text-white'}`}
+                            >
+                                {isEditorMode ? 'ESC EDITOR' : 'MAP EDITOR'}
                             </button>
 
-                            {/* AI VOICE ASSISTANT */}
-                            <div className="mt-4 pt-8 border-t border-white/5 flex flex-col items-center">
-                                <div className="mb-6">
-                                    <AIAvatar emotion={mascotEmotion} isTalking={isAITalking} />
-                                </div>
-                                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-6 italic">AI Voice Explorer</h3>
-                                <VoiceAssistant
-                                    activeLanguage={voiceLang}
-                                    onLanguageChange={setVoiceLang}
-                                    onCommand={handleVoiceCommand}
-                                />
-                            </div>
+                            <AnimatePresence>
+                                {isEditorMode && (
+                                    <motion.div
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="flex flex-col gap-3"
+                                    >
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={isUploading}
+                                            className="px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-blue-600 border-2 border-white text-white shadow-2xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                                        >
+                                            {isUploading ? 'UPLOADING...' : 'UPLOAD NEW MAP'}
+                                        </button>
+
+                                        <button
+                                            onClick={saveMapConfig}
+                                            className="px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-emerald-600 border-2 border-white text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                                        >
+                                            SAVE CONFIG
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+
+                    {/* SUBTITLE OVERLAY (Bottom-Middle of the whole screen area) */}
+                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-6 pointer-events-none">
+                        <AnimatePresence mode='wait'>
+                            <motion.div
+                                key={currentSubtitle}
+                                initial={{ y: 20, opacity: 0, scale: 0.95 }}
+                                animate={{ y: 0, opacity: 1, scale: 1 }}
+                                exit={{ y: -10, opacity: 0, scale: 0.95 }}
+                                className="bg-slate-900/80 backdrop-blur-2xl border border-white/10 px-8 py-5 rounded-[32px] shadow-2xl text-center ring-1 ring-white/5"
+                            >
+                                <p className="text-lg md:text-xl font-bold text-white leading-relaxed drop-shadow-md italic">
+                                    "{currentSubtitle}"
+                                </p>
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </div>
+
+                {/* RIGHT SIDEBAR (Mascot & Interaction) */}
+                <div className="w-[360px] bg-slate-900/60 backdrop-blur-xl border-l border-white/5 flex flex-col shrink-0 z-40 shadow-2xl">
+                    <div className="h-[320px] relative border-b border-white/5 bg-gradient-to-b from-slate-900/0 to-slate-800/30">
+                        <div className="absolute inset-0 flex items-center justify-center p-8">
+                            <AIAvatar
+                                emotion={mascotEmotion}
+                                isTalking={isAITalking}
+                                size={300}
+                            />
+                        </div>
+                        <div className="absolute top-6 right-6 px-3 py-1 bg-purple-500/20 text-purple-400 text-[10px] font-black rounded-full uppercase tracking-wider border border-purple-500/30 backdrop-blur-md">
+                            AI Storyteller
+                        </div>
+                    </div>
+
+                    <div className="p-6 border-b border-white/5">
+                        <h3 className="text-xs font-black uppercase text-slate-500 tracking-[0.2em] mb-4">Voice Assistant</h3>
+                        <VoiceAssistant
+                            lang={voiceLang}
+                            onCommand={(text) => handleVoiceCommand(text, voiceLang)}
+                            onLangChange={setVoiceLang}
+                            isTalking={isAITalking}
+                        />
+                    </div>
+
+                    <div className="flex-1 flex flex-col p-6 min-h-0 overflow-hidden">
+                        <h3 className="text-xs font-black uppercase text-slate-500 tracking-[0.2em] mb-4 shrink-0">Session Leaderboard</h3>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <ScoreLeaderboard />
                         </div>
                     </div>
                 </div>
             </div>
 
-            {showBadges && (
-                <BadgeCollection
-                    scores={sessionScores}
-                    onClose={() => setShowBadges(false)}
-                />
-            )}
+            {/* --- OVERLAYS --- */}
 
-            {/* BADGE FAB */}
             <button
                 onClick={() => setShowBadges(true)}
-                className="fixed bottom-8 left-8 z-50 w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-lg shadow-orange-500/20 flex items-center justify-center text-3xl hover:scale-110 transition-transform border-4 border-slate-900"
-                title="My Collection"
+                className="fixed bottom-10 left-10 z-[60] w-20 h-20 bg-gradient-to-br from-yellow-300 via-orange-500 to-red-600 rounded-[28px] shadow-[0_20px_40px_rgba(234,88,12,0.3)] flex items-center justify-center text-4xl hover:scale-110 active:scale-95 transition-all border-4 border-white/20 group"
             >
-                🎒
+                <span className="group-hover:rotate-12 transition-transform">🎒</span>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-black text-xs font-black border-2 border-orange-500">
+                    {Object.keys(sessionScores).length}
+                </div>
             </button>
 
-            {activeQuizStation && (
-                <AdvancedQuiz
-                    stationId={activeQuizStation}
-                    questions={(config.heritage_info as any)[activeQuizStation]?.quiz_data || []}
-                    badgeImage={(config.heritage_info as any)[activeQuizStation]?.badge_image}
-                    onClose={() => setActiveQuizStation(null)}
-                    onScoreUpdate={(points) => handleScoreUpdate(points, activeQuizStation)}
-                />
-            )}
+            <AnimatePresence>
+                {showBadges && (
+                    <BadgeCollection
+                        scores={sessionScores}
+                        onClose={() => setShowBadges(false)}
+                    />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {activeQuizStation && (
+                    <AdvancedQuiz
+                        stationId={activeQuizStation}
+                        questions={(config.heritage_info as any)[activeQuizStation]?.quiz_data || []}
+                        badgeImage={(config.heritage_info as any)[activeQuizStation]?.badge_image}
+                        onClose={() => setActiveQuizStation(null)}
+                        onScoreUpdate={(points) => handleScoreUpdate(points, activeQuizStation)}
+                    />
+                )}
+            </AnimatePresence>
 
             <style jsx global>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar { width: 5px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
             `}</style>
         </div>
     );
