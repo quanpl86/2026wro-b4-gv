@@ -6,6 +6,7 @@ import MissionTimeline from '@/components/judge/MissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
 import LiveMap from '@/components/judge/LiveMap';
 import QuizOverlay from '@/components/interactive/QuizOverlay';
+import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
@@ -24,6 +25,7 @@ export default function JudgePage() {
     const [hubIp, setHubIp] = useState<string | null>(null);
     const [wsError, setWsError] = useState<string | null>(null);
     const [activeQuizStation, setActiveQuizStation] = useState<string | null>(null);
+    const [voiceLang, setVoiceLang] = useState<'vi-VN' | 'en-US'>('vi-VN');
 
     // Telemetry State
     const [batteryLevel, setBatteryLevel] = useState(100);
@@ -91,6 +93,10 @@ export default function JudgePage() {
                             console.log("📍 Station Discovered via WS:", data.station_id);
                             setActiveQuizStation(data.station_id);
                             addLog(`Mục tiêu được tìm thấy: ${data.site_name || data.station_id}`, 'system');
+                        } else if (data.type === 'voice_response') {
+                            // Trigger TTS in VoiceAssistant component via custom event
+                            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
+                            addLog(`AI: ${data.text}`, 'system');
                         }
                     } catch (e) { }
                 };
@@ -110,6 +116,16 @@ export default function JudgePage() {
         connectWs();
         return () => wsRef.current?.close();
     }, [isAuthorized, hubIp]);
+
+    const handleVoiceCommand = (text: string, lang: string) => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                command: 'voice_command',
+                params: { text, lang }
+            }));
+            addLog(`Giọng nói [${lang}]: ${text}`, 'info');
+        }
+    };
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -258,6 +274,16 @@ export default function JudgePage() {
                             <button className="w-full py-4 bg-red-600/10 border border-red-600/30 rounded-3xl text-red-500 text-[10px] font-black tracking-widest uppercase hover:bg-red-600 hover:text-white transition-all">
                                 🚨 Emergency Pause
                             </button>
+
+                            {/* AI VOICE ASSISTANT */}
+                            <div className="mt-4 pt-8 border-t border-white/5 flex flex-col items-center">
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-6 italic">AI Voice Explorer</h3>
+                                <VoiceAssistant
+                                    activeLanguage={voiceLang}
+                                    onLanguageChange={setVoiceLang}
+                                    onCommand={handleVoiceCommand}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,1 +1,16 @@
-{ "project": "Antigravyti", "mqtt_broker": "localhost" }
+{
+    "project": "Antigravyti",
+    "mqtt_broker": "localhost",
+    "heritage_info": {
+        "trang_an": {
+            "name_vn": "Tràng An",
+            "fact_vn": "Tràng An là di sản thế giới kép đầu tiên của Việt Nam, nổi tiếng với hệ thống hang động và núi đá vôi hùng vĩ.",
+            "fact_en": "Trang An is Vietnam's first dual World Heritage site, famous for its majestic cave systems and limestone karsts."
+        },
+        "cot_co": {
+            "name_vn": "Cột cờ Hà Nội",
+            "fact_vn": "Cột cờ Hà Nội là biểu tượng kiêu hãnh của thủ đô, được xây dựng dưới triều nhà Nguyễn từ năm 1805.",
+            "fact_en": "The Flag Tower of Hanoi is a proud symbol of the capital, built under the Nguyen Dynasty starting in 1805."
+        }
+    }
+}
