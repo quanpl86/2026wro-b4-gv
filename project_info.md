@@ -4,9 +4,10 @@
 **The Heritage Keeper** (Người Giữ Lửa Di Sản) là một hệ thống Phygital (Vật lý kết hợp Kỹ thuật số) được thiết kế cho cuộc thi WRO 2026. Dự án sử dụng Robot thông minh làm hướng dẫn viên để giới thiệu và bảo tồn các giá trị di sản văn hóa thế giới.
 
 ## 🚀 2. Điểm đặc biệt (Innovation)
-- **AI Đa phương thức:** Kết hợp nhận diện hình ảnh (Observer) và giọng nói (Listener) để tương tác tự nhiên với con người.
-- **Trình diễn Real-time:** Web App đồng bộ hóa tức thì với vị trí và hành động của Robot.
-- **Kiến trúc Cloud-Native:** Sử dụng Supabase và MQTT để điều khiển và quản lý dữ liệu hiệu suất cao.
+- **AI Đa phương thức:** Kết hợp Gemini AI (LLM) và Web Speech API (TTS) để tạo ra các cuộc hội thoại di sản sống động và thông minh.
+- **Trình diễn Real-time:** Web App đồng bộ hóa tức thì với vị trí và hành động của Robot qua WebSocket & MQTT.
+- **Kiến trúc Hub-and-Spoke:** Laptop đóng vai trò AI Brain Hub, kết nối không dây giữa Robot EV3, Smartphone (Vision) và Tablet (Dashboard).
+- **Hệ thống TTS Độ trễ thấp:** Sử dụng trình duyệt để phát âm thanh ngay lập tức mà không cần phụ thuộc vào mạng Cloud (Zero-Latency Voice).
 
 ## 📈 3. Trạng thái Triển khai (Live Status)
 - **Phase 1 (Foundation):** Đã hoàn thành (Cấu trúc monorepo, 9 Agent Personas).
@@ -36,3 +37,6 @@
 - [x] **Cấu hình Robot linh hoạt:** Thiết lập cổng Motor/Sensor và Tốc độ ngay trên trình duyệt.
 - [x] **Keyboard Mapping:** Điều khiển thủ công bằng WASD/Mũi tên với layout tùy biến.
 - [x] **Hệ sinh thái AI Roles:** 9 Agent chuyên biệt giúp phát triển dự án quy mô lớn.
+- [x] **Gemini 2.5/3 Heritage Guide:** Tích hợp AI thế hệ mới để thuyết minh di sản và nhận diện ý định điều khiển (Intent Control).
+- [x] **Hybrid AI Chat (Thoại & Chữ):** Cho phép tương tác song song bằng giọng nói và văn bản ngay trên Dashboard.
+- [x] **Heritage Simulator:** Môi trường giả lập 100% Phygital giúp kiểm tra kịch bản di sản mà không cần robot vật lý.
