@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import JudgeStatsCard from '@/components/judge/JudgeStatsCard';
 import MissionTimeline from '@/components/judge/MissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
-import LiveMap from '@/components/judge/LiveMap';
+import ImmersiveArena from '@/components/judge/ImmersiveArena';
 import QuizOverlay from '@/components/interactive/QuizOverlay';
 import VoiceAssistant from '@/components/interactive/VoiceAssistant';
+import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
@@ -34,6 +35,8 @@ export default function JudgePage() {
     const [robotPos, setRobotPos] = useState({ x: 100, y: 100 });
     const [path, setPath] = useState<{ x: number, y: number }[]>([]);
     const [logs, setLogs] = useState<{ time: string, msg: string, type: string }[]>([]);
+    const [mascotEmotion, setMascotEmotion] = useState<MascotEmotion>('neutral');
+    const [isAITalking, setIsAITalking] = useState(false);
 
     const missionSteps = [
         { id: '1', label: 'Khám phá Tràng An', status: 'completed' as const },
@@ -97,6 +100,11 @@ export default function JudgePage() {
                             // Trigger TTS in VoiceAssistant component via custom event
                             window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
                             addLog(`AI: ${data.text}`, 'system');
+
+                            // 🐱 Update Mascot Appearance
+                            if (data.emotion) setMascotEmotion(data.emotion);
+                            setIsAITalking(true);
+                            setTimeout(() => setIsAITalking(false), 5000); // Reset after 5s or sync with TTS event
                         }
                     } catch (e) { }
                 };
@@ -213,33 +221,32 @@ export default function JudgePage() {
                         />
                     </div>
 
-                    {/* Map Area */}
-                    <div className="flex-1 bg-slate-900/30 border border-white/5 rounded-[40px] relative overflow-hidden group shadow-inner">
-                        {wsError ? (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
-                                <div className="bg-red-600/90 p-8 rounded-[40px] max-w-md border border-white/10 shadow-2xl animate-in zoom-in duration-300">
-                                    <h3 className="text-lg font-black uppercase tracking-tighter mb-2 italic">⚠️ Connection Blocked (Mixed Content)</h3>
-                                    <p className="text-sm font-medium leading-relaxed mb-6 opacity-90">
-                                        Trình duyệt đang chặn kết nối không bảo mật tới Laptop Hub ({hubIp}).
-                                        Để tiếp tục, hãy bật <b>"Insecure content"</b> trong cài đặt trang web này.
-                                    </p>
-                                    <div className="p-4 bg-black/30 rounded-2xl text-[10px] font-mono border border-white/5 space-y-1">
-                                        <p>1. Nhấn icon "Ổ khóa" / "Settings"</p>
-                                        <p>2. Chọn "Site Settings"</p>
-                                        <p>3. Tìm "Insecure content" → Chuyển thành "ALLOW"</p>
-                                    </div>
+                    {/* LEFT: INTERACTIVE ARENA */}
+                    <div className="col-span-8 h-full min-h-0">
+                        <ImmersiveArena currentPos={robotPos} path={path} />
+                    </div>
+                    {wsError ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
+                            <div className="bg-red-600/90 p-8 rounded-[40px] max-w-md border border-white/10 shadow-2xl animate-in zoom-in duration-300">
+                                <h3 className="text-lg font-black uppercase tracking-tighter mb-2 italic">⚠️ Connection Blocked (Mixed Content)</h3>
+                                <p className="text-sm font-medium leading-relaxed mb-6 opacity-90">
+                                    Trình duyệt đang chặn kết nối không bảo mật tới Laptop Hub ({hubIp}).
+                                    Để tiếp tục, hãy bật <b>"Insecure content"</b> trong cài đặt trang web này.
+                                </p>
+                                <div className="p-4 bg-black/30 rounded-2xl text-[10px] font-mono border border-white/5 space-y-1">
+                                    <p>1. Nhấn icon "Ổ khóa" / "Settings"</p>
+                                    <p>2. Chọn "Site Settings"</p>
+                                    <p>3. Tìm "Insecure content" → Chuyển thành "ALLOW"</p>
                                 </div>
                             </div>
-                        ) : null}
-
-                        <LiveMap currentPos={robotPos} path={path} />
-
-                        {/* Live Badge */}
-                        <div className="absolute top-8 left-8 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-500 text-[10px] font-black tracking-[0.2em] uppercase rounded-2xl flex items-center gap-3 backdrop-blur-md">
-                            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-                            <span className="w-2.5 h-2.5 rounded-full bg-red-500 absolute left-4" />
-                            Telemetry: Live
                         </div>
+                    ) : null}
+
+                    {/* Live Badge */}
+                    <div className="absolute top-8 left-8 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-500 text-[10px] font-black tracking-[0.2em] uppercase rounded-2xl flex items-center gap-3 backdrop-blur-md">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 absolute left-4" />
+                        Telemetry: Live
                     </div>
                 </div>
 
@@ -277,6 +284,9 @@ export default function JudgePage() {
 
                             {/* AI VOICE ASSISTANT */}
                             <div className="mt-4 pt-8 border-t border-white/5 flex flex-col items-center">
+                                <div className="mb-6">
+                                    <AIAvatar emotion={mascotEmotion} isTalking={isAITalking} />
+                                </div>
                                 <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-6 italic">AI Voice Explorer</h3>
                                 <VoiceAssistant
                                     activeLanguage={voiceLang}

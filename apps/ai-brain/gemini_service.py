@@ -56,7 +56,8 @@ class GeminiService:
         RESPONSE FORMAT (JSON ONLY):
         {{
             "text": "Your spoken response here",
-            "robot_move": "forward" | "backward" | "stop" | null
+            "robot_move": "forward" | "backward" | "stop" | null,
+            "emotion": "happy" | "thinking" | "excited" | "neutral"
         }}
         """
 

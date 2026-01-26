@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import QuizOverlay from '@/components/interactive/QuizOverlay';
+import ImmersiveArena from '@/components/judge/ImmersiveArena';
+import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
 
 const DEFAULT_HUB_IP = 'localhost';
 
@@ -18,6 +20,10 @@ export default function SimulatorPage() {
     const [activeQuizStation, setActiveQuizStation] = useState<string | null>(null);
     const [voiceLang, setVoiceLang] = useState<'vi-VN' | 'en-US'>('vi-VN');
     const [logs, setLogs] = useState<any[]>([]);
+    const [robotPos, setRobotPos] = useState({ x: 100, y: 100 });
+    const [path, setPath] = useState<{ x: number, y: number }[]>([]);
+    const [mascotEmotion, setMascotEmotion] = useState<MascotEmotion>('neutral');
+    const [isAITalking, setIsAITalking] = useState(false);
 
     // Fetch Hub IP
     useEffect(() => {
@@ -56,9 +62,19 @@ export default function SimulatorPage() {
                     if (data.type === 'voice_response') {
                         window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
                         addLog(`AI: ${data.text}`, 'system');
+
+                        // 🐱 Update Mascot Appearance
+                        if (data.emotion) setMascotEmotion(data.emotion);
+                        setIsAITalking(true);
+                        setTimeout(() => setIsAITalking(false), 5000);
                     } else if (data.type === 'event' && data.event === 'site_discovered') {
                         setActiveQuizStation(data.station_id);
-                        addLog(`Virtual Discovery: ${data.site_name}`, 'info');
+                        addLog(`Discovery: ${data.site_name}`, 'info');
+                    } else if (data.type === 'telemetry') {
+                        if (data.pos) {
+                            setRobotPos(data.pos);
+                            setPath(prev => [...prev, data.pos].slice(-50));
+                        }
                     }
                 };
                 socket.onclose = () => {
@@ -133,27 +149,9 @@ export default function SimulatorPage() {
                 </div>
 
                 <div className="grid grid-cols-12 gap-8">
-                    {/* Left: Interactive Map Simulation */}
+                    {/* LEFT: INTERACTIVE ARENA */}
                     <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
-                        <div className="bg-slate-900/30 border border-white/5 rounded-[40px] p-8 min-h-[500px] flex flex-col">
-                            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 mb-8 px-2">Click to reach Heritage Site</h3>
-
-                            <div className="grid grid-cols-2 gap-6 flex-1">
-                                {heritageSites.map((site) => (
-                                    <button
-                                        key={site.id}
-                                        onClick={() => simulateDiscovery(site.id, site.name)}
-                                        className="group relative bg-slate-800/40 border border-white/5 hover:border-purple-500/50 rounded-3xl p-8 transition-all flex flex-col items-center justify-center gap-4 hover:bg-slate-800"
-                                    >
-                                        <span className="text-5xl group-hover:scale-110 transition-transform">{site.icon}</span>
-                                        <span className="text-sm font-black uppercase tracking-widest text-slate-300">{site.name}</span>
-                                        <div className="absolute inset-x-4 bottom-4 h-1 bg-white/5 rounded-full overflow-hidden">
-                                            <div className="h-full bg-purple-600 w-0 group-hover:w-full transition-all duration-500" />
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        <ImmersiveArena currentPos={robotPos} path={path} />
 
                         {/* Logs */}
                         <div className="bg-black/40 border border-white/5 rounded-[32px] p-6 font-mono text-[11px] h-40 overflow-hidden flex flex-col shadow-inner">
@@ -172,6 +170,9 @@ export default function SimulatorPage() {
                     {/* Right: Interaction Hub */}
                     <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
                         <div className="bg-slate-900 border border-white/10 rounded-[40px] p-8 flex flex-col items-center shadow-2xl">
+                            <div className="mb-6">
+                                <AIAvatar emotion={mascotEmotion} isTalking={isAITalking} />
+                            </div>
                             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-8">AI Interaction Lab</h3>
                             <VoiceAssistant
                                 activeLanguage={voiceLang}

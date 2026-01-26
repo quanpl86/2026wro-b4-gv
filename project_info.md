@@ -15,7 +15,7 @@
 - **Phase 3 (Intelligence):** Đã hoàn thành (Điều hướng cơ bản, Motor Tune).
 - **Phase 4 (QR Vision):** Đã hoàn thành (Migrated ArUco -> QR engine, jsQR integration).
 - **Phase 5 (The Storyteller):** Đang triển khai (Hoàn thành Judge Portal, Live Map tracking, Dynamic Hub IP).
-- **Phase 6 (Independence):** Đang triển khai (Hoàn thành Gemini AI Smart Guide, Hybrid Chat & Heritage Simulator).
+- **Phase 6 (Independence):** Đang triển khai (Hoàn thành Gemini AI Smart Guide, Hybrid Chat, Heritage Simulator và Phygital Immersive Arena).
 
 ---
 
