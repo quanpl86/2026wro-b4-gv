@@ -119,7 +119,7 @@ async def broadcast_telemetry():
                     disconnected.add(ws)
             
             for ws in disconnected:
-                connected_clients.remove(ws)
+                connected_clients.discard(ws)
                 
         await asyncio.sleep(1.0) # Send every 1s
 
@@ -132,7 +132,7 @@ async def broadcast_event(data):
         try:
             await client.send(message)
         except:
-            connected_clients.remove(client)
+            connected_clients.discard(client)
 
 async def ws_handler(websocket):
     print(f"🔗 Client Connected: {websocket.remote_address}")
@@ -205,8 +205,19 @@ async def ws_handler(websocket):
                                     "type": "voice_response",
                                     "text": response_text
                                 })
+                                
                     continue # Voice command handles its own MQTT/Response
                 
+                elif cmd == "set_emotion":
+                    # Broadcast emotion command to all clients (Robot Face)
+                    emotion = params.get('emotion', 'neutral')
+                    print(f"🎭 Setting Emotion: {emotion}")
+                    await broadcast_event({
+                        "type": "set_emotion",
+                        "command": "set_emotion",
+                        "emotion": emotion
+                    })
+                    
                 execute_mqtt(mqtt_msg)
             except Exception as e:
                 print(f"⚠️ WS Msg Error: {e}")
@@ -215,7 +226,7 @@ async def ws_handler(websocket):
         pass
     finally:
         if websocket in connected_clients:
-            connected_clients.remove(websocket)
+            connected_clients.discard(websocket)
         print(f"🔌 Client Disconnected: {websocket.remote_address}")
 
 async def start_ws():

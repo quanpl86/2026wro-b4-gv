@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRobotEmotion } from '@/stores/useRobotEmotion';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VoiceAssistantProps {
@@ -30,10 +31,16 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
             recognitionRef.current.continuous = false;
             recognitionRef.current.interimResults = true;
 
+            recognitionRef.current.onstart = () => {
+                setIsListening(true);
+                setEmotion('curious'); // Listening intently
+            };
+
             recognitionRef.current.onresult = (event: any) => {
                 const current = event.results[event.results.length - 1][0].transcript;
                 setTranscript(current);
                 if (event.results[0].isFinal) {
+                    setEmotion('think'); // Processing result
                     onCommand(current, activeLanguage);
                     setTimeout(() => {
                         setIsListening(false);
@@ -44,11 +51,20 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
 
             recognitionRef.current.onend = () => {
                 setIsListening(false);
+                // Don't reset to neutral here immediately if we are processing (let TTS take over)
+                // However, if no result was found, we should reset.
+                // For now, let's leave it to TTS or timeout to reset if needed, 
+                // but checking 'isTalking' might be complex here.
+                // Safest: depend on TTS or explicit reset if idle.
             };
 
             recognitionRef.current.onerror = (event: any) => {
-                console.error("Speech Error:", event.error);
+                // 'no-speech' is common (timeout), don't log as error
+                if (event.error !== 'no-speech') {
+                    console.error("Speech Error:", event.error);
+                }
                 setIsListening(false);
+                setEmotion('neutral');
             };
         }
     }, [activeLanguage, onCommand]);
@@ -75,33 +91,87 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
     const toggleListening = () => {
         if (isListening) {
             recognitionRef.current?.stop();
+            // setEmotion('neutral'); // Don't reset immediately, let processing/silence handle it
         } else {
             setTranscript('');
             recognitionRef.current.lang = activeLanguage;
             recognitionRef.current?.start();
             setIsListening(true);
+            setEmotion('curious'); // 👂 Start Listen -> Curious
         }
     };
+
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const handleTextSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (textInput.trim()) {
+            // 1. Blur first (Causes onBlur -> Neutral)
+            inputRef.current?.blur();
+            // 2. Then set Think (Overriding Neutral)
+            setTimeout(() => setEmotion('think'), 50);
+
             onCommand(textInput, activeLanguage);
             setTextInput('');
         }
     };
 
+    const { setEmotion } = useRobotEmotion();
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
     const speakResponse = (text: string) => {
         if (!window.speechSynthesis) return;
         window.speechSynthesis.cancel(); // Stop current speech
+
+        console.log("🗣️ Preparing TTS:", text);
+        // setEmotion('talking'); // Removed: waiting for onstart to match audio timing
+
         const utterance = new SpeechSynthesisUtterance(text);
+        utteranceRef.current = utterance; // Keep reference to prevent GC
+
         const voice = availableVoices.find(v => v.name === selectedVoiceName);
         if (voice) utterance.voice = voice;
         utterance.lang = activeLanguage;
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
+
+        // Emotion Triggers
+        utterance.onstart = () => {
+            console.log("🔊 TTS Started Playing");
+            setEmotion('talking');
+
+            // 🚀 FAST END DETECTION: Poll 'speaking' state to catch end faster than 'onend' event
+            const checkInterval = setInterval(() => {
+                if (!window.speechSynthesis.speaking) {
+                    console.log("⚡ Fast Silence Detected");
+                    setEmotion('neutral');
+                    utteranceRef.current = null;
+                    clearInterval(checkInterval);
+                }
+            }, 100);
+
+            // Cleanup interval if onend fires first
+            utterance.onend = () => {
+                console.log("✅ TTS Ended (Event)");
+                setEmotion('neutral');
+                utteranceRef.current = null;
+                clearInterval(checkInterval);
+            };
+        };
+
+        utterance.onerror = (e) => {
+            if (e.error === 'interrupted' || e.error === 'canceled') return;
+            console.error("❌ TTS Error Details:", e.error);
+            setEmotion('neutral');
+            utteranceRef.current = null;
+        };
+
+        console.log("🗣️ Speaking:", text, "Voice:", voice?.name);
         window.speechSynthesis.speak(utterance);
     };
+
+    // MANUAL TEST TRIGGER
+    const testSpeak = () => speakResponse("Hệ thống âm thanh đã sẵn sàng.");
 
     // Expose TTS to parent via global event
     useEffect(() => {
@@ -153,9 +223,12 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
                             className="w-full relative"
                         >
                             <input
+                                ref={inputRef}
                                 type="text"
                                 autoFocus
                                 value={textInput}
+                                onFocus={() => setEmotion('curious')} // 👀 Focus -> Curious
+                                onBlur={() => setEmotion('neutral')}  // 😐 Blur -> Neutral (if not processing)
                                 onChange={(e) => setTextInput(e.target.value)}
                                 placeholder={activeLanguage === 'vi-VN' ? "Nhập câu hỏi tại đây..." : "Type your question..."}
                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 pr-14 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500/50 transition-all shadow-inner"
@@ -182,6 +255,14 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
 
                 {/* Interaction Controls */}
                 <div className="flex items-center justify-center gap-4">
+                    <button
+                        onClick={testSpeak}
+                        className="w-8 h-8 rounded-full bg-slate-800 text-[10px] flex items-center justify-center border border-white/10 hover:bg-white/10 transition-all"
+                        title="Test Audio"
+                    >
+                        🔊
+                    </button>
+
                     <button
                         onClick={() => setShowSettings(!showSettings)}
                         className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all ${showSettings ? 'bg-white text-black border-white' : 'bg-slate-900 border-white/10 text-white/40 hover:text-white'}`}

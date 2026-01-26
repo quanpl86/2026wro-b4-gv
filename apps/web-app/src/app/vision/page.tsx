@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import jsQR from 'jsqr';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useRobotEmotion } from '@/stores/useRobotEmotion';
 
 import RobotFace from '@/components/robot/RobotFace';
 
@@ -25,7 +26,8 @@ export default function VisionPage() {
 
     // --- PHASE 7.5: FACE UI STATE ---
     const [displayMode, setDisplayMode] = useState<'camera' | 'face'>('camera');
-    const [currentEmotion, setCurrentEmotion] = useState<'neutral' | 'happy' | 'sleepy' | 'curious' | 'talking' | 'love' | 'angry' | 'think'>('neutral');
+    // Use Global Store for Emotion
+    const { currentEmotion, setEmotion } = useRobotEmotion();
 
     // ... (rest of useEffects) ...
 
@@ -40,7 +42,7 @@ export default function VisionPage() {
                     key={emo}
                     onClick={(e) => {
                         e.stopPropagation(); // Prevent switching back to camera
-                        setCurrentEmotion(emo);
+                        setEmotion(emo);
                     }}
                     className={`px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${currentEmotion === emo
                         ? 'bg-cyan-500 border-cyan-400 text-black shadow-[0_0_15px_rgba(34,211,238,0.5)]'
@@ -94,7 +96,7 @@ export default function VisionPage() {
                             setDisplayMode(msg.mode); // 'camera' or 'face'
                         }
                         if (msg.command === 'set_emotion' && msg.emotion) {
-                            setCurrentEmotion(msg.emotion);
+                            setEmotion(msg.emotion);
                             // Auto-switch to face mode if emotion is sent
                             setDisplayMode('face');
                         }
@@ -297,16 +299,16 @@ export default function VisionPage() {
 
                         <div className="flex gap-2 flex-wrap justify-center max-w-[90vw]">
                             {/* Emotion Buttons */}
-                            {(['neutral', 'happy', 'talking', 'curious', 'love', 'angry', 'think'] as const).map((emo) => (
+                            {(['neutral', 'happy', 'talking', 'curious', 'love', 'angry', 'think', 'sad', 'shy', 'celebrate'] as const).map((emo) => (
                                 <button
                                     key={emo}
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent switching back to camera
-                                        setCurrentEmotion(emo);
+                                        setEmotion(emo);
                                     }}
                                     className={`px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all ${currentEmotion === emo
-                                            ? 'bg-cyan-500 border-cyan-400 text-black shadow-[0_0_15px_rgba(34,211,238,0.5)]'
-                                            : 'bg-black/40 border-white/10 text-slate-300 hover:bg-white/10'
+                                        ? 'bg-cyan-500 border-cyan-400 text-black shadow-[0_0_15px_rgba(34,211,238,0.5)]'
+                                        : 'bg-black/40 border-white/10 text-slate-300 hover:bg-white/10'
                                         }`}
                                 >
                                     {emo}

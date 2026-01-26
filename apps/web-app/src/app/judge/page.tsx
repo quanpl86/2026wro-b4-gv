@@ -10,6 +10,7 @@ import AdvancedQuiz from '@/components/interactive/AdvancedQuiz';
 import BadgeCollection from '@/components/judge/BadgeCollection';
 import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
+import { useRobotEmotion } from '@/stores/useRobotEmotion';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import config from '@/data/config.json';
@@ -186,13 +187,8 @@ export default function JudgePage() {
                         setLatency(data.latency || 0);
                     } else if (data.type === 'voice_response') {
                         setCurrentSubtitle(data.text);
-                        setMascotEmotion('talking');
-                        setIsAITalking(true);
+                        // Trigger TTS (VoiceAssistant will handle the 'talking' emotion update via Global Store)
                         window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
-                        setTimeout(() => {
-                            setIsAITalking(false);
-                            setMascotEmotion('neutral');
-                        }, Math.min(data.text.length * 50, 5000) + 1000);
                     }
                 };
                 socket.onclose = () => {
@@ -207,6 +203,21 @@ export default function JudgePage() {
         connectWs();
         return () => wsRef.current?.close();
     }, [isAuthorized, hubIp]);
+
+    // --- EMOTION SYNC (New) ---
+    // Sync global emotion store (from VoiceAssistant) to Robot (via WebSocket)
+    const { currentEmotion } = useRobotEmotion();
+
+    useEffect(() => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            // Send emotion command to Hub, which broadcasts to Robot Face
+            wsRef.current.send(JSON.stringify({
+                command: 'set_emotion',
+                params: { emotion: currentEmotion }
+            }));
+            console.log("📡 Emotion Synced to Robot:", currentEmotion);
+        }
+    }, [currentEmotion]);
 
     // Handle Score
     const handleScoreUpdate = async (points: number, stationId: string) => {
@@ -492,7 +503,7 @@ export default function JudgePage() {
                                 initial={{ y: 20, opacity: 0, scale: 0.95 }}
                                 animate={{ y: 0, opacity: 1, scale: 1 }}
                                 exit={{ y: -10, opacity: 0, scale: 0.95 }}
-                                className="bg-slate-900/80 backdrop-blur-2xl border border-white/10 px-8 py-5 rounded-[32px] shadow-2xl text-center ring-1 ring-white/5"
+                                className="bg-slate-900/20 backdrop-blur-2xl border border-white/5 px-8 py-5 rounded-xl shadow-2xl text-center ring-1 ring-white/5 transition-all duration-500"
                             >
                                 <p className="text-lg md:text-xl font-bold text-white leading-relaxed drop-shadow-md italic">
                                     "{currentSubtitle}"
@@ -507,8 +518,8 @@ export default function JudgePage() {
                     <div className="h-[320px] relative border-b border-white/5 bg-gradient-to-b from-slate-900/0 to-slate-800/30">
                         <div className="absolute inset-0 flex items-center justify-center p-8">
                             <AIAvatar
-                                emotion={mascotEmotion}
-                                isTalking={isAITalking}
+                                emotion={currentEmotion as MascotEmotion}
+                                isTalking={currentEmotion === 'talking'}
                                 size={300}
                             />
                         </div>
