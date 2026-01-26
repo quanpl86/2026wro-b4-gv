@@ -6,11 +6,12 @@ import MissionTimeline from '@/components/judge/MissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
 import ImmersiveArena from '@/components/judge/ImmersiveArena';
 import ScoreLeaderboard from '@/components/judge/ScoreLeaderboard';
-import QuizOverlay from '@/components/interactive/QuizOverlay';
+import AdvancedQuiz from '@/components/interactive/AdvancedQuiz';
 import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import config from '../../../../../packages/shared-config/config.json'; // Importing from shared-config
 
 const DEFAULT_HUB_IP = 'localhost';
 
@@ -339,8 +340,9 @@ export default function JudgePage() {
             </div>
 
             {activeQuizStation && (
-                <QuizOverlay
+                <AdvancedQuiz
                     stationId={activeQuizStation}
+                    questions={(config.heritage_info as any)[activeQuizStation]?.quiz_data || []}
                     onClose={() => setActiveQuizStation(null)}
                     onScoreUpdate={(points) => handleScoreUpdate(points, activeQuizStation)}
                 />
