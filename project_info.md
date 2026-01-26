@@ -6,10 +6,19 @@
 ## 🚀 2. Điểm đặc biệt (Innovation)
 - **AI Đa phương thức:** Kết hợp Gemini AI (LLM) và Web Speech API (TTS) để tạo ra các cuộc hội thoại di sản sống động và thông minh.
 - **Trình diễn Real-time:** Web App đồng bộ hóa tức thì với vị trí và hành động của Robot qua WebSocket & MQTT.
-- **Kiến trúc Hub-and-Spoke:** Laptop đóng vai trò AI Brain Hub, kết nối không dây giữa Robot EV3, Smartphone (Vision) và Tablet (Dashboard).
+- **Kiến trúc Hub-and-Spoke Hybrid:** Laptop đóng vai trò AI Brain Hub, kết nối Mobile Robot qua WiFi và Static Stations qua Bluetooth PAN (IP over BT).
 - **Hệ thống TTS Độ trễ thấp:** Sử dụng trình duyệt để phát âm thanh ngay lập tức mà không cần phụ thuộc vào mạng Cloud (Zero-Latency Voice).
 
-## 📈 3. Trạng thái Triển khai (Live Status)
+### 3. Hardware Architecture 🤖
+- **Mobile Robot (Social Guide):** EV3 running **ev3dev**.
+    - **Movement:** Tank Drive (Port B+C).
+    - **Interaction:** Dual Arms (Port A+D) for gestures (Wave, Point, Cheer).
+    - **Vision:** Fixed Front-Facing Smartphone (Web-based processing).
+    - **Sensors:** 2x Color, 1x Ultrasonic, 1x Gyro.
+- **Station Controller:** 2x EV3 controlling 4 automation sites (Gates, Flags, Decor).
+- **Lighting:** ESP32 for ambient RGB effects via MQTT.
+
+## 📈 4. Trạng thái Triển khai (Live Status)
 - **Phase 1 (Foundation):** Đã hoàn thành (Cấu trúc monorepo, 9 Agent Personas).
 - **Phase 2 (Connectivity):** Đã hoàn thành (Kết nối Supabase, GitHub Sync).
 - **Phase 3 (Intelligence):** Đã hoàn thành (Điều hướng cơ bản, Motor Tune).

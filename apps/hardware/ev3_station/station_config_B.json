@@ -1,0 +1,6 @@
+{
+    "mqtt_broker_ip": "192.168.2.1",
+    "motor_a_station_id": "ha_long",
+    "motor_b_station_id": "cot_co",
+    "note": "Controller B - Controls Ha Long (Port A) and Cot Co (Port B)"
+}

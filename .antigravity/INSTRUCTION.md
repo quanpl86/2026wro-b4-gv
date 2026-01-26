@@ -2,7 +2,18 @@
 
 Tài liệu này hướng dẫn cách vận hành toàn bộ hệ thống Antigravyti.
 
+
 ---
+
+## 🚨 PROTOCOL 0: MANDATORY KNOWLEDGE ACQUISITION (DÀNH CHO AI AGENTS)
+> **YÊU CẦU BẮT BUỘC:** Bất kỳ AI Agent nào bắt đầu phiên làm việc mới PHẢI đọc và nắm vững các tài liệu sau trước khi thực hiện bất kỳ hành động nào:
+
+1.  **`/.antigravity/master_plan.md`**: Bản kế hoạch tổng thể và lộ trình hiện tại.
+2.  **`/WRO_HARDWARE_SETUP.md`**: Cấu trúc phần cứng thực tế (Mobile, Dual-Station Controller, ESP32).
+3.  **`/.antigravity/AI_ROLES.md`**: Vai trò và trách nhiệm của từng Agent.
+
+---
+
 
 ## 🚀 1. Khởi động nhanh (Quick Start)
 Để khởi động toàn bộ hệ thống (Web + AI Brain), hãy mở terminal tại thư mục gốc và chạy:
