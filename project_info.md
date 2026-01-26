@@ -25,6 +25,7 @@
 - **Phase 4 (QR Vision):** Đã hoàn thành (Migrated ArUco -> QR engine, jsQR integration).
 - **Phase 5 (The Storyteller):** Đã hoàn thành (Judge Portal, Live Map tracking, Mini-games, Digital Badges).
 - **Phase 6 (Immersive Upgrade):** Đã hoàn thành (Gemini AI Smart Guide, Visual CMS, Advanced Quiz Builder, Adaptive Map Editor, Cloud Storage Integration).
+- **Phase 7 (Social & Orchestration):** Đã hoàn thành 50% (Emotion Engine v2 with dynamic facial expressions, TTS Sync Bridge, Station Controller architecture).
 
 ---
 
@@ -34,7 +35,7 @@
 ### Cách thức đồng bộ:
 1. **Kiểm tra:** Trước khi bắt đầu task, Agent đọc `PROJECT_INFO.md` và thư mục `.antigravity` để nắm bắt tình hình.
 2. **Thực thi:** Triển khai code/tính năng.
-3. **Cập nhật:** Sau khi xác nhận tính năng đã chạy (verified), Agent phải cập nhật phần **3. Trạng thái Triển khai** và mục **5. Tính năng hiện hữu**.
+3. **Cập nhật:** Sau khi xác nhận tính năng đã chạy (verified), Agent phải cập nhật phần **4. Trạng thái Triển khai** và mục **5. Tính năng hiện hữu**.
 
 ---
 
@@ -49,9 +50,9 @@
 - [x] **Gemini 2.5/3 Heritage Guide:** Tích hợp AI thế hệ mới để thuyết minh di sản và nhận diện ý định điều khiển (Intent Control).
 - [x] **Hybrid AI Chat (Thoại & Chữ):** Cho phép tương tác song song bằng giọng nói và văn bản ngay trên Dashboard.
 - [x] **Heritage Simulator:** Môi trường giả lập 100% Phygital giúp kiểm tra kịch bản di sản mà không cần robot vật lý.
+- [x] **Living Robot Face (Emotion Engine v2):** Hệ thống cảm xúc động với các biểu cảm: *Neutral, Happy, Love (pulsing hearts), Sad (teary), Shy (blushing), Celebrate (stars), Thinking (scanning)*.
+- [x] **Zero-Latency TTS-to-Face Sync:** Cầu nối WebSocket đồng bộ hóa cử động miệng và cảm xúc theo thời gian thực với độ trễ < 50ms.
+- [x] **Mobile-First Judge UI:** Giao diện mật khẩu và bản đồ được tối ưu hóa cho điện thoại (Horizontal Layout Navigation).
 - [x] **Adaptive Map Editor:** Công cụ quản trị cho phép kéo thả, căn chỉnh vị trí di sản và robot trực tiếp trên Web.
 - [x] **Supabase Storage Integration:** Hỗ trợ tải ảnh sa bàn thực tế lên Cloud để làm hình nền bản đồ.
-- [x] **Responsive Map Logic:** Thuật toán tự động cân tỷ lệ, đảm bảo Pins luôn đúng vị trí trên mọi loại màn hình.
-- [x] **Visual CMS:** Quản lý nội dung di sản và câu hỏi trắc nghiệm trực quan trực tiếp trên bản đồ.
-- [x] **Advanced Quiz System:** Hỗ trợ đa dạng loại câu hỏi (MCQ, Matching, Sequencing), giải thích đáp án và tính điểm linh hoạt.
-- [x] **Auto-Persistence:** Tự động lưu trữ mọi thay đổi cấu hình map và quiz lên Supabase thời gian thực.
+- [x] **Visual CMS & Advanced Quiz:** Quản lý nội dung di sản và câu hỏi trắc nghiệm trực quan (Matching, Sequencing) với cơ chế tự động lưu.
