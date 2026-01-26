@@ -80,6 +80,14 @@ Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính
 - [ ] **Code Configuration:** Cập nhật các hằng số `ARM_LIMIT` trong `mobile_node.py` dựa trên số liệu đo được.
 - [ ] **Animation Test:** Chạy thử các hành động `HELLO`, `POINT`, `HAPPY` để tinh chỉnh độ mượt.
 
+### Phase 7.5: Robot Face & Emotion UI [PRIORITY HIGH]
+- [ ] **Emotion Eye Component:** Tạo Component mắt Robot (Anime style, Sparkling) với các trạng thái: Blink, Happy, Curious, Sleepy.
+- [ ] **Vision Page Update:** Nâng cấp `/vision` để hỗ trợ 2 chế độ:
+    1.  **Scanner Mode:** Camera Fullscreen (như hiện tại).
+    2.  **Face Mode:** Hiển thị mắt Robot.
+- [ ] **Remote Switching:** Tích hợp MQTT/Supabase để Admin chuyển đổi chế độ từ xa.
+- [ ] **Sync with Arms:** Khi tay múa "Happy", mắt cũng phải chuyển "Happy".
+
 ---
 
 ## 🛠️ 4. Quy Trình Làm Việc & Ngôn Ngữ (Protocols)
