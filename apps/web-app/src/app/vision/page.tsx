@@ -145,7 +145,10 @@ export default function VisionPage() {
 
                 if (siteName !== detectedSite) {
                     setDetectedSite(siteName);
-                    sendWsCommand('stop');
+                    sendWsCommand('site_discovered', {
+                        site_id: siteName,
+                        site_name: siteName
+                    });
                 }
             } else {
                 setDetectedSite(null);

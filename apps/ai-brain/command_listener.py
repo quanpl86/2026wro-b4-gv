@@ -107,6 +107,17 @@ async def broadcast_telemetry():
                 
         await asyncio.sleep(1.0) # Send every 1s
 
+async def broadcast_event(data):
+    """Gửi một sự kiện tới tất cả các client đang kết nối WebSocket"""
+    if not connected_clients:
+        return
+    message = json.dumps(data)
+    for client in connected_clients.copy():
+        try:
+            await client.send(message)
+        except:
+            connected_clients.remove(client)
+
 async def ws_handler(websocket):
     print(f"🔗 Client Connected: {websocket.remote_address}")
     connected_clients.add(websocket)
@@ -123,6 +134,16 @@ async def ws_handler(websocket):
                     mqtt_msg = f"move:{params.get('direction', 'stop')}:{params.get('speed', 100)}"
                 elif cmd == "aux_move":
                     mqtt_msg = f"aux_move:{params.get('port', 'aux1')}:{params.get('value', 0)}:{params.get('unit', 'rotations')}"
+                elif cmd == "site_discovered":
+                    # Broadcast the site discovery event to all clients (Judge Portal)
+                    print(f"📍 Station Discovered: {params.get('site_id')}")
+                    await broadcast_event({
+                        "type": "event",
+                        "event": "site_discovered",
+                        "station_id": params.get('site_id'),
+                        "site_name": params.get('site_name')
+                    })
+                    mqtt_msg = "stop" # Auto-stop robot when site discovered
                 
                 execute_mqtt(mqtt_msg)
             except Exception as e:

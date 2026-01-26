@@ -5,6 +5,7 @@ import JudgeStatsCard from '@/components/judge/JudgeStatsCard';
 import MissionTimeline from '@/components/judge/MissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
 import LiveMap from '@/components/judge/LiveMap';
+import QuizOverlay from '@/components/interactive/QuizOverlay';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
@@ -22,6 +23,7 @@ export default function JudgePage() {
     const [wsStatus, setWsStatus] = useState('Disconnected');
     const [hubIp, setHubIp] = useState<string | null>(null);
     const [wsError, setWsError] = useState<string | null>(null);
+    const [activeQuizStation, setActiveQuizStation] = useState<string | null>(null);
 
     // Telemetry State
     const [batteryLevel, setBatteryLevel] = useState(100);
@@ -85,6 +87,10 @@ export default function JudgePage() {
                                 setRobotPos(data.pos);
                                 setPath(prev => [...prev, data.pos].slice(-100)); // Keep last 100 points
                             }
+                        } else if (data.type === 'event' && data.event === 'site_discovered') {
+                            console.log("📍 Station Discovered via WS:", data.station_id);
+                            setActiveQuizStation(data.station_id);
+                            addLog(`Mục tiêu được tìm thấy: ${data.site_name || data.station_id}`, 'system');
                         }
                     } catch (e) { }
                 };
@@ -256,6 +262,14 @@ export default function JudgePage() {
                     </div>
                 </div>
             </div>
+
+            {activeQuizStation && (
+                <QuizOverlay
+                    stationId={activeQuizStation}
+                    onClose={() => setActiveQuizStation(null)}
+                    onScoreUpdate={(pts) => setCurrentScore(prev => prev + pts)}
+                />
+            )}
 
             <style jsx global>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
