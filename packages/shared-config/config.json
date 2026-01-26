@@ -3,81 +3,161 @@
     "mqtt_broker": "localhost",
     "heritage_info": {
         "trang_an": {
-            "name_vn": "Tràng An",
-            "name_en": "Trang An Scenic Landscape",
-            "fact_vn": "Tràng An là di sản thế giới kép đầu tiên của Việt Nam, nổi tiếng với hệ thống hang động và núi đá vôi hùng vĩ. Nơi đây có dấu tích của người tiền sử cách đây 30.000 năm.",
-            "fact_en": "Trang An is Vietnam's first dual World Heritage site, famous for its majestic cave systems and limestone karsts. The area contains traces of prehistoric humans dating back 30,000 years.",
-            "media": {
-                "hero_video": "https://v.pinimg.com/videos/i/720p/5a/2a/3a/5a2a3a8a3a8a3a8a3a8a3a8a3a8a3a8.mp4",
-                "cover_image": "https://images.unsplash.com/photo-1528127269322-81bef7291366?q=80&w=1000",
-                "gallery": [
-                    "https://images.unsplash.com/photo-1623126908029-7c8a36d2b58d?q=80&w=800",
-                    "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=800",
-                    "https://images.unsplash.com/photo-1504457047772-27faf1c00561?q=80&w=800"
-                ],
-                "infographic": {
-                    "age": "250 Triệu năm",
-                    "area": "6.226 ha",
-                    "recognition": "UNESCO 2014"
+            "id": "trang_an",
+            "name": "Tràng An",
+            "pages": [
+                {
+                    "type": "cover",
+                    "title": "Tràng An Scenic Landscape",
+                    "subtitle": "Di sản Văn hóa & Thiên nhiên Thế giới",
+                    "image": "https://images.unsplash.com/photo-1528127269322-81bef7291366?q=80&w=1000",
+                    "voice_text": "Chào mừng bạn đến với Tràng An, viên ngọc xanh giữa lòng Ninh Bình."
+                },
+                {
+                    "type": "content",
+                    "heading": "Lịch sử Kiến tạo",
+                    "text": "Tràng An nổi tiếng với hệ thống hang động và núi đá vôi hùng vĩ có tuổi địa chất hơn 250 triệu năm. Nơi đây ẩn chứa những dấu tích của người tiền sử từ 30.000 năm trước.",
+                    "media_url": "https://v.pinimg.com/videos/i/720p/5a/2a/3a/5a2a3a8a3a8a3a8a3a8a3a8a3a8a3a8.mp4",
+                    "media_type": "video",
+                    "voice_text": "Tràng An có lịch sử địa chất hơn 250 triệu năm, là nơi cư trú của người tiền sử."
+                },
+                {
+                    "type": "infographic",
+                    "data": {
+                        "Tuổi địa chất": "250 Triệu năm",
+                        "Diện tích": "6.226 ha",
+                        "Công nhận": "UNESCO 2014"
+                    },
+                    "voice_text": "Di sản này rộng hơn 6000 héc ta và được UNESCO công nhận năm 2014."
+                },
+                {
+                    "type": "media",
+                    "caption": "Vẻ đẹp trữ tình của non nước Tràng An",
+                    "images": [
+                        "https://images.unsplash.com/photo-1623126908029-7c8a36d2b58d?q=80&w=800",
+                        "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=800"
+                    ],
+                    "voice_text": "Hãy cùng chiêm ngưỡng vẻ đẹp như tranh vẽ của nơi đây."
+                },
+                {
+                    "type": "end",
+                    "heading": "Sẵn sàng thử thách?",
+                    "text": "Bạn đã nắm được những thông tin cốt lõi. Hãy tham gia thử thách Quiz để ghi điểm!",
+                    "action": "start_quiz",
+                    "voice_text": "Bạn đã sẵn sàng cho thử thách chưa? Hãy bắt đầu ngay nhé."
                 }
-            }
+            ]
         },
         "cot_co": {
-            "name_vn": "Cột cờ Hà Nội",
-            "name_en": "Hanoi Flag Tower",
-            "fact_vn": "Cột cờ Hà Nội là biểu tượng kiêu hãnh của thủ đô, được xây dựng dưới triều nhà Nguyễn từ năm 1805. Đây là một trong số ít công trình còn nguyên vẹn sau chiến tranh.",
-            "fact_en": "The Flag Tower of Hanoi is a proud symbol of the capital, built under the Nguyen Dynasty starting in 1805. It is one of the few structures that remained intact after the wars.",
-            "media": {
-                "hero_video": "",
-                "cover_image": "https://images.unsplash.com/photo-1599839556844-3c8b4fb46db4?q=80&w=1000",
-                "gallery": [
-                    "https://images.unsplash.com/photo-1555921015-5532091f6026?q=80&w=800",
-                    "https://images.unsplash.com/photo-1565593816738-9c6061f05427?q=80&w=800"
-                ],
-                "infographic": {
-                    "age": "200+ Năm",
-                    "height": "33.4 mét",
-                    "dynasty": "Nhà Nguyễn"
+            "id": "cot_co",
+            "name": "Cột cờ Hà Nội",
+            "pages": [
+                {
+                    "type": "cover",
+                    "title": "Cột cờ Hà Nội",
+                    "subtitle": "Biểu tượng kiêu hãnh của Thủ đô",
+                    "image": "https://images.unsplash.com/photo-1599839556844-3c8b4fb46db4?q=80&w=1000",
+                    "voice_text": "Đây là Cột cờ Hà Nội, nhân chứng lịch sử hào hùng của Thăng Long."
+                },
+                {
+                    "type": "content",
+                    "heading": "Kiến trúc Độc đáo",
+                    "text": "Được xây dựng năm 1805 dưới triều vua Gia Long, Cột cờ cao hơn 33 mét và là một trong số ít công trình còn nguyên vẹn qua các cuộc chiến tranh.",
+                    "media_url": "https://images.unsplash.com/photo-1555921015-5532091f6026?q=80&w=800",
+                    "media_type": "image",
+                    "voice_text": "Công trình được vua Gia Long xây dựng năm 1805, vẫn đứng vững qua bao thăng trầm lịch sử."
+                },
+                {
+                    "type": "infographic",
+                    "data": {
+                        "Năm xây dựng": "1805 - 1812",
+                        "Chiều cao": "33.4 mét",
+                        "Triều đại": "Nhà Nguyễn"
+                    },
+                    "voice_text": "Cột cờ cao hơn 33 mét và hoàn thành vào năm 1812."
+                },
+                {
+                    "type": "end",
+                    "heading": "Thử thách Lịch sử",
+                    "text": "Kiến trúc này còn ẩn chứa điều gì? Hãy trả lời câu hỏi để khám phá.",
+                    "action": "start_quiz",
+                    "voice_text": "Hãy tham gia câu hỏi để tìm hiểu thêm về biểu tượng này."
                 }
-            }
+            ]
         },
         "vinh_ha_long": {
-            "name_vn": "Vịnh Hạ Long",
-            "name_en": "Ha Long Bay",
-            "fact_vn": "Vịnh Hạ Long là kỳ quan thiên nhiên thế giới với gần 2.000 hòn đảo đá vôi hùng vĩ. Tên gọi 'Hạ Long' có nghĩa là 'Rồng hạ xuống' theo truyền thuyết.",
-            "fact_en": "Ha Long Bay is a natural wonder of the world with nearly 2,000 majestic limestone islands. The name 'Ha Long' means 'Descending Dragon' according to legend.",
-            "media": {
-                "hero_video": "",
-                "cover_image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000",
-                "gallery": [
-                    "https://images.unsplash.com/photo-1526485856375-9110812fbf35?q=80&w=800",
-                    "https://images.unsplash.com/photo-1503264116251-35a269479413?q=80&w=800"
-                ],
-                "infographic": {
-                    "age": "500 Triệu năm",
-                    "islands": "1,969 đảo",
-                    "recognition": "UNESCO 1994"
+            "id": "vinh_ha_long",
+            "name": "Vịnh Hạ Long",
+            "pages": [
+                {
+                    "type": "cover",
+                    "title": "Vịnh Hạ Long",
+                    "subtitle": "Kỳ quan Thiên nhiên Thế giới",
+                    "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000",
+                    "voice_text": "Chào mừng đến với Vịnh Hạ Long, nơi rồng đáp xuống trần gian."
+                },
+                {
+                    "type": "content",
+                    "heading": "Huyền thoại Rồng Thiêng",
+                    "text": "Theo truyền thuyết, Ngọc Hoàng đã sai Rồng Mẹ và Rồng Con xuống giúp người Việt đánh giặc. Những viên ngọc rồng nhả ra đã hóa thành hàng ngàn đảo đá.",
+                    "media_url": "https://images.unsplash.com/photo-1526485856375-9110812fbf35?q=80&w=800",
+                    "media_type": "image",
+                    "voice_text": "Truyền thuyết kể rằng vịnh được tạo ra từ những viên ngọc do Rồng thiêng nhả ra."
+                },
+                {
+                    "type": "infographic",
+                    "data": {
+                        "Số lượng đảo": "1.969 đảo",
+                        "Diện tích": "1.553 km2",
+                        "UNESCO": "1994 & 2000"
+                    },
+                    "voice_text": "Với gần 2000 hòn đảo lớn nhỏ, nơi đây đã 2 lần được UNESCO vinh danh."
+                },
+                {
+                    "type": "end",
+                    "heading": "Khám phá Kỳ quan",
+                    "text": "Bạn có nhớ tên gọi Hạ Long nghĩa là gì không?",
+                    "action": "start_quiz",
+                    "voice_text": "Bạn đã sẵn sàng thử thách kiến thức về kỳ quan này chưa?"
                 }
-            }
+            ]
         },
         "pho_co_hoi_an": {
-            "name_vn": "Phố cổ Hội An",
-            "name_en": "Hoi An Ancient Town",
-            "fact_vn": "Phố cổ Hội An là đô thị cổ được bảo tồn gần như nguyên vẹn, từng là thương cảng quốc tế sầm uất bậc nhất Đông Nam Á vào thế kỷ 16-17.",
-            "fact_en": "Hoi An Ancient Town is an exceptionally well-preserved old town, once one of Southeast Asia's busiest international trading ports in the 16th-17th centuries.",
-            "media": {
-                "hero_video": "",
-                "cover_image": "https://images.unsplash.com/photo-1560965074-d4c82b1cf58d?q=80&w=1000",
-                "gallery": [
-                    "https://images.unsplash.com/photo-1564500645068-d0554c935496?q=80&w=800",
-                    "https://images.unsplash.com/photo-1558611985-e51f4c71802d?q=80&w=800"
-                ],
-                "infographic": {
-                    "age": "400+ Năm",
-                    "style": "Đông-Tây Y",
-                    "recognition": "UNESCO 1999"
+            "id": "pho_co_hoi_an",
+            "name": "Phố cổ Hội An",
+            "pages": [
+                {
+                    "type": "cover",
+                    "title": "Phố cổ Hội An",
+                    "subtitle": "Di sản Văn hóa Thế giới",
+                    "image": "https://images.unsplash.com/photo-1560965074-d4c82b1cf58d?q=80&w=1000",
+                    "voice_text": "Hội An chào đón bạn, nơi thời gian như ngừng trôi."
+                },
+                {
+                    "type": "content",
+                    "heading": "Thương cảng Sầm uất",
+                    "text": "Vào thế kỷ 16-17, đây là thương cảng quốc tế Faifo, nơi giao thoa văn hóa giữa Việt Nam với Nhật Bản, Trung Quốc và phương Tây.",
+                    "media_url": "https://images.unsplash.com/photo-1564500645068-d0554c935496?q=80&w=800",
+                    "media_type": "image",
+                    "voice_text": "Từng là thương cảng quốc tế sầm uất, Hội An là minh chứng cho sự giao thoa văn hóa Đông Tây."
+                },
+                {
+                    "type": "infographic",
+                    "data": {
+                        "Thời kỳ vàng": "Thế kỷ 16-17",
+                        "Kiến trúc": "Nhà ống cổ",
+                        "Biểu tượng": "Chùa Cầu"
+                    },
+                    "voice_text": "Những ngôi nhà cổ và Chùa Cầu là biểu tượng bất hủ của nơi này."
+                },
+                {
+                    "type": "end",
+                    "heading": "Dấu ấn Thời gian",
+                    "text": "Hãy cùng tìm hiểu sâu hơn qua các câu hỏi thú vị.",
+                    "action": "start_quiz",
+                    "voice_text": "Hãy cùng kiểm tra kiến thức về phố cổ nhé."
                 }
-            }
+            ]
         }
     }
 }

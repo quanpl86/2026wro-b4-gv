@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import MultimediaOverlay from '@/components/interactive/MultimediaOverlay';
+import HeritageBook from '@/components/interactive/HeritageBook';
 import config from '../../../../../packages/shared-config/config.json'; // Importing from shared-config
 
 interface Point {
@@ -151,15 +151,9 @@ export default function ImmersiveArena({ currentPos, path, onSiteDiscover }: Imm
             {/* DETAIL OVERLAY */}
             <AnimatePresence>
                 {selectedSite && (
-                    <MultimediaOverlay
+                    <HeritageBook
                         siteId={selectedSite.id}
-                        siteName={selectedSite.name}
-                        description={selectedSite.description}
-                        media={(config.heritage_info as any)[selectedSite.id]?.media || {
-                            cover_image: '',
-                            gallery: [],
-                            infographic: {}
-                        }}
+                        pages={(config.heritage_info as any)[selectedSite.id]?.pages || []}
                         onClose={() => setSelectedSite(null)}
                         onQuizStart={() => {
                             if (onSiteDiscover) onSiteDiscover(selectedSite.id);
