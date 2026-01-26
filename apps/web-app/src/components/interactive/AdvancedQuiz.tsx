@@ -7,10 +7,11 @@ import HeritageBadge, { BadgeTier } from './HeritageBadge';
 // --- TYPES ---
 export interface QuizQuestion {
     id: string;
-    type: 'multiple_choice' | 'true_false' | 'matching' | 'sequencing';
+    type: 'multiple_choice' | 'multiple_response' | 'true_false' | 'matching' | 'sequencing';
     question: string;
-    options?: string[]; // For MCQ / TF
-    correct_answer?: string; // For MCQ / TF
+    options?: string[]; // For MC, MR, TF
+    correct_answer?: string; // For MC / TF
+    correct_answers?: string[]; // For MR
     items?: string[]; // For Sequencing
     correct_order?: string[]; // For Sequencing
     pairs?: { left: string; right: string }[]; // For Matching
@@ -41,6 +42,58 @@ function MultipleChoice({ data, onAnswer }: { data: QuizQuestion, onAnswer: (isC
     );
 }
 
+function MultipleResponse({ data, onAnswer }: { data: QuizQuestion, onAnswer: (isCorrect: boolean) => void }) {
+    const [selected, setSelected] = useState<string[]>([]);
+
+    // Check correctness against data.correct_answers array
+    const submit = () => {
+        // Sort both arrays to disregard order
+        const correct = data.correct_answers?.slice().sort() || [];
+        const user = selected.slice().sort();
+        const isCorrect = JSON.stringify(correct) === JSON.stringify(user);
+        onAnswer(isCorrect);
+    };
+
+    const toggle = (opt: string) => {
+        if (selected.includes(opt)) {
+            setSelected(selected.filter(s => s !== opt));
+        } else {
+            setSelected([...selected, opt]);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+                {data.options?.map((opt, idx) => {
+                    const isSelected = selected.includes(opt);
+                    return (
+                        <button
+                            key={idx}
+                            onClick={() => toggle(opt)}
+                            className={`p-6 border-2 rounded-2xl transition-all text-left group flex items-center justify-between
+                                ${isSelected ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-white/5 border-white/10 hover:border-white/30'}`}
+                        >
+                            <span className="text-lg font-medium">{opt}</span>
+                            <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${isSelected ? 'bg-blue-500 border-transparent' : 'border-white/30'}`}>
+                                {isSelected && '✓'}
+                            </div>
+                        </button>
+                    )
+                })}
+            </div>
+
+            <button
+                onClick={submit}
+                disabled={selected.length === 0}
+                className="w-full py-4 bg-purple-600 rounded-xl font-bold uppercase hover:bg-purple-500 transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Trả lời
+            </button>
+        </div>
+    );
+}
+
 function TrueFalse({ data, onAnswer }: { data: QuizQuestion, onAnswer: (isCorrect: boolean) => void }) {
     return (
         <div className="grid grid-cols-2 gap-8 h-64">
@@ -63,10 +116,16 @@ function TrueFalse({ data, onAnswer }: { data: QuizQuestion, onAnswer: (isCorrec
 }
 
 function Sequencing({ data, onAnswer }: { data: QuizQuestion, onAnswer: (isCorrect: boolean) => void }) {
-    const [items, setItems] = useState(data.items || []);
+    // Shuffle items on init if not already shuffled (simple fisher-yates for visual effect)
+    // NOTE: In the editor we saved 'items' as the generic correct order. 
+    // Ideally we should shuffle them here.
+    const [items, setItems] = useState(() => {
+        const raw = [...(data.items || [])];
+        return raw.sort(() => Math.random() - 0.5);
+    });
 
     const checkOrder = () => {
-        const isCorrect = JSON.stringify(items) === JSON.stringify(data.correct_order);
+        const isCorrect = JSON.stringify(items) === JSON.stringify(data.correct_order); // compare vs stored correct order
         onAnswer(isCorrect);
     };
 
@@ -409,6 +468,7 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                                 {phase === 'question' ? (
                                     <>
                                         {currentQ.type === 'multiple_choice' && <MultipleChoice data={currentQ} onAnswer={handleAnswer} />}
+                                        {currentQ.type === 'multiple_response' && <MultipleResponse data={currentQ} onAnswer={handleAnswer} />}
                                         {currentQ.type === 'true_false' && <TrueFalse data={currentQ} onAnswer={handleAnswer} />}
                                         {currentQ.type === 'sequencing' && <Sequencing data={currentQ} onAnswer={handleAnswer} />}
                                         {currentQ.type === 'matching' && <Matching data={currentQ} onAnswer={handleAnswer} />}

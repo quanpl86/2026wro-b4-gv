@@ -19,20 +19,23 @@ interface Site {
     posX: number; // percentage 0-100
     posY: number; // percentage 0-100
     color: string;
+    pathColor?: string;
 }
 
 interface ImmersiveArenaProps {
     robotPos: Point;
+    robotHome?: Point;
     path: Point[];
     onSiteDiscover?: (siteId: string) => void;
     isEditorMode?: boolean;
+    onEditSite?: (site: Site) => void;
     sites: Site[];
     onPosUpdate?: (siteId: string, x: number, y: number) => void;
     onRobotPosUpdate?: (x: number, y: number) => void;
     backgroundUrl?: string;
 }
 
-export default function ImmersiveArena({ robotPos, path, onSiteDiscover, isEditorMode, sites, onPosUpdate, onRobotPosUpdate, backgroundUrl }: ImmersiveArenaProps) {
+export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscover, isEditorMode, onEditSite, sites, onPosUpdate, onRobotPosUpdate, backgroundUrl }: ImmersiveArenaProps) {
     const [selectedSite, setSelectedSite] = useState<Site | null>(null);
     const [hoveredSite, setHoveredSite] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -103,7 +106,7 @@ export default function ImmersiveArena({ robotPos, path, onSiteDiscover, isEdito
             {/* RESPONSIVE MAP CONTENT WRAPPER */}
             {imageBounds && (
                 <div
-                    className="absolute pointer-events-none"
+                    className="absolute pointer-events-none z-20"
                     style={{
                         width: imageBounds.width,
                         height: imageBounds.height,
@@ -111,37 +114,59 @@ export default function ImmersiveArena({ robotPos, path, onSiteDiscover, isEdito
                         top: imageBounds.top
                     }}
                 >
-                    {/* CONNECTION LINES BETWEEN SITES (Dynamic Path) */}
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+                    {/* CONNECTION LINES BETWEEN SITES (Segmented Journey) */}
+                    <svg
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                        className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+                    >
                         <defs>
-                            <linearGradient id="lineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#f43f5e" />
-                                <stop offset="100%" stopColor="#3b82f6" />
-                            </linearGradient>
+                            {sites.map((site, i) => (
+                                <linearGradient key={`grad-${site.id}`} id={`grad-${site.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor={i === 0 ? "#3b82f6" : (sites[i - 1].pathColor || "#3b82f6")} />
+                                    <stop offset="100%" stopColor={site.pathColor || "#f43f5e"} />
+                                </linearGradient>
+                            ))}
                         </defs>
-                        <motion.path
-                            d={`M ${sites[0].posX}% ${sites[0].posY}% L ${sites[1].posX}% ${sites[1].posY}% L ${sites[2].posX}% ${sites[2].posY}% L ${sites[3].posX}% ${sites[3].posY}%`}
-                            fill="none"
-                            stroke="url(#lineGrad)"
-                            strokeWidth="3"
-                            strokeDasharray="10 10"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{ duration: 2 }}
-                            className="drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]"
-                        />
+                        {sites.map((site, i) => {
+                            const startX = i === 0
+                                ? (robotHome ? getPercentX(robotHome.x) : sites[0].posX)
+                                : sites[i - 1].posX;
+                            const startY = i === 0
+                                ? (robotHome ? getPercentY(robotHome.y) : sites[0].posY)
+                                : sites[i - 1].posY;
+
+                            return (
+                                <motion.path
+                                    key={`segment-${site.id}`}
+                                    d={`M ${startX} ${startY} L ${site.posX} ${site.posY}`}
+                                    fill="none"
+                                    stroke={`url(#grad-${site.id})`}
+                                    strokeWidth="1" // Thin stroke because SVG is 100x100
+                                    strokeDasharray="2 1.5"
+                                    initial={{ pathLength: 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{ duration: 2, delay: i * 0.5 }}
+                                    className="drop-shadow-[0_0_2px_rgba(0,0,0,0.5)]"
+                                />
+                            );
+                        })}
                     </svg>
 
                     {/* ROBOT PATH (Digital Trace) */}
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+                    <svg
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                        className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+                    >
                         <motion.path
-                            d={`M ${path.map(p => `${getPercentX(p.x)}% ${getPercentY(p.y)}%`).join(' L ')}`}
+                            d={`M ${path.map(p => `${getPercentX(p.x)} ${getPercentY(p.y)}`).join(' L ')}`}
                             fill="none"
                             stroke="#a855f7"
-                            strokeWidth="4"
+                            strokeWidth="0.8"
                             strokeLinecap="round"
                             strokeOpacity="0.4"
-                            strokeDasharray="1 8"
+                            strokeDasharray="0.2 1.5"
                         />
                     </svg>
 
@@ -202,7 +227,7 @@ export default function ImmersiveArena({ robotPos, path, onSiteDiscover, isEdito
                                     <motion.button
                                         onMouseEnter={() => setHoveredSite(site.id)}
                                         onMouseLeave={() => setHoveredSite(null)}
-                                        onClick={() => !isEditorMode && setSelectedSite(site)}
+                                        onClick={() => isEditorMode ? onEditSite?.(site) : setSelectedSite(site)}
                                         whileHover={{ scale: 1.3 }}
                                         whileTap={{ scale: 0.9 }}
                                         className={`w-10 h-10 rounded-[14px] border-2 border-white flex items-center justify-center bg-gradient-to-br ${site.color} shadow-[0_10px_20px_rgba(0,0,0,0.3)] relative group/pin`}

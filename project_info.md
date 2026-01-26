@@ -15,7 +15,7 @@
 - **Phase 3 (Intelligence):** Đã hoàn thành (Điều hướng cơ bản, Motor Tune).
 - **Phase 4 (QR Vision):** Đã hoàn thành (Migrated ArUco -> QR engine, jsQR integration).
 - **Phase 5 (The Storyteller):** Đã hoàn thành (Judge Portal, Live Map tracking, Mini-games, Digital Badges).
-- **Phase 6 (Immersive Upgrade):** Đang triển khai (Hoàn thành Gemini AI Smart Guide, Adaptive Map Editor, Cloud Storage Integration, Responsive Map Calibration).
+- **Phase 6 (Immersive Upgrade):** Đã hoàn thành (Gemini AI Smart Guide, Visual CMS, Advanced Quiz Builder, Adaptive Map Editor, Cloud Storage Integration).
 
 ---
 
@@ -43,3 +43,6 @@
 - [x] **Adaptive Map Editor:** Công cụ quản trị cho phép kéo thả, căn chỉnh vị trí di sản và robot trực tiếp trên Web.
 - [x] **Supabase Storage Integration:** Hỗ trợ tải ảnh sa bàn thực tế lên Cloud để làm hình nền bản đồ.
 - [x] **Responsive Map Logic:** Thuật toán tự động cân tỷ lệ, đảm bảo Pins luôn đúng vị trí trên mọi loại màn hình.
+- [x] **Visual CMS:** Quản lý nội dung di sản và câu hỏi trắc nghiệm trực quan trực tiếp trên bản đồ.
+- [x] **Advanced Quiz System:** Hỗ trợ đa dạng loại câu hỏi (MCQ, Matching, Sequencing), giải thích đáp án và tính điểm linh hoạt.
+- [x] **Auto-Persistence:** Tự động lưu trữ mọi thay đổi cấu hình map và quiz lên Supabase thời gian thực.

@@ -111,10 +111,11 @@ async def broadcast_telemetry():
             
             # Broadcast to all
             disconnected = set()
-            for ws in list(connected_clients):
+            active_clients = list(connected_clients) # Snapshot
+            for ws in active_clients:
                 try:
                     await ws.send(telemetry)
-                except:
+                except Exception as e:
                     disconnected.add(ws)
             
             for ws in disconnected:

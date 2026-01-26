@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import VerticalMissionTimeline from '@/components/judge/VerticalMissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
+import SiteEditorModal from '@/components/judge/SiteEditorModal';
 import ImmersiveArena from '@/components/judge/ImmersiveArena';
 import ScoreLeaderboard from '@/components/judge/ScoreLeaderboard';
 import AdvancedQuiz from '@/components/interactive/AdvancedQuiz';
@@ -20,8 +21,9 @@ export default function JudgePage() {
     const router = useRouter();
     const wsRef = useRef<WebSocket | null>(null);
 
-    // Auth & Session
+    // Auth & Role
     const [isAuthorized, setIsAuthorized] = useState(false);
+    const [userRole, setUserRole] = useState<'admin' | 'judge' | null>(null);
     const [sessionId, setSessionId] = useState<string | null>(null);
 
     // UI State
@@ -33,27 +35,20 @@ export default function JudgePage() {
     const [showBadges, setShowBadges] = useState(false);
     const [currentSubtitle, setCurrentSubtitle] = useState<string>("Hệ thống đang chờ lệnh...");
     const [isEditorMode, setIsEditorMode] = useState(false);
+    const [editingSite, setEditingSite] = useState<any | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [backgroundUrl, setBackgroundUrl] = useState<string | undefined>(undefined);
     const [mapSites, setMapSites] = useState([
         {
-            id: 'cot_co',
-            name: 'Cột cờ Hà Nội',
-            description: 'Biểu tượng lịch sử của thủ đô.',
-            icon: '🚩',
-            badge: '/assets/badges/cot_co.png',
-            posX: 44.5, posY: 24.5,
-            color: 'from-red-500 to-rose-600'
-        },
-        {
-            id: 'vinh_ha_long',
-            name: 'Vịnh Hạ Long',
-            description: 'Kỳ quan thiên nhiên thế giới.',
-            icon: '⛵',
-            badge: '/assets/badges/vinh_ha_long.png',
-            posX: 51.5, posY: 22.5,
-            color: 'from-blue-400 to-cyan-600'
+            id: 'pho_co_hoi_an',
+            name: 'Hội An',
+            description: 'Đô thị cổ được bảo tồn nguyên vẹn.',
+            icon: '🏮',
+            badge: '/assets/badges/pho_co_hoi_an.png',
+            posX: 54.5, posY: 53.5,
+            color: 'from-orange-400 to-amber-600',
+            pathColor: '#fb923c'
         },
         {
             id: 'trang_an',
@@ -62,16 +57,28 @@ export default function JudgePage() {
             icon: '⛰️',
             badge: '/assets/badges/trang_an.png',
             posX: 43.5, posY: 28.5,
-            color: 'from-emerald-400 to-teal-600'
+            color: 'from-emerald-400 to-teal-600',
+            pathColor: '#22c55e'
         },
         {
-            id: 'pho_co_hoi_an',
-            name: 'Hội An',
-            description: 'Đô thị cổ được bảo tồn nguyên vẹn.',
-            icon: '🏮',
-            badge: '/assets/badges/pho_co_hoi_an.png',
-            posX: 54.5, posY: 53.5,
-            color: 'from-orange-400 to-amber-600'
+            id: 'vinh_ha_long',
+            name: 'Vịnh Hạ Long',
+            description: 'Kỳ quan thiên nhiên thế giới.',
+            icon: '⛵',
+            badge: '/assets/badges/vinh_ha_long.png',
+            posX: 51.5, posY: 22.5,
+            color: 'from-blue-400 to-cyan-600',
+            pathColor: '#3b82f6'
+        },
+        {
+            id: 'cot_co',
+            name: 'Cột cờ Hà Nội',
+            description: 'Biểu tượng lịch sử của thủ đô.',
+            icon: '🚩',
+            badge: '/assets/badges/cot_co.png',
+            posX: 44.5, posY: 24.5,
+            color: 'from-red-500 to-rose-600',
+            pathColor: '#f43f5e'
         }
     ]);
 
@@ -80,7 +87,8 @@ export default function JudgePage() {
     const [latency, setLatency] = useState(0);
     const [currentScore, setCurrentScore] = useState(0);
     const [sessionScores, setSessionScores] = useState<Record<string, number>>({});
-    const [robotPos, setRobotPos] = useState({ x: 0, y: 0 }); // Start at TP HCM (0,0 maps to South)
+    const [robotHome, setRobotHome] = useState({ x: 0, y: 0 }); // Saved calibration offset
+    const [robotPos, setRobotPos] = useState({ x: 0, y: 0 });  // Live hardware relative pos
     const [path, setPath] = useState<{ x: number, y: number }[]>([]);
 
     // AI State
@@ -112,29 +120,34 @@ export default function JudgePage() {
                 return;
             }
             try {
-                const { data } = await supabase
+                const { data: profiles, error: fetchErr } = await supabase
                     .from('robot_profiles')
-                    .select('hub_ip, map_config')
-                    .eq('is_active', true)
-                    .single();
+                    .select('hub_ip, map_config, is_active')
+                    .order('is_active', { ascending: false });
 
-                if (data?.hub_ip) {
-                    setHubIp(data.hub_ip);
-                    console.log("🔗 Hub IP Synced:", data.hub_ip);
+                if (fetchErr) throw fetchErr;
+
+                const activeProfile = profiles?.[0];
+
+                if (activeProfile?.hub_ip) {
+                    setHubIp(activeProfile.hub_ip);
+                    console.log("🔗 Hub IP Synced:", activeProfile.hub_ip);
                 } else {
                     setHubIp(DEFAULT_HUB_IP);
                 }
 
-                // Sync Map Config if exists
-                if ((data as any)?.map_config) {
-                    const config = (data as any).map_config;
+                if (activeProfile?.map_config) {
+                    const config = activeProfile.map_config;
+                    console.log("🗺️ Map Config Synced:", config);
                     if (config.sites) setMapSites(config.sites);
-                    if (config.robot_home) setRobotPos(config.robot_home);
                     if (config.background_url) setBackgroundUrl(config.background_url);
-                    console.log("🗺️ Map Config Synced from Supabase");
+                    if (config.robot_home) {
+                        setRobotHome(config.robot_home);
+                        console.log("🏠 Robot Home Position Loaded:", config.robot_home);
+                    }
                 }
             } catch (err) {
-                console.warn("Failed to fetch Hub IP, defaulting to localhost");
+                console.warn("Failed to fetch Map/Hub config", err);
                 setHubIp(DEFAULT_HUB_IP);
             }
         };
@@ -163,9 +176,12 @@ export default function JudgePage() {
                     const data = JSON.parse(event.data);
                     if (data.type === 'telemetry') {
                         setBatteryLevel(data.battery || 100);
-                        setRobotPos(data.pos || { x: 0, y: 0 });
-                        if (data.pos) {
-                            setPath(prev => [...prev, data.pos].slice(-50));
+                        // ONLY update live position if NOT in editor mode
+                        if (!isEditorMode) {
+                            setRobotPos(data.pos || { x: 0, y: 0 });
+                            if (data.pos) {
+                                setPath(prev => [...prev, data.pos].slice(-50));
+                            }
                         }
                         setLatency(data.latency || 0);
                     } else if (data.type === 'voice_response') {
@@ -232,8 +248,14 @@ export default function JudgePage() {
         ));
     };
 
-    const handleRobotPosUpdate = (x: number, y: number) => {
-        setRobotPos({ x, y });
+    const handleRobotPosUpdate = (newX: number, newY: number) => {
+        // If the user drags the robot icon, they are setting the map-relative HOME position.
+        // We calculate the home offset by subtracting the CURRENT telemetry pos.
+        // home + telemetry = displayed_pos => home = displayed_pos - telemetry
+        setRobotHome({
+            x: newX - robotPos.x,
+            y: newY - robotPos.y
+        });
     };
 
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,27 +290,59 @@ export default function JudgePage() {
         }
     };
 
-    const saveMapConfig = async () => {
-        if (!supabase) return;
+    const persistMapConfig = async (currentSites: any[], currentHome: any, currentBg: string | undefined) => {
+        if (!supabase) return false;
         try {
             const fullConfig = {
-                sites: mapSites,
-                robot_home: robotPos,
-                background_url: backgroundUrl
+                sites: currentSites,
+                robot_home: currentHome,
+                background_url: currentBg
             };
+
+            const { data: profiles } = await supabase
+                .from('robot_profiles')
+                .select('id, is_active')
+                .order('is_active', { ascending: false });
+
+            const targetId = profiles?.[0]?.id;
+
+            if (!targetId) {
+                throw new Error("Không tìm thấy profile Robot để lưu.");
+            }
 
             const { error } = await supabase
                 .from('robot_profiles')
                 .update({ map_config: fullConfig } as any)
-                .eq('is_active', true);
+                .eq('id', targetId);
 
             if (error) throw error;
-            setIsEditorMode(false);
-            setCurrentSubtitle("✅ Đã lưu cấu hình bản đồ và vị trí Robot thành công!");
+            return true;
         } catch (err: any) {
             console.error("Save Error Details:", err);
-            const msg = err.message || "Vui lòng kiểm tra lại Database schema (Phase 6.14 SQL)";
+            const msg = err.message || "Lỗi lưu cấu hình";
             setCurrentSubtitle(`❌ Lỗi: ${msg}`);
+            return false;
+        }
+    };
+
+    const saveMapConfig = async () => {
+        const success = await persistMapConfig(mapSites, robotHome, backgroundUrl);
+        if (success) {
+            setIsEditorMode(false);
+            setCurrentSubtitle("✅ Đã lưu cấu hình bản đồ thành công!");
+        }
+    };
+
+    const handleSiteUpdate = async (updatedSite: any) => {
+        const newSites = mapSites.map(site => site.id === updatedSite.id ? updatedSite : site);
+        setMapSites(newSites);
+        setEditingSite(null);
+
+        setCurrentSubtitle(`⏳ Đang lưu thay đổi cho ${updatedSite.name}...`);
+        const success = await persistMapConfig(newSites, robotHome, backgroundUrl);
+
+        if (success) {
+            setCurrentSubtitle(`✅ Đã cập nhật & lưu: ${updatedSite.name}`);
         }
     };
 
@@ -301,7 +355,21 @@ export default function JudgePage() {
         { id: 'finish', label: 'Hoàn thành', status: 'pending' as const, icon: '🏆' },
     ];
 
-    if (!isAuthorized) return <JudgePinModal onSuccess={() => setIsAuthorized(true)} />;
+    if (!isAuthorized) return (
+        <JudgePinModal
+            onSuccess={(role) => {
+                setIsAuthorized(true);
+                setUserRole(role);
+                // Auto-enable editor mode for admins to prevent confusion
+                if (role === 'admin') {
+                    setIsEditorMode(true);
+                    setCurrentSubtitle("🔓 Chế độ Quản trị viên đã được kích hoạt.");
+                } else {
+                    setCurrentSubtitle("🛡️ Chế độ Giám khảo kích hoạt.");
+                }
+            }}
+        />
+    );
 
     return (
         <div className="h-screen w-screen bg-slate-950 flex flex-col text-white overflow-hidden font-sans selection:bg-purple-500/30">
@@ -355,33 +423,38 @@ export default function JudgePage() {
                 <div className="flex-1 relative flex flex-col bg-slate-900/10">
                     <div className="flex-1 relative p-10">
                         <ImmersiveArena
-                            robotPos={robotPos}
-                            path={path}
+                            robotPos={{
+                                x: robotHome.x + robotPos.x,
+                                y: robotHome.y + robotPos.y
+                            }}
+                            robotHome={robotHome}
+                            path={path.map(p => ({
+                                x: p.x + robotHome.x,
+                                y: p.y + robotHome.y
+                            }))}
                             onSiteDiscover={setActiveQuizStation}
                             isEditorMode={isEditorMode}
-                            sites={mapSites}
+                            onEditSite={setEditingSite}
+                            sites={[...mapSites].sort((a, b) => {
+                                const order = ['pho_co_hoi_an', 'trang_an', 'vinh_ha_long', 'cot_co'];
+                                return order.indexOf(a.id) - order.indexOf(b.id);
+                            })}
                             onPosUpdate={handlePosUpdate}
                             onRobotPosUpdate={handleRobotPosUpdate}
                             backgroundUrl={backgroundUrl}
                         />
 
-                        {/* Editor Controls */}
+                        {/* Editor Controls (ADMIN ONLY) */}
                         <div className="absolute top-14 right-14 flex flex-col gap-3 z-[60]">
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handleImageUpload}
-                            />
-
-                            <button
-                                onClick={() => setIsEditorMode(!isEditorMode)}
-                                className={`px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border-2 
-                                    ${isEditorMode ? 'bg-orange-600 border-white text-white shadow-xl' : 'bg-slate-800/80 border-white/10 text-slate-400 hover:text-white'}`}
-                            >
-                                {isEditorMode ? 'ESC EDITOR' : 'MAP EDITOR'}
-                            </button>
+                            {userRole === 'admin' && (
+                                <button
+                                    onClick={() => setIsEditorMode(!isEditorMode)}
+                                    className={`px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border-2 
+                                        ${isEditorMode ? 'bg-orange-600 border-white text-white shadow-xl' : 'bg-slate-800/80 border-white/10 text-slate-400 hover:text-white'}`}
+                                >
+                                    {isEditorMode ? 'ESC EDITOR' : 'MAP EDITOR'}
+                                </button>
+                            )}
 
                             <AnimatePresence>
                                 {isEditorMode && (
@@ -492,6 +565,16 @@ export default function JudgePage() {
                         badgeImage={(config.heritage_info as any)[activeQuizStation]?.badge_image}
                         onClose={() => setActiveQuizStation(null)}
                         onScoreUpdate={(points) => handleScoreUpdate(points, activeQuizStation)}
+                    />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {editingSite && (
+                    <SiteEditorModal
+                        site={editingSite}
+                        onSave={handleSiteUpdate}
+                        onCancel={() => setEditingSite(null)}
                     />
                 )}
             </AnimatePresence>
