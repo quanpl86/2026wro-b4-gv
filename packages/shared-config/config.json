@@ -6,25 +6,78 @@
             "name_vn": "Tràng An",
             "name_en": "Trang An Scenic Landscape",
             "fact_vn": "Tràng An là di sản thế giới kép đầu tiên của Việt Nam, nổi tiếng với hệ thống hang động và núi đá vôi hùng vĩ. Nơi đây có dấu tích của người tiền sử cách đây 30.000 năm.",
-            "fact_en": "Trang An is Vietnam's first dual World Heritage site, famous for its majestic cave systems and limestone karsts. The area contains traces of prehistoric humans dating back 30,000 years."
+            "fact_en": "Trang An is Vietnam's first dual World Heritage site, famous for its majestic cave systems and limestone karsts. The area contains traces of prehistoric humans dating back 30,000 years.",
+            "media": {
+                "hero_video": "https://v.pinimg.com/videos/i/720p/5a/2a/3a/5a2a3a8a3a8a3a8a3a8a3a8a3a8a3a8.mp4",
+                "cover_image": "https://images.unsplash.com/photo-1528127269322-81bef7291366?q=80&w=1000",
+                "gallery": [
+                    "https://images.unsplash.com/photo-1623126908029-7c8a36d2b58d?q=80&w=800",
+                    "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=800",
+                    "https://images.unsplash.com/photo-1504457047772-27faf1c00561?q=80&w=800"
+                ],
+                "infographic": {
+                    "age": "250 Triệu năm",
+                    "area": "6.226 ha",
+                    "recognition": "UNESCO 2014"
+                }
+            }
         },
         "cot_co": {
             "name_vn": "Cột cờ Hà Nội",
             "name_en": "Hanoi Flag Tower",
             "fact_vn": "Cột cờ Hà Nội là biểu tượng kiêu hãnh của thủ đô, được xây dựng dưới triều nhà Nguyễn từ năm 1805. Đây là một trong số ít công trình còn nguyên vẹn sau chiến tranh.",
-            "fact_en": "The Flag Tower of Hanoi is a proud symbol of the capital, built under the Nguyen Dynasty starting in 1805. It is one of the few structures that remained intact after the wars."
+            "fact_en": "The Flag Tower of Hanoi is a proud symbol of the capital, built under the Nguyen Dynasty starting in 1805. It is one of the few structures that remained intact after the wars.",
+            "media": {
+                "hero_video": "",
+                "cover_image": "https://images.unsplash.com/photo-1599839556844-3c8b4fb46db4?q=80&w=1000",
+                "gallery": [
+                    "https://images.unsplash.com/photo-1555921015-5532091f6026?q=80&w=800",
+                    "https://images.unsplash.com/photo-1565593816738-9c6061f05427?q=80&w=800"
+                ],
+                "infographic": {
+                    "age": "200+ Năm",
+                    "height": "33.4 mét",
+                    "dynasty": "Nhà Nguyễn"
+                }
+            }
         },
         "vinh_ha_long": {
             "name_vn": "Vịnh Hạ Long",
             "name_en": "Ha Long Bay",
             "fact_vn": "Vịnh Hạ Long là kỳ quan thiên nhiên thế giới với gần 2.000 hòn đảo đá vôi hùng vĩ. Tên gọi 'Hạ Long' có nghĩa là 'Rồng hạ xuống' theo truyền thuyết.",
-            "fact_en": "Ha Long Bay is a natural wonder of the world with nearly 2,000 majestic limestone islands. The name 'Ha Long' means 'Descending Dragon' according to legend."
+            "fact_en": "Ha Long Bay is a natural wonder of the world with nearly 2,000 majestic limestone islands. The name 'Ha Long' means 'Descending Dragon' according to legend.",
+            "media": {
+                "hero_video": "",
+                "cover_image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000",
+                "gallery": [
+                    "https://images.unsplash.com/photo-1526485856375-9110812fbf35?q=80&w=800",
+                    "https://images.unsplash.com/photo-1503264116251-35a269479413?q=80&w=800"
+                ],
+                "infographic": {
+                    "age": "500 Triệu năm",
+                    "islands": "1,969 đảo",
+                    "recognition": "UNESCO 1994"
+                }
+            }
         },
         "pho_co_hoi_an": {
             "name_vn": "Phố cổ Hội An",
             "name_en": "Hoi An Ancient Town",
             "fact_vn": "Phố cổ Hội An là đô thị cổ được bảo tồn gần như nguyên vẹn, từng là thương cảng quốc tế sầm uất bậc nhất Đông Nam Á vào thế kỷ 16-17.",
-            "fact_en": "Hoi An Ancient Town is an exceptionally well-preserved old town, once one of Southeast Asia's busiest international trading ports in the 16th-17th centuries."
+            "fact_en": "Hoi An Ancient Town is an exceptionally well-preserved old town, once one of Southeast Asia's busiest international trading ports in the 16th-17th centuries.",
+            "media": {
+                "hero_video": "",
+                "cover_image": "https://images.unsplash.com/photo-1560965074-d4c82b1cf58d?q=80&w=1000",
+                "gallery": [
+                    "https://images.unsplash.com/photo-1564500645068-d0554c935496?q=80&w=800",
+                    "https://images.unsplash.com/photo-1558611985-e51f4c71802d?q=80&w=800"
+                ],
+                "infographic": {
+                    "age": "400+ Năm",
+                    "style": "Đông-Tây Y",
+                    "recognition": "UNESCO 1999"
+                }
+            }
         }
     }
 }

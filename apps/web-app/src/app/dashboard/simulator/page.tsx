@@ -151,7 +151,7 @@ export default function SimulatorPage() {
                 <div className="grid grid-cols-12 gap-8">
                     {/* LEFT: INTERACTIVE ARENA */}
                     <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
-                        <ImmersiveArena currentPos={robotPos} path={path} />
+                        <ImmersiveArena currentPos={robotPos} path={path} onSiteDiscover={setActiveQuizStation} />
 
                         {/* Logs */}
                         <div className="bg-black/40 border border-white/5 rounded-[32px] p-6 font-mono text-[11px] h-40 overflow-hidden flex flex-col shadow-inner">

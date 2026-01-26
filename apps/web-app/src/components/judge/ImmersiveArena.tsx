@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import MultimediaOverlay from '@/components/interactive/MultimediaOverlay';
+import config from '../../../../../packages/shared-config/config.json'; // Importing from shared-config
 
 interface Point {
     x: number;
@@ -149,52 +151,21 @@ export default function ImmersiveArena({ currentPos, path, onSiteDiscover }: Imm
             {/* DETAIL OVERLAY */}
             <AnimatePresence>
                 {selectedSite && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-xl p-12 flex flex-col items-center justify-center text-center"
-                    >
-                        <motion.button
-                            onClick={() => setSelectedSite(null)}
-                            className="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-xl hover:bg-white/10 transition-all"
-                        >
-                            ✕
-                        </motion.button>
-
-                        <motion.div
-                            initial={{ scale: 0.5, y: 50 }}
-                            animate={{ scale: 1, y: 0 }}
-                            className={`w-32 h-32 rounded-[40px] bg-gradient-to-br ${selectedSite.color} flex items-center justify-center text-6xl mb-8 shadow-2xl shadow-purple-500/20`}
-                        >
-                            {selectedSite.icon}
-                        </motion.div>
-
-                        <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-4 text-white">
-                            {selectedSite.name}
-                        </h2>
-                        <p className="text-slate-400 max-w-md text-lg leading-relaxed mb-8">
-                            {selectedSite.description}
-                        </p>
-
-                        <div className="flex gap-4">
-                            <button
-                                onClick={() => {
-                                    if (onSiteDiscover) onSiteDiscover(selectedSite.id);
-                                    setSelectedSite(null);
-                                }}
-                                className="px-8 py-4 bg-white text-black rounded-3xl font-black uppercase tracking-widest text-sm hover:scale-110 active:scale-95 transition-all"
-                            >
-                                Thử thách Quiz 🎯
-                            </button>
-                            <button
-                                onClick={() => setSelectedSite(null)}
-                                className="px-8 py-4 bg-white/5 border border-white/10 rounded-3xl font-black uppercase tracking-widest text-sm hover:bg-white/10 transition-all"
-                            >
-                                Đóng
-                            </button>
-                        </div>
-                    </motion.div>
+                    <MultimediaOverlay
+                        siteId={selectedSite.id}
+                        siteName={selectedSite.name}
+                        description={selectedSite.description}
+                        media={(config.heritage_info as any)[selectedSite.id]?.media || {
+                            cover_image: '',
+                            gallery: [],
+                            infographic: {}
+                        }}
+                        onClose={() => setSelectedSite(null)}
+                        onQuizStart={() => {
+                            if (onSiteDiscover) onSiteDiscover(selectedSite.id);
+                            setSelectedSite(null);
+                        }}
+                    />
                 )}
             </AnimatePresence>
         </div>
