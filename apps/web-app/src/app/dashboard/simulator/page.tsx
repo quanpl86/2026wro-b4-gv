@@ -8,6 +8,7 @@ import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import QuizOverlay from '@/components/interactive/QuizOverlay';
 import ImmersiveArena from '@/components/judge/ImmersiveArena';
 import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
+import config from '@/data/config.json';
 
 const DEFAULT_HUB_IP = 'localhost';
 
@@ -151,7 +152,20 @@ export default function SimulatorPage() {
                 <div className="grid grid-cols-12 gap-8">
                     {/* LEFT: INTERACTIVE ARENA */}
                     <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
-                        <ImmersiveArena currentPos={robotPos} path={path} onSiteDiscover={setActiveQuizStation} />
+                        <ImmersiveArena
+                            robotPos={robotPos}
+                            path={path}
+                            onSiteDiscover={setActiveQuizStation}
+                            sites={Object.values(config.heritage_info).map(site => ({
+                                ...site,
+                                posX: 50, // Default or mock positions
+                                posY: 50,
+                                icon: '📍',
+                                badge: site.badge_image,
+                                description: site.pages[0].subtitle || '',
+                                color: 'blue'
+                            }))}
+                        />
 
                         {/* Logs */}
                         <div className="bg-black/40 border border-white/5 rounded-[32px] p-6 font-mono text-[11px] h-40 overflow-hidden flex flex-col shadow-inner">
@@ -175,8 +189,8 @@ export default function SimulatorPage() {
                             </div>
                             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-8">AI Interaction Lab</h3>
                             <VoiceAssistant
-                                activeLanguage={voiceLang}
-                                onLanguageChange={setVoiceLang}
+                                lang={voiceLang}
+                                onLangChange={setVoiceLang}
                                 onCommand={handleVoiceCommand}
                             />
                             <p className="mt-8 text-[9px] text-center text-slate-500 leading-relaxed max-w-[200px]">

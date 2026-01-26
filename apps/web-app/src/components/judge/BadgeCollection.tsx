@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import HeritageBadge, { BadgeTier } from '../interactive/HeritageBadge';
-import config from '../../../../../packages/shared-config/config.json';
+import config from '@/data/config.json';
 
 interface BadgeCollectionProps {
     scores: Record<string, number>; // siteId -> score

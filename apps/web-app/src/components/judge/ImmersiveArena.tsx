@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeritageBook from '@/components/interactive/HeritageBook';
-import config from '../../../../../packages/shared-config/config.json';
+import config from '@/data/config.json';
 
 interface Point {
     x: number;

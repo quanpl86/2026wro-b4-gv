@@ -12,7 +12,7 @@ import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import config from '../../../../../packages/shared-config/config.json';
+import config from '@/data/config.json';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DEFAULT_HUB_IP = 'localhost';
