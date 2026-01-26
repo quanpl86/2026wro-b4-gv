@@ -136,14 +136,27 @@ async def ws_handler(websocket):
                 elif cmd == "aux_move":
                     mqtt_msg = f"aux_move:{params.get('port', 'aux1')}:{params.get('value', 0)}:{params.get('unit', 'rotations')}"
                 elif cmd == "site_discovered":
-                    # Broadcast the site discovery event to all clients (Judge Portal)
-                    print(f"📍 Station Discovered: {params.get('site_id')}")
+                    # Broadcast the site discovery event to all clients (Quiz & Map)
+                    site_id = params.get('site_id')
+                    site_name = params.get('site_name', site_id)
+                    lang = params.get('lang', 'vi-VN')
+                    
+                    print(f"📍 Station Discovered: {site_id}")
                     await broadcast_event({
                         "type": "event",
                         "event": "site_discovered",
-                        "station_id": params.get('site_id'),
-                        "site_name": params.get('site_name')
+                        "station_id": site_id,
+                        "site_name": site_name
                     })
+                    
+                    # 💡 Trigger Automated AI Storytelling
+                    ai_data = await gemini_service.get_response(f"Describe the heritage site: {site_name}", lang)
+                    if ai_data and ai_data.get("text"):
+                        await broadcast_event({
+                            "type": "voice_response",
+                            "text": ai_data["text"]
+                        })
+                        
                     mqtt_msg = "stop" # Auto-stop robot when site discovered
                 elif cmd == "voice_command":
                     text = params.get('text', '').lower()
@@ -177,11 +190,12 @@ async def ws_handler(websocket):
                                     "type": "voice_response",
                                     "text": response_text
                                 })
-                    return # Voice command handles its own MQTT/Response
+                    continue # Voice command handles its own MQTT/Response
                 
                 execute_mqtt(mqtt_msg)
             except Exception as e:
                 print(f"⚠️ WS Msg Error: {e}")
+                traceback.print_exc()
     except websockets.exceptions.ConnectionClosed:
         pass
     finally:
@@ -238,6 +252,13 @@ async def main():
     print(f"🌐  Local IP Address: {local_ip}")
     print(f"🔗  Web Dashboard Hub IP: {local_ip}")
     print("="*50 + "\n")
+    
+    # Auto-update Hub IP in Supabase for active profile
+    try:
+        db.table("robot_profiles").update({"hub_ip": local_ip}).eq("is_active", True).execute()
+        print(f"📡  Supabase: Hub IP synced to {local_ip} (Zero-Config Active)")
+    except Exception as e:
+        print(f"⚠️  Supabase Sync Failed: {e}")
     
     # Chạy song song WebSocketBroadcaster, WS Server và Supabase Polling
     await asyncio.gather(

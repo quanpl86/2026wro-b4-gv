@@ -20,7 +20,12 @@ class GeminiService:
             self.api_keys.insert(0, default_key)
             
         self.current_key_index = 0
-        self.model_name = "gemini-1.5-flash" # Sử dụng flash cho tốc độ nhanh nhất
+        self.primary_model = "gemini-2.0-flash" # Note: Adjusted to 2.0 as 2.5 is not yet public, but can use user's string
+        self.fallback_model = "gemini-1.5-pro" # Note: Adjusted to 1.5-pro as 3 is not yet public
+        
+        # Override with exact user requests
+        self.primary_model = "gemini-2.5-flash"
+        self.fallback_model = "gemini-3-pro-preview"
         
         if not self.api_keys:
             print("⚠️ WARNING: No Gemini API keys found in .env")
@@ -37,7 +42,6 @@ class GeminiService:
             return None
 
         self._rotate_key()
-        model = genai.GenerativeModel(self.model_name)
         
         system_prompt = f"""
         You are the 'Heritage Keeper', a smart AI guide for the World Robot Olympiad (WRO) 2026.
@@ -57,24 +61,46 @@ class GeminiService:
         """
 
         try:
-            # Note: generate_content_async is not always available depending on version, 
-            # using synchronous for reliability in this specific environment setup
-            response = model.generate_content(
-                f"{system_prompt}\n\nUser: {user_input}",
-                generation_config=genai.types.GenerationConfig(
-                    response_mime_type="application/json",
-                )
-            )
-            data = json.loads(response.text)
-            return data
+            # 🚀 Thử với model Flash trước
+            model = genai.GenerativeModel(self.primary_model)
+            response = model.generate_content(f"{system_prompt}\n\nUser: {user_input}")
+            return self._parse_json(response.text)
         except Exception as e:
-            print(f"❌ Gemini Error: {e}")
-            return {{
+            import traceback
+            print(f"❌ Gemini Flash Error: {e}")
+            
+            # 🔄 Fallback sang model Pro nếu Flash lỗi (404 hoặc quota)
+            if "404" in str(e) or "quota" in str(e).lower():
+                try:
+                    print(f"🔄 Falling back to {self.fallback_model}...")
+                    model_pro = genai.GenerativeModel(self.fallback_model)
+                    response = model_pro.generate_content(f"{system_prompt}\n\nUser: {user_input}")
+                    return self._parse_json(response.text)
+                except Exception as e2:
+                    print(f"❌ Gemini Fallback Error: {e2}")
+                    traceback.print_exc()
+
+            traceback.print_exc()
+            return {
                 "text": "Xin lỗi, tôi gặp chút trục trặc khi suy nghĩ.",
                 "robot_move": None
-            }} if "vi" in lang else {{
+            } if "vi" in lang else {
                 "text": "Sorry, I had a little trouble thinking.",
                 "robot_move": None
-            }}
+            }
+
+    def _parse_json(self, text):
+        """Trích xuất JSON từ phản hồi của AI"""
+        try:
+            clean_text = text
+            if "```json" in text:
+                clean_text = text.split("```json")[1].split("```")[0].strip()
+            elif "```" in text:
+                clean_text = text.split("```")[1].split("```")[0].strip()
+            return json.loads(clean_text)
+        except Exception as e:
+            print(f"⚠️ JSON Parse Error: {e}")
+            # Fallback nếu AI trả text trần
+            return {"text": text[:200], "robot_move": None}
 
 gemini_service = GeminiService()

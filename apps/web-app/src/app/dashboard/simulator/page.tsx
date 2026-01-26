@@ -82,7 +82,11 @@ export default function SimulatorPage() {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify({
                 command: 'site_discovered',
-                params: { site_id: id, site_name: name }
+                params: {
+                    site_id: id,
+                    site_name: name,
+                    lang: voiceLang
+                }
             }));
             addLog(`Simulated arrival at ${name}`, 'info');
         }

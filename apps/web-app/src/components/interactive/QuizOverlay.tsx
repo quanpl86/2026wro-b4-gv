@@ -60,12 +60,13 @@ export default function QuizOverlay({ stationId, onClose, onScoreUpdate }: QuizP
         }
     };
 
-    if (loading) return null;
-    if (!quiz) {
-        // No quiz for this station, just auto-close
-        onClose();
-        return null;
-    }
+    useEffect(() => {
+        if (!loading && !quiz) {
+            onClose();
+        }
+    }, [loading, quiz, onClose]);
+
+    if (loading || !quiz) return null;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-xl">
