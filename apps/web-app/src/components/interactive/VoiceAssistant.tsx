@@ -15,6 +15,8 @@ export default function VoiceAssistant({ onCommand, activeLanguage, onLanguageCh
     const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
     const [selectedVoiceName, setSelectedVoiceName] = useState<string>('');
     const [showSettings, setShowSettings] = useState(false);
+    const [inputMode, setInputMode] = useState<'voice' | 'text'>('voice');
+    const [textInput, setTextInput] = useState('');
 
     const recognitionRef = useRef<any>(null);
 
@@ -57,8 +59,11 @@ export default function VoiceAssistant({ onCommand, activeLanguage, onLanguageCh
             setAvailableVoices(filtered);
 
             // Set default voice based on language
-            const preferred = filtered.find(v => v.lang === activeLanguage && (v.name.includes('Google') || v.name.includes('Natural')));
-            if (preferred) setSelectedVoiceName(preferred.name);
+            if (filtered.length > 0) {
+                const preferred = filtered.find(v => v.lang === activeLanguage && (v.name.includes('Google') || v.name.includes('Natural')));
+                if (preferred) setSelectedVoiceName(preferred.name);
+                else setSelectedVoiceName(filtered[0].name);
+            }
         };
 
         loadVoices();
@@ -76,6 +81,14 @@ export default function VoiceAssistant({ onCommand, activeLanguage, onLanguageCh
         }
     };
 
+    const handleTextSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (textInput.trim()) {
+            onCommand(textInput, activeLanguage);
+            setTextInput('');
+        }
+    };
+
     const speakResponse = (text: string) => {
         if (!window.speechSynthesis) return;
         window.speechSynthesis.cancel(); // Stop current speech
@@ -88,7 +101,7 @@ export default function VoiceAssistant({ onCommand, activeLanguage, onLanguageCh
         window.speechSynthesis.speak(utterance);
     };
 
-    // Expose TTS to parent via ref or global event if needed, but for now we handle internal state
+    // Expose TTS to parent via global event
     useEffect(() => {
         const handleSpeak = (e: any) => {
             if (e.detail?.text) speakResponse(e.detail.text);
@@ -98,15 +111,15 @@ export default function VoiceAssistant({ onCommand, activeLanguage, onLanguageCh
     }, [availableVoices, selectedVoiceName, activeLanguage]);
 
     return (
-        <div className="relative flex flex-col items-center gap-6">
-            {/* Listening State UI */}
+        <div className="relative flex flex-col items-center gap-6 w-full max-w-sm">
+            {/* Listening State UI (Waveform Overlay) */}
             <AnimatePresence>
                 {isListening && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="absolute -top-24 bg-purple-600/90 backdrop-blur-xl px-6 py-3 rounded-2xl border border-white/20 shadow-2xl flex items-center gap-4 min-w-[200px]"
+                        className="absolute -top-24 bg-purple-600/90 backdrop-blur-xl px-6 py-3 rounded-2xl border border-white/20 shadow-2xl flex items-center gap-4 min-w-[200px] z-[60]"
                     >
                         <div className="flex gap-1 items-end h-4">
                             {[1, 2, 3, 4, 5].map((i) => (
@@ -125,40 +138,89 @@ export default function VoiceAssistant({ onCommand, activeLanguage, onLanguageCh
                 )}
             </AnimatePresence>
 
-            {/* Main Interaction Hub */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => setShowSettings(!showSettings)}
-                    className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all ${showSettings ? 'bg-white text-black border-white' : 'bg-slate-900 border-white/10 text-white/40 hover:text-white'}`}
-                >
-                    <span className="text-xl">⚙️</span>
-                </button>
-
-                <button
-                    onClick={toggleListening}
-                    className={`group relative w-20 h-20 rounded-[32px] flex items-center justify-center transition-all duration-500 ${isListening ? 'bg-red-500 scale-110 shadow-[0_0_50px_rgba(239,68,68,0.5)]' : 'bg-gradient-to-br from-indigo-600 to-purple-600 shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:scale-105 active:scale-95'}`}
-                >
-                    {isListening ? (
-                        <span className="text-3xl text-white">⏹️</span>
+            {/* Transitioning Input Area */}
+            <div className="w-full flex flex-col gap-4">
+                <AnimatePresence mode="wait">
+                    {inputMode === 'text' ? (
+                        <motion.form
+                            key="text-input"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            onSubmit={handleTextSubmit}
+                            className="w-full relative"
+                        >
+                            <input
+                                type="text"
+                                autoFocus
+                                value={textInput}
+                                onChange={(e) => setTextInput(e.target.value)}
+                                placeholder={activeLanguage === 'vi-VN' ? "Nhập câu hỏi tại đây..." : "Type your question..."}
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 pr-14 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500/50 transition-all shadow-inner"
+                            />
+                            <button
+                                type="submit"
+                                className="absolute right-3 top-2 w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center hover:bg-purple-500 active:scale-95 transition-all shadow-lg shadow-purple-600/20"
+                            >
+                                <span className="text-xs">↵</span>
+                            </button>
+                        </motion.form>
                     ) : (
-                        <span className="text-4xl text-white group-hover:scale-110 transition-transform">🎙️</span>
-                    )}
-
-                    {!isListening && (
                         <motion.div
-                            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-                            transition={{ repeat: Infinity, duration: 2 }}
-                            className="absolute -inset-2 bg-purple-500/20 rounded-[40px] -z-10"
-                        />
+                            key="voice-mode"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex justify-center"
+                        >
+                            {/* Speech bubble or status could go here if needed */}
+                        </motion.div>
                     )}
-                </button>
+                </AnimatePresence>
 
-                <button
-                    onClick={() => onLanguageChange(activeLanguage === 'vi-VN' ? 'en-US' : 'vi-VN')}
-                    className="w-12 h-12 rounded-2xl bg-slate-900 border border-white/10 flex flex-col items-center justify-center hover:border-purple-500/40 transition-all font-black text-[10px]"
-                >
-                    <span className="text-lg opacity-80">{activeLanguage === 'vi-VN' ? '🇻🇳' : '🇺🇸'}</span>
-                </button>
+                {/* Interaction Controls */}
+                <div className="flex items-center justify-center gap-4">
+                    <button
+                        onClick={() => setShowSettings(!showSettings)}
+                        className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all ${showSettings ? 'bg-white text-black border-white' : 'bg-slate-900 border-white/10 text-white/40 hover:text-white'}`}
+                    >
+                        <span className="text-xl">⚙️</span>
+                    </button>
+
+                    <button
+                        onClick={inputMode === 'voice' ? toggleListening : () => setInputMode('voice')}
+                        className={`group relative w-20 h-20 rounded-[32px] flex items-center justify-center transition-all duration-500 ${isListening ? 'bg-red-500 scale-110 shadow-[0_0_50px_rgba(239,68,68,0.5)]' : 'bg-gradient-to-br from-indigo-600 to-purple-600 shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:scale-105 active:scale-95'}`}
+                    >
+                        {isListening ? (
+                            <span className="text-3xl text-white">⏹️</span>
+                        ) : (
+                            <span className="text-4xl text-white group-hover:scale-110 transition-transform">🎙️</span>
+                        )}
+
+                        {!isListening && inputMode === 'voice' && (
+                            <motion.div
+                                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                                transition={{ repeat: Infinity, duration: 2 }}
+                                className="absolute -inset-2 bg-purple-500/20 rounded-[40px] -z-10"
+                            />
+                        )}
+                    </button>
+
+                    <div className="flex flex-col gap-2">
+                        <button
+                            onClick={() => setInputMode(inputMode === 'text' ? 'voice' : 'text')}
+                            className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all ${inputMode === 'text' ? 'bg-purple-600 text-white border-purple-500' : 'bg-slate-900 border-white/10 text-white/40 hover:text-white'}`}
+                        >
+                            <span className="text-xl">{inputMode === 'text' ? '🎙️' : '⌨️'}</span>
+                        </button>
+                        <button
+                            onClick={() => onLanguageChange(activeLanguage === 'vi-VN' ? 'en-US' : 'vi-VN')}
+                            className="w-12 h-12 rounded-2xl bg-slate-900 border border-white/10 flex flex-col items-center justify-center hover:border-purple-500/40 transition-all font-black text-[10px]"
+                        >
+                            <span className="text-lg opacity-80">{activeLanguage === 'vi-VN' ? '🇻🇳' : '🇺🇸'}</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Voice Settings Dropdown */}
@@ -189,6 +251,12 @@ export default function VoiceAssistant({ onCommand, activeLanguage, onLanguageCh
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+            `}</style>
         </div>
     );
 }
