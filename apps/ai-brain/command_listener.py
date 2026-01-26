@@ -8,6 +8,7 @@ import paho.mqtt.client as mqtt
 from db_client import db
 from dotenv import load_dotenv
 from threading import Thread
+from gemini_service import gemini_service
 
 # Load env
 load_dotenv()
@@ -149,36 +150,33 @@ async def ws_handler(websocket):
                     lang = params.get('lang', 'vi-VN')
                     print(f"🎙️ Voice Cmd [{lang}]: {text}")
                     
-                    response_text = ""
-                    # 1. Movement Keywords
-                    if any(kw in text for kw in ["tiến", "thẳng", "forward", "straight"]):
-                        execute_mqtt("move:forward:100")
-                        response_text = "Đang tiến lên." if "vi" in lang else "Moving forward."
-                    elif any(kw in text for kw in ["lùi", "backward", "back"]):
-                        execute_mqtt("move:backward:100")
-                        response_text = "Đang lùi lại." if "vi" in lang else "Moving back."
-                    elif any(kw in text for kw in ["dừng", "đứng lại", "stop", "halt"]):
+                    # 1. HARD KEYWORDS (Priority/Safety - Bypass AI)
+                    if any(kw in text for kw in ["dừng", "đứng lại", "stop", "halt", "emergency", "cấp cứu"]):
                         execute_mqtt("stop")
-                        response_text = "Đã dừng robot." if "vi" in lang else "Robot stopped."
-                        
-                    # 2. Storytelling Keywords
-                    else:
-                        config_path = "../../packages/shared-config/config.json"
-                        try:
-                            with open(config_path, 'r') as f:
-                                cfg = json.load(f)
-                                h_info = cfg.get("heritage_info", {})
-                                for h_id, info in h_info.items():
-                                    if h_id.replace("_", " ") in text or info['name_vn'].lower() in text:
-                                        response_text = info['fact_vn'] if "vi" in lang else info['fact_en']
-                                        break
-                        except: pass
-                    
-                    if response_text:
                         await broadcast_event({
                             "type": "voice_response",
-                            "text": response_text
+                            "text": "Đã dừng robot khẩn cấp." if "vi" in lang else "Emergency stop executed."
                         })
+                    
+                    # 2. SMART AI ROUTING (Gemini)
+                    else:
+                        ai_data = await gemini_service.get_response(text, lang)
+                        if ai_data:
+                            response_text = ai_data.get("text", "")
+                            move_intent = ai_data.get("robot_move")
+                            
+                            # Execute move if intent found
+                            if move_intent in ["forward", "backward", "stop"]:
+                                # Map backward to backward, etc.
+                                direction = "forward" if move_intent == "forward" else "backward" if move_intent == "backward" else "stop"
+                                execute_mqtt(f"move:{direction}:100")
+                            
+                            # Broadcast text response for Tablet TTS
+                            if response_text:
+                                await broadcast_event({
+                                    "type": "voice_response",
+                                    "text": response_text
+                                })
                     return # Voice command handles its own MQTT/Response
                 
                 execute_mqtt(mqtt_msg)

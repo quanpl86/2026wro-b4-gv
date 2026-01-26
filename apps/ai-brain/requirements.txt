@@ -11,3 +11,4 @@ python-dotenv
 qrcode
 pillow
 websockets
+google-generativeai
