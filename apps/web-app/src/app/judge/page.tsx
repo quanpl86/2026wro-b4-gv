@@ -5,6 +5,7 @@ import JudgeStatsCard from '@/components/judge/JudgeStatsCard';
 import MissionTimeline from '@/components/judge/MissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
 import ImmersiveArena from '@/components/judge/ImmersiveArena';
+import ScoreLeaderboard from '@/components/judge/ScoreLeaderboard';
 import QuizOverlay from '@/components/interactive/QuizOverlay';
 import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
@@ -37,6 +38,41 @@ export default function JudgePage() {
     const [logs, setLogs] = useState<{ time: string, msg: string, type: string }[]>([]);
     const [mascotEmotion, setMascotEmotion] = useState<MascotEmotion>('neutral');
     const [isAITalking, setIsAITalking] = useState(false);
+    const [sessionId, setSessionId] = useState<string | null>(null);
+
+    // Create Game Session on Auth
+    useEffect(() => {
+        if (!isAuthorized || !supabase) return;
+
+        const initSession = async () => {
+            const { data, error } = await supabase
+                .from('game_sessions')
+                .insert({ player_name: 'Judge', status: 'active' })
+                .select()
+                .single();
+
+            if (data) {
+                setSessionId(data.id);
+                console.log("🎮 Session Started:", data.id);
+            }
+        };
+        initSession();
+    }, [isAuthorized]);
+
+    const handleScoreUpdate = async (points: number, source: string) => {
+        setCurrentScore(prev => prev + points);
+        setMascotEmotion('excited');
+        setTimeout(() => setMascotEmotion('neutral'), 3000);
+
+        if (sessionId && supabase) {
+            await supabase.from('game_scores').insert({
+                session_id: sessionId,
+                event_type: 'quiz_pass',
+                station_id: source,
+                points: points
+            });
+        }
+    };
 
     const missionSteps = [
         { id: '1', label: 'Khám phá Tràng An', status: 'completed' as const },
@@ -223,7 +259,7 @@ export default function JudgePage() {
 
                     {/* LEFT: INTERACTIVE ARENA */}
                     <div className="col-span-8 h-full min-h-0">
-                        <ImmersiveArena currentPos={robotPos} path={path} />
+                        <ImmersiveArena currentPos={robotPos} path={path} onSiteDiscover={setActiveQuizStation} />
                     </div>
                     {wsError ? (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
@@ -256,6 +292,9 @@ export default function JudgePage() {
                         <div className="p-6 pb-2">
                             <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-6 px-2">Objective Tracker</h3>
                             <MissionTimeline steps={missionSteps} />
+                            <div className="mt-6 border-t border-white/5 pt-6">
+                                <ScoreLeaderboard />
+                            </div>
                         </div>
 
                         <div className="mt-auto p-4 flex flex-col gap-4">
@@ -303,7 +342,7 @@ export default function JudgePage() {
                 <QuizOverlay
                     stationId={activeQuizStation}
                     onClose={() => setActiveQuizStation(null)}
-                    onScoreUpdate={(pts) => setCurrentScore(prev => prev + pts)}
+                    onScoreUpdate={(points) => handleScoreUpdate(points, activeQuizStation)}
                 />
             )}
 

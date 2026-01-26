@@ -21,9 +21,10 @@ interface Site {
 interface ImmersiveArenaProps {
     currentPos: Point;
     path: Point[];
+    onSiteDiscover?: (siteId: string) => void;
 }
 
-export default function ImmersiveArena({ currentPos, path }: ImmersiveArenaProps) {
+export default function ImmersiveArena({ currentPos, path, onSiteDiscover }: ImmersiveArenaProps) {
     const [selectedSite, setSelectedSite] = useState<Site | null>(null);
 
     const sites: Site[] = [
@@ -177,11 +178,20 @@ export default function ImmersiveArena({ currentPos, path }: ImmersiveArenaProps
                         </p>
 
                         <div className="flex gap-4">
-                            <button className="px-8 py-4 bg-white text-black rounded-3xl font-black uppercase tracking-widest text-sm hover:scale-110 active:scale-95 transition-all">
-                                Khám phá 3D
+                            <button
+                                onClick={() => {
+                                    if (onSiteDiscover) onSiteDiscover(selectedSite.id);
+                                    setSelectedSite(null);
+                                }}
+                                className="px-8 py-4 bg-white text-black rounded-3xl font-black uppercase tracking-widest text-sm hover:scale-110 active:scale-95 transition-all"
+                            >
+                                Thử thách Quiz 🎯
                             </button>
-                            <button className="px-8 py-4 bg-white/5 border border-white/10 rounded-3xl font-black uppercase tracking-widest text-sm hover:bg-white/10 transition-all">
-                                Video thực tế
+                            <button
+                                onClick={() => setSelectedSite(null)}
+                                className="px-8 py-4 bg-white/5 border border-white/10 rounded-3xl font-black uppercase tracking-widest text-sm hover:bg-white/10 transition-all"
+                            >
+                                Đóng
                             </button>
                         </div>
                     </motion.div>

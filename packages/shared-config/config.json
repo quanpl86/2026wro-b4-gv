@@ -4,13 +4,27 @@
     "heritage_info": {
         "trang_an": {
             "name_vn": "Tràng An",
-            "fact_vn": "Tràng An là di sản thế giới kép đầu tiên của Việt Nam, nổi tiếng với hệ thống hang động và núi đá vôi hùng vĩ.",
-            "fact_en": "Trang An is Vietnam's first dual World Heritage site, famous for its majestic cave systems and limestone karsts."
+            "name_en": "Trang An Scenic Landscape",
+            "fact_vn": "Tràng An là di sản thế giới kép đầu tiên của Việt Nam, nổi tiếng với hệ thống hang động và núi đá vôi hùng vĩ. Nơi đây có dấu tích của người tiền sử cách đây 30.000 năm.",
+            "fact_en": "Trang An is Vietnam's first dual World Heritage site, famous for its majestic cave systems and limestone karsts. The area contains traces of prehistoric humans dating back 30,000 years."
         },
         "cot_co": {
             "name_vn": "Cột cờ Hà Nội",
-            "fact_vn": "Cột cờ Hà Nội là biểu tượng kiêu hãnh của thủ đô, được xây dựng dưới triều nhà Nguyễn từ năm 1805.",
-            "fact_en": "The Flag Tower of Hanoi is a proud symbol of the capital, built under the Nguyen Dynasty starting in 1805."
+            "name_en": "Hanoi Flag Tower",
+            "fact_vn": "Cột cờ Hà Nội là biểu tượng kiêu hãnh của thủ đô, được xây dựng dưới triều nhà Nguyễn từ năm 1805. Đây là một trong số ít công trình còn nguyên vẹn sau chiến tranh.",
+            "fact_en": "The Flag Tower of Hanoi is a proud symbol of the capital, built under the Nguyen Dynasty starting in 1805. It is one of the few structures that remained intact after the wars."
+        },
+        "vinh_ha_long": {
+            "name_vn": "Vịnh Hạ Long",
+            "name_en": "Ha Long Bay",
+            "fact_vn": "Vịnh Hạ Long là kỳ quan thiên nhiên thế giới với gần 2.000 hòn đảo đá vôi hùng vĩ. Tên gọi 'Hạ Long' có nghĩa là 'Rồng hạ xuống' theo truyền thuyết.",
+            "fact_en": "Ha Long Bay is a natural wonder of the world with nearly 2,000 majestic limestone islands. The name 'Ha Long' means 'Descending Dragon' according to legend."
+        },
+        "pho_co_hoi_an": {
+            "name_vn": "Phố cổ Hội An",
+            "name_en": "Hoi An Ancient Town",
+            "fact_vn": "Phố cổ Hội An là đô thị cổ được bảo tồn gần như nguyên vẹn, từng là thương cảng quốc tế sầm uất bậc nhất Đông Nam Á vào thế kỷ 16-17.",
+            "fact_en": "Hoi An Ancient Town is an exceptionally well-preserved old town, once one of Southeast Asia's busiest international trading ports in the 16th-17th centuries."
         }
     }
 }
