@@ -7,6 +7,7 @@ import JudgePinModal from '@/components/judge/JudgePinModal';
 import ImmersiveArena from '@/components/judge/ImmersiveArena';
 import ScoreLeaderboard from '@/components/judge/ScoreLeaderboard';
 import AdvancedQuiz from '@/components/interactive/AdvancedQuiz';
+import BadgeCollection from '@/components/judge/BadgeCollection';
 import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
 import { useRouter } from 'next/navigation';
@@ -29,6 +30,8 @@ export default function JudgePage() {
     const [wsError, setWsError] = useState<string | null>(null);
     const [activeQuizStation, setActiveQuizStation] = useState<string | null>(null);
     const [voiceLang, setVoiceLang] = useState<'vi-VN' | 'en-US'>('vi-VN');
+    const [showBadges, setShowBadges] = useState(false);
+    const [sessionScores, setSessionScores] = useState<Record<string, number>>({});
 
     // Telemetry State
     const [batteryLevel, setBatteryLevel] = useState(100);
@@ -60,16 +63,31 @@ export default function JudgePage() {
         initSession();
     }, [isAuthorized]);
 
-    const handleScoreUpdate = async (points: number, source: string) => {
-        setCurrentScore(prev => prev + points);
+    const handleScoreUpdate = async (points: number, stationId: string) => {
+        const newScore = currentScore + points;
+        setCurrentScore(newScore);
+
+        // Update per-station score for badges
+        setSessionScores(prev => ({
+            ...prev,
+            [stationId]: (prev[stationId] || 0) + points
+        }));
+
         setMascotEmotion('excited');
         setTimeout(() => setMascotEmotion('neutral'), 3000);
 
         if (sessionId && supabase) {
+            // Update Session Total
+            await supabase
+                .from('game_sessions')
+                .update({ score: newScore })
+                .eq('id', sessionId);
+
+            // Log granular event
             await supabase.from('game_scores').insert({
                 session_id: sessionId,
                 event_type: 'quiz_pass',
-                station_id: source,
+                station_id: stationId,
                 points: points
             });
         }
@@ -184,6 +202,8 @@ export default function JudgePage() {
         const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         setLogs(prev => [{ time, msg, type }, ...prev].slice(0, 50));
     };
+
+
 
     if (!isAuthorized) {
         return <JudgePinModal onSuccess={() => setIsAuthorized(true)} />;
@@ -339,10 +359,27 @@ export default function JudgePage() {
                 </div>
             </div>
 
+            {showBadges && (
+                <BadgeCollection
+                    scores={sessionScores}
+                    onClose={() => setShowBadges(false)}
+                />
+            )}
+
+            {/* BADGE FAB */}
+            <button
+                onClick={() => setShowBadges(true)}
+                className="fixed bottom-8 left-8 z-50 w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-lg shadow-orange-500/20 flex items-center justify-center text-3xl hover:scale-110 transition-transform border-4 border-slate-900"
+                title="My Collection"
+            >
+                🎒
+            </button>
+
             {activeQuizStation && (
                 <AdvancedQuiz
                     stationId={activeQuizStation}
                     questions={(config.heritage_info as any)[activeQuizStation]?.quiz_data || []}
+                    badgeImage={(config.heritage_info as any)[activeQuizStation]?.badge_image}
                     onClose={() => setActiveQuizStation(null)}
                     onScoreUpdate={(points) => handleScoreUpdate(points, activeQuizStation)}
                 />
