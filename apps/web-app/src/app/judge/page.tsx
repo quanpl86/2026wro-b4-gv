@@ -139,6 +139,10 @@ export default function JudgePage() {
     const [isAITalking, setIsAITalking] = useState(false);
     const [selectedBookSite, setSelectedBookSite] = useState<Site | null>(null);
     const [isAutoPlayBook, setIsAutoPlayBook] = useState(false);
+    const [pendingIntro, setPendingIntro] = useState<{
+        site: Site;
+        phase: 'greeting' | 'invitation';
+    } | null>(null);
     const [sidebarWidth, setSidebarWidth] = useState(360);
     const [isResizing, setIsResizing] = useState(false);
 
@@ -241,6 +245,33 @@ export default function JudgePage() {
         return () => clearInterval(timer);
     }, []);
 
+    // --- HERITAGE INTRO SEQUENCER ---
+    useEffect(() => {
+        const handleSpeakEnd = () => {
+            if (!pendingIntro) return;
+
+            if (pendingIntro.phase === 'greeting') {
+                // Phase 1 finished -> Start Phase 2
+                setTimeout(() => {
+                    setPendingIntro({ ...pendingIntro, phase: 'invitation' });
+                    const inviteText = "Chúng ta cùng nhau tìm hiểu về địa danh nổi tiếng này nhé";
+                    setCurrentSubtitle(inviteText);
+                    window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: inviteText } }));
+                }, 500);
+            } else if (pendingIntro.phase === 'invitation') {
+                // Phase 2 finished -> Open Book in Auto Mode
+                setTimeout(() => {
+                    setSelectedBookSite(pendingIntro.site);
+                    setIsAutoPlayBook(true);
+                    setPendingIntro(null);
+                }, 800);
+            }
+        };
+
+        window.addEventListener('ai-speak-end', handleSpeakEnd);
+        return () => window.removeEventListener('ai-speak-end', handleSpeakEnd);
+    }, [pendingIntro, mapSites]);
+
     // WebSocket (Robot Connection)
     useEffect(() => {
         if (!isAuthorized || !hubIp) return;
@@ -277,13 +308,13 @@ export default function JudgePage() {
                         // Find the site object from mapSites
                         const siteObj = mapSites.find(s => s.id === siteId);
                         if (siteObj) {
-                            setSelectedBookSite(siteObj);
-                            setIsAutoPlayBook(true);
+                            // Start Intro Sequence instead of opening book immediately
+                            setPendingIntro({ site: siteObj, phase: 'greeting' });
                             setEmotion('curious');
 
-                            if (data.site_name) {
-                                setCurrentSubtitle(`Bắt đầu thuyết minh di sản: ${data.site_name}`);
-                            }
+                            const introText = `Mời bạn đến tham quan địa danh ${siteObj.name}`;
+                            setCurrentSubtitle(introText);
+                            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: introText } }));
                         }
                     } else if (data.type === 'station_status') {
                         setStationStatuses(prev => ({
