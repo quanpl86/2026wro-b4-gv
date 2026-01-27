@@ -53,9 +53,10 @@ interface ImmersiveArenaProps {
     stationStatuses?: Record<string, { status: string, action?: string }>;
     onSiteClick?: (site: Site) => void;
     focusedSiteId?: string | null;
+    isLocked?: boolean;
 }
 
-export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscover, isEditorMode, onEditSite, sites, onPosUpdate, onRobotPosUpdate, backgroundUrl, stationStatuses = {}, onSiteClick, focusedSiteId }: ImmersiveArenaProps) {
+export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscover, isEditorMode, onEditSite, sites, onPosUpdate, onRobotPosUpdate, backgroundUrl, stationStatuses = {}, onSiteClick, focusedSiteId, isLocked = false }: ImmersiveArenaProps) {
     const [hoveredSite, setHoveredSite] = useState<string | null>(null);
     const [isPanMode, setIsPanMode] = useState(false);
     const [isMoveMode, setIsMoveMode] = useState(false);
@@ -96,7 +97,7 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
     };
 
     const handleWheel = (e: React.WheelEvent) => {
-        if (isEditorMode) return;
+        if (isEditorMode || isLocked) return;
         const delta = e.deltaY * -0.002;
         const currentZone = zoomVal.get();
         zoomVal.set(Math.min(Math.max(currentZone + delta, 0.5), 6));
@@ -158,6 +159,12 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
                     className="absolute inset-0 flex justify-center items-center p-4 preserve-3d will-change-transform"
                     style={{ scale: zoom, x: panX, y: panY }}
                     onWheel={handleWheel}
+                    drag={!isLocked && !isEditorMode}
+                    dragMomentum={false}
+                    onDrag={(_, info) => {
+                        panXVal.set(panXVal.get() + info.delta.x);
+                        panYVal.set(panYVal.get() + info.delta.y);
+                    }}
                 >
                     <img
                         ref={imgRef}

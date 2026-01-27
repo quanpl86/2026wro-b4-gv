@@ -709,6 +709,7 @@ export default function JudgePage() {
                             backgroundUrl={backgroundUrl}
                             onSiteClick={setSelectedBookSite}
                             focusedSiteId={activeQuizStation || pendingIntro?.site.id || selectedBookSite?.id}
+                            isLocked={!!pendingIntro}
                         />
 
                         {/* Editor Controls (ADMIN ONLY) */}
