@@ -80,20 +80,19 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
     }, [zoomVal, panXVal, panYVal]);
 
     const handleFocusSite = (site: Site) => {
-        const targetZoom = 2.5;
+        const targetZoom = 3.0; // Slightly higher zoom for sharper focus
         zoomVal.set(targetZoom);
 
-        // Correct Centering Math:
-        // We want to bring (site.posX, site.posY) to (50, 50) of the container.
-        // The container center is already at the image's center (50, 50).
-        // The offset needed is the difference from center, scaled by the zoom factor.
-        // We use a factor of 8-10 for the percentage-to-pixel conversion assuming typical screen widths.
-        const multiplier = 10;
-        const targetX = (50 - site.posX) * targetZoom * multiplier;
-        const targetY = (50 - site.posY) * targetZoom * multiplier;
+        // Precision Centering Math:
+        // site.posX/Y are 0-100 percentages.
+        // Displacement needed is (50% - site_pos%).
+        // We scale this by zoom and a constant factor (px per % point).
+        const pxPerPercent = 11;
+        const offsetX = (50 - site.posX) * targetZoom * pxPerPercent;
+        const offsetY = (50 - site.posY) * targetZoom * pxPerPercent;
 
-        panXVal.set(targetX);
-        panYVal.set(targetY);
+        panXVal.set(offsetX);
+        panYVal.set(offsetY);
     };
 
     const handleWheel = (e: React.WheelEvent) => {
@@ -296,7 +295,13 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
                                                 onMouseLeave={() => setHoveredSite(null)}
                                                 onClick={() => {
                                                     if (isMoveMode) return;
-                                                    isEditorMode ? onEditSite?.(site) : handleFocusSite(site);
+                                                    if (isEditorMode) {
+                                                        onEditSite?.(site);
+                                                    } else {
+                                                        // Manual click: Zoom AND Open Book
+                                                        handleFocusSite(site);
+                                                        onSiteClick?.(site);
+                                                    }
                                                 }}
                                                 whileHover={{ scale: isMoveMode ? 1 : 1.3 }}
                                                 className={`w-10 h-10 rounded-[14px] border-2 border-white flex items-center justify-center bg-gradient-to-br ${site.color} shadow-[0_10px_20px_rgba(0,0,0,0.3)] relative group/pin`}
