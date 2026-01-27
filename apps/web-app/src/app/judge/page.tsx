@@ -61,17 +61,6 @@ export default function JudgePage() {
     const [isEditorMode, setIsEditorMode] = useState(false);
     const [editingSite, setEditingSite] = useState<Site | null>(null);
 
-    // Memoize sorted sites to prevent unnecessary re-renders in ImmersiveArena
-    const sortedSites = useMemo(() => {
-        const order = ['pho_co_hoi_an', 'trang_an', 'vinh_ha_long', 'cot_co'];
-        return [...mapSites].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
-    }, [mapSites]);
-
-    // Memoize sorted sites to prevent unnecessary re-renders in ImmersiveArena
-    const sortedSites = useMemo(() => {
-        const order = ['pho_co_hoi_an', 'trang_an', 'vinh_ha_long', 'cot_co'];
-        return [...mapSites].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
-    }, [mapSites]);
     const [stationStatuses, setStationStatuses] = useState<Record<string, { status: string, action?: string }>>({});
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -137,6 +126,12 @@ export default function JudgePage() {
             pathColor: '#f43f5e'
         }
     ]);
+
+    // Memoize sorted sites to prevent unnecessary re-renders in ImmersiveArena
+    const sortedSites = useMemo(() => {
+        const order = ['pho_co_hoi_an', 'trang_an', 'vinh_ha_long', 'cot_co'];
+        return [...mapSites].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+    }, [mapSites]);
 
     // Telemetry
     const [batteryLevel, setBatteryLevel] = useState(100);
