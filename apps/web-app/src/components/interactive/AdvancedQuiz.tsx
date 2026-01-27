@@ -479,10 +479,6 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                         >
                             Bắt đầu chơi
                         </button>
-
-                        <useEffect(() => {
-                            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: "Bạn đã sẵn sàng cho thử thách chưa? Hãy nhấn nút Bắt đầu để chúng mình cùng chơi nhé!" } }));
-                        }, [])}
                     </div>
                 ) : phase === 'reward' ? (
                     <div className="p-8 md:p-10 flex flex-col items-center justify-center text-center min-h-[450px] relative overflow-hidden">
