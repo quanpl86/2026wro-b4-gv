@@ -225,7 +225,8 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
                         </svg>
 
                         {sites.map((site) => {
-                            const isHovered = hoveredSite === site.id;
+                            const isFocus = focusedSiteId === site.id;
+                            const isHovered = hoveredSite === site.id || isFocus;
                             const isDiscovering = stationStatuses[site.id]?.status === 'busy';
                             return (
                                 <motion.div
@@ -267,7 +268,7 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
                                                 </div>
                                             )}
                                             <AnimatePresence>
-                                                {isHovered && !isEditorMode && (
+                                                {(isHovered || isFocus) && !isEditorMode && (
                                                     <motion.div
                                                         initial={{ opacity: 0, y: 15, scale: 0.8 }}
                                                         animate={{ opacity: 1, y: 0, scale: 1 }}

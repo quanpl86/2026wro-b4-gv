@@ -257,7 +257,7 @@ export default function JudgePage() {
                     const inviteText = "Chúng ta cùng nhau tìm hiểu về địa danh nổi tiếng này nhé";
                     setCurrentSubtitle(inviteText);
                     window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: inviteText } }));
-                }, 500);
+                }, 800);
             } else if (pendingIntro.phase === 'invitation') {
                 // Phase 2 finished -> Open Book in Auto Mode
                 setTimeout(() => {
