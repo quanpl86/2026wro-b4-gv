@@ -92,6 +92,7 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
         // Force stop previous to avoid overlapping
         window.speechSynthesis.cancel();
         setEmotion('neutral');
+        utteranceRef.current = null;
 
         // Small timeout to let cancel finish and NOT trigger event handlers for new one early
         setTimeout(() => {
