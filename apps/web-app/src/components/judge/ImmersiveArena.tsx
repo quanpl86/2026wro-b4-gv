@@ -80,12 +80,20 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
     }, [zoomVal, panXVal, panYVal]);
 
     const handleFocusSite = (site: Site) => {
-        zoomVal.set(2.5);
-        const targetX = (50 - site.posX) * (3);
-        const targetY = (50 - site.posY) * (3);
-        panXVal.set(targetX * 2);
-        panYVal.set(targetY * 2);
-        if (onSiteClick) onSiteClick(site);
+        const targetZoom = 2.5;
+        zoomVal.set(targetZoom);
+
+        // Correct Centering Math:
+        // We want to bring (site.posX, site.posY) to (50, 50) of the container.
+        // The container center is already at the image's center (50, 50).
+        // The offset needed is the difference from center, scaled by the zoom factor.
+        // We use a factor of 8-10 for the percentage-to-pixel conversion assuming typical screen widths.
+        const multiplier = 10;
+        const targetX = (50 - site.posX) * targetZoom * multiplier;
+        const targetY = (50 - site.posY) * targetZoom * multiplier;
+
+        panXVal.set(targetX);
+        panYVal.set(targetY);
     };
 
     const handleWheel = (e: React.WheelEvent) => {

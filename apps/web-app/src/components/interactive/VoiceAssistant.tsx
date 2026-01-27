@@ -172,15 +172,22 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
     const testSpeak = () => speakResponse(activeLanguage === 'vi-VN' ? "Hệ thống âm thanh đã sẵn sàng." : "Audio system is ready.");
 
     useEffect(() => {
-        const handleSpeak = (e: any) => {
-            if (e.detail?.text) speakResponse(e.detail.text);
+        const handleAiSpeak = (e: any) => {
+            const { text, action } = e.detail;
+            if (action === 'stop') {
+                window.speechSynthesis.cancel();
+                setEmotion('neutral');
+                return;
+            }
+            if (text) speakResponse(text);
         };
-        window.addEventListener('ai-speak', handleSpeak);
-        return () => window.removeEventListener('ai-speak', handleSpeak);
-    }, [speakResponse]);
+
+        window.addEventListener('ai-speak', handleAiSpeak);
+        return () => window.removeEventListener('ai-speak', handleAiSpeak);
+    }, [speakResponse, setEmotion]);
 
     return (
-        <div className="relative flex flex-col items-center gap-6 w-full max-w-sm">
+        <div className="relative w-full h-full flex flex-col gap-6">
             {/* Listening State UI */}
             <AnimatePresence>
                 {isListening && (
