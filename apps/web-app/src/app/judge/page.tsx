@@ -9,7 +9,8 @@ import ScoreLeaderboard from '@/components/judge/ScoreLeaderboard';
 import AdvancedQuiz from '@/components/interactive/AdvancedQuiz';
 import BadgeCollection from '@/components/judge/BadgeCollection';
 import VoiceAssistant from '@/components/interactive/VoiceAssistant';
-import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
+import AIAvatar from '@/components/interactive/AIAvatar';
+import { MascotVideoEmotion } from '@/components/interactive/VideoMascot';
 import { useRobotEmotion } from '@/stores/useRobotEmotion';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -518,9 +519,9 @@ export default function JudgePage() {
                     <div className="h-[320px] relative border-b border-white/5 bg-gradient-to-b from-slate-900/0 to-slate-800/30">
                         <div className="absolute inset-0 flex items-center justify-center p-8">
                             <AIAvatar
-                                emotion={currentEmotion as MascotEmotion}
+                                emotion={currentEmotion as MascotVideoEmotion}
                                 isTalking={currentEmotion === 'talking'}
-                                size={300}
+                                size={280}
                             />
                         </div>
                         <div className="absolute top-6 right-6 px-3 py-1 bg-purple-500/20 text-purple-400 text-[10px] font-black rounded-full uppercase tracking-wider border border-purple-500/30 backdrop-blur-md">

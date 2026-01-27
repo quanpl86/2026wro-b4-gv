@@ -3,46 +3,19 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export type MascotEmotion = 'neutral' | 'happy' | 'thinking' | 'excited' | 'talking';
+import VideoMascot, { MascotVideoEmotion } from './VideoMascot';
 
 interface AIAvatarProps {
-    emotion?: MascotEmotion;
+    emotion?: MascotVideoEmotion;
     isTalking?: boolean;
     size?: number;
 }
 
 export default function AIAvatar({ emotion = 'neutral', isTalking = false, size = 192 }: AIAvatarProps) {
-    const [currentPose, setCurrentPose] = useState<number>(0);
-
-    // Mapping emotions to sprite grid indices (2x2 grid)
-    // 0: Neutral (Top-Left)
-    // 1: Talking (Top-Right)
-    // 2: Thinking (Bottom-Left)
-    // 3: Excited/Happy (Bottom-Right)
-
-    useEffect(() => {
-        if (isTalking) {
-            setCurrentPose(1); // Talking pose
-        } else {
-            switch (emotion) {
-                case 'thinking': setCurrentPose(2); break;
-                case 'happy':
-                case 'excited': setCurrentPose(3); break;
-                default: setCurrentPose(0); break;
-            }
-        }
-    }, [emotion, isTalking]);
-
-    const getPosition = (index: number) => {
-        const x = (index % 2) * 100;
-        const y = Math.floor(index / 2) * 100;
-        return `${x}% ${y}%`;
-    };
-
     return (
         <div
             className="relative flex items-center justify-center"
-            style={{ width: size, height: size }}
+            style={{ width: size, height: (size * 16) / 9 }}
         >
             {/* Glow Effect */}
             <motion.div
@@ -51,21 +24,14 @@ export default function AIAvatar({ emotion = 'neutral', isTalking = false, size 
                     opacity: [0.3, 0.5, 0.3]
                 }}
                 transition={{ repeat: Infinity, duration: 3 }}
-                className="absolute inset-0 bg-purple-500/20 blur-[40px] rounded-full"
+                className="absolute inset-x-0 bottom-0 top-1/2 bg-purple-500/20 blur-[40px] rounded-full"
             />
 
-            {/* Mascot Sprite */}
-            <motion.div
-                key={currentPose}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="w-full h-full relative z-10"
-                style={{
-                    backgroundImage: `url('/assets/mascot/codekitten.png')`,
-                    backgroundSize: '200% 200%',
-                    backgroundPosition: getPosition(currentPose),
-                    imageRendering: 'crisp-edges'
-                }}
+            {/* Video Mascot implementation */}
+            <VideoMascot
+                emotion={emotion}
+                isTalking={isTalking}
+                className="w-full h-full"
             />
 
             {/* Speaking Indicator */}
@@ -75,7 +41,7 @@ export default function AIAvatar({ emotion = 'neutral', isTalking = false, size 
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0 }}
-                        className="absolute -top-4 -right-4 bg-purple-600 text-white p-2 rounded-xl shadow-lg border border-white/20"
+                        className="absolute -top-4 -right-4 bg-purple-600 text-white p-2 rounded-xl shadow-lg border border-white/20 z-20"
                     >
                         <div className="flex gap-1 items-end h-3">
                             {[1, 2, 3].map(i => (
