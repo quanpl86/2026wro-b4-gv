@@ -311,12 +311,13 @@ export default function JudgePage() {
                         // --- GUARD: Don't re-trigger if already busy with this site or any other ---
                         if (siteObj && !selectedBookSite && !activeQuizStation && !pendingIntro) {
                             // Start Intro Sequence instead of opening book immediately
+                            // Greeting Phase: Welcome + Brief Description
+                            const greetingText = `Chào mừng bạn đã đến với ${siteObj.name}. ${siteObj.description}`;
                             setPendingIntro({ site: siteObj, phase: 'greeting' });
                             setEmotion('curious');
 
-                            const introText = `Mời bạn đến tham quan địa danh ${siteObj.name}`;
-                            setCurrentSubtitle(introText);
-                            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: introText } }));
+                            setCurrentSubtitle(greetingText);
+                            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: greetingText } }));
                         } else {
                             console.log("⏭️ Site Discovery ignored (Busy or Invalid):", siteId);
                         }
@@ -686,7 +687,7 @@ export default function JudgePage() {
                             onRobotPosUpdate={handleRobotPosUpdate}
                             backgroundUrl={backgroundUrl}
                             onSiteClick={setSelectedBookSite}
-                            focusedSiteId={activeQuizStation}
+                            focusedSiteId={activeQuizStation || pendingIntro?.site.id || selectedBookSite?.id}
                         />
 
                         {/* Editor Controls (ADMIN ONLY) */}
