@@ -256,14 +256,23 @@ export default function JudgePage() {
                     setPendingIntro({ ...pendingIntro, phase: 'invitation' });
                     const inviteText = "Chúng ta cùng nhau tìm hiểu về địa danh nổi tiếng này nhé";
                     setCurrentSubtitle(inviteText);
-                    window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: inviteText } }));
+                    // Stop any previous speech before starting next phase
+                    window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: '', action: 'stop' } }));
+                    setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: inviteText } }));
+                    }, 100);
                 }, 800);
             } else if (pendingIntro.phase === 'invitation') {
                 // Phase 2 finished -> Open Book in Auto Mode
                 setTimeout(() => {
-                    setSelectedBookSite(pendingIntro.site);
-                    setIsAutoPlayBook(true);
-                    setPendingIntro(null);
+                    // STOP any intro speech before opening book (which will start its own speech)
+                    window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: '', action: 'stop' } }));
+
+                    setTimeout(() => {
+                        setSelectedBookSite(pendingIntro.site);
+                        setIsAutoPlayBook(true);
+                        setPendingIntro(null);
+                    }, 200);
                 }, 800);
             }
         };
@@ -278,8 +287,12 @@ export default function JudgePage() {
             const timer = setTimeout(() => {
                 const greetingText = `Mời bạn đến tham quan địa danh ${pendingIntro.site.name}`;
                 setCurrentSubtitle(greetingText);
-                window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: greetingText } }));
-            }, 1500); // 1.5s delay for Zoom & Pin show
+                // Stop any accidental noise before starting lead intro
+                window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: '', action: 'stop' } }));
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: greetingText } }));
+                }, 100);
+            }, 2000); // 2.0s delay for smooth Zoom & Pin animation settle
             return () => clearTimeout(timer);
         }
     }, [pendingIntro?.site.id, pendingIntro?.phase]);
