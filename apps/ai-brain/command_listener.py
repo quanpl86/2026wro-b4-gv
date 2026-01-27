@@ -8,6 +8,7 @@ import paho.mqtt.client as mqtt
 from db_client import db
 from dotenv import load_dotenv
 from threading import Thread
+import traceback
 from gemini_service import gemini_service
 
 # Load env
@@ -16,10 +17,10 @@ load_dotenv()
 # --- Config ---
 MQTT_BROKER = "localhost" 
 MQTT_PORT = 1883
-MQTT_TOPIC_CMD = "wro/robot/commands"
-MQTT_TOPIC_CFG = "wro/robot/config"
-MQTT_TOPIC_TELEMETRY = "wro/robot/telemetry"
+MQTT_TOPIC_TELEMETRY = "robot/+/telemetry"
+MQTT_TOPIC_STATUS = "robot/+/status"
 WS_PORT = 8765
+DEFAULT_MOBILE_ROBOT = "mobile_guide"
 
 # Global Telemetry State
 current_telemetry = {
@@ -48,6 +49,7 @@ def on_connect(client, userdata, flags, reason_code, properties=None):
     if reason_code == 0:
         print(f"✅ Connected to MQTT Broker")
         client.subscribe(MQTT_TOPIC_TELEMETRY)
+        client.subscribe(MQTT_TOPIC_STATUS)
         send_current_config()
     else:
         print(f"❌ MQTT Connect Failed: {reason_code}")
@@ -55,12 +57,27 @@ def on_connect(client, userdata, flags, reason_code, properties=None):
 def on_message(client, userdata, msg):
     global current_telemetry
     try:
-        if msg.topic == MQTT_TOPIC_TELEMETRY:
-            data = json.loads(msg.payload.decode())
+        topic = msg.topic
+        payload_str = msg.payload.decode()
+        data = json.loads(payload_str)
+        
+        if "telemetry" in topic:
             current_telemetry.update(data)
-            # print(f"📊 Telemetry Update: {current_telemetry}")
+        elif "status" in topic:
+            target_id = topic.split('/')[1]
+            print(f"🔔 Status from [{target_id}]: {data}")
+            # Broadcast to web dashboard
+            asyncio.run_coroutine_threadsafe(
+                broadcast_event({
+                    "type": "station_status",
+                    "station_id": target_id,
+                    "status": data.get("status"),
+                    "action": data.get("action")
+                }), 
+                asyncio.get_event_loop()
+            )
     except Exception as e:
-        print(f"⚠️ Telemetry Parse Error: {e}")
+        print(f"⚠️ MQTT Msg Error [{msg.topic}]: {e}")
 
 mqtt_client.on_connect = on_connect
 mqtt_client.on_message = on_message
@@ -90,9 +107,16 @@ def send_current_config():
         mqtt_client.publish(MQTT_TOPIC_CFG, config_msg, retain=True)
         print(f"⚙️ Sync Profile: {profile['name']}")
 
-def execute_mqtt(mqtt_msg):
-    mqtt_client.publish(MQTT_TOPIC_CMD, mqtt_msg)
-    print(f"📡 MQTT [OUT]: {mqtt_msg}")
+def publish_to_robot(target_id, message):
+    """Gửi lệnh tới một robot hoặc trạm cụ thể qua MQTT"""
+    topic = f"robot/{target_id}/command"
+    payload = json.dumps(message) if isinstance(message, dict) else message
+    mqtt_client.publish(topic, payload)
+    print(f"📡 MQTT [OUT] -> {topic}: {payload}")
+
+def execute_mqtt(mqtt_msg, target_id=DEFAULT_MOBILE_ROBOT):
+    """Hàm tương thích ngược, mặc định gửi tới mobile robot"""
+    publish_to_robot(target_id, mqtt_msg)
 
 # --- WebSocket Server (High Speed Bridge) ---
 connected_clients = set()
@@ -171,6 +195,10 @@ async def ws_handler(websocket):
                             "type": "voice_response",
                             "text": ai_data["text"]
                         })
+                    
+                    # 🤖 TRIGGER STATION ACTION (Phase 7 Orchestration)
+                    # Giả sử tên trạm phần cứng trùng với site_id
+                    publish_to_robot(site_id, {"action": "perform_intro"})
                         
                     mqtt_msg = "stop" # Auto-stop robot when site discovered
                 elif cmd == "voice_command":

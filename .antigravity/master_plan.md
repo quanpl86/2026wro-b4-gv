@@ -56,37 +56,29 @@ Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính
 - [x] Hệ thống Mini-games (Quiz, Multimedia FlipBook, Digital Badges) tại trạm dừng.
 - [x] Hệ thống Lưu trữ Game Session & Kết quả thi đấu nâng cao.
 
-### Phase 6: Core AI & Distributed Hub [IN-PROGRESS]
+### Phase 6: Core AI & Distributed Hub [DONE]
 - [x] Triển khai AI Assistant (Voice Chat & Gemini LLM) trên Tablet.
 - [x] Nâng cấp Bản đồ: Adaptive Map Editor & Cloud Image Hosting (Supabase Storage).
 - [x] Hệ thống Responsive Map Calibration (Chống lệch vị trí đa thiết bị).
-- [x] Nâng cấp Bản đồ: Adaptive Map Editor & Cloud Image Hosting (Supabase Storage).
-- [x] Hệ thống Responsive Map Calibration (Chống lệch vị trí đa thiết bị).
-- [ ] Chuyển đổi sang Raspberry Pi (Moved to Phase 7).
-- [ ] Phối hợp đồng thời Robot di động và các Robot trạm mô hình (Moved to Phase 7).
+- [x] Video-based Mascot Engine: Biểu cảm sống động 9:16 đồng bộ với cảm xúc robot.
+- [x] Game Loop Orchestration: Kích hoạt Quiz/Media dựa trên vị trí robot.
 
-### Phase 7: Multi-Robot Orchestration (Mobile & Static) [PLANNED]
-- [ ] **Kiến trúc Custom Hardware:** 
-    - [ ] Mobile Robot (WiFi)
-    - [ ] Station Controller (Bluetooth PAN, Dual-Station Logic)
-    - [ ] Light Controller (ESP32 WiFi)
-- [ ] **Station Node Client:** Viết `dual_station_node.py` cho EV3 Controller để điều khiển Motor A (Trạm 1) và Motor B (Trạm 2).
-- [ ] **Lighting Node:** Viết `esp32_lights.ino` nhận lệnh MQTT đổi màu đèn.
-- [ ] **Orchestration Logic:** AI Brain điều phối Mobile Robot dừng chờ, kích hoạt hiệu ứng Trạm/Đèn, rồi tiếp tục.
-- [ ] **Dashboard Integration:** Hiển thị trạng thái đầy đủ 4 node (Mobile, Station 1, Station 2, Lights).
+### Phase 7: Multi-Robot Orchestration (Mobile & Static) [DONE]
+- [x] **Kiến trúc Connectivity:** Laptop Hub kết nối đa thiết bị qua MQTT.
+- [x] **Station Logic:** Viết `station_node.py` cho EV3 Controller điều khiển trạm di sản.
+- [x] **Orchestration Workflow:** AI Brain tự động dừng Robot di động và kích hoạt Trạm khi phát hiện địa danh.
+- [x] **Dashboard Sync:** Hiển thị trạng thái Online/Busy của các trạm thời gian thực.
 
-### Phase 7.1: Robot Calibration & Emotion Tuning (NEW)
-- [ ] **Mechanical Measurement:** Sử dụng `ROBOT_CALIBRATION_SHEET.md` để ghi lại góc giới hạn của Tay Trái/Phải.
-- [ ] **Code Configuration:** Cập nhật các hằng số `ARM_LIMIT` trong `mobile_node.py` dựa trên số liệu đo được.
-- [ ] **Animation Test:** Chạy thử các hành động `HELLO`, `POINT`, `HAPPY` để tinh chỉnh độ mượt.
+### Phase 7.5: Phygital Resilience & Idle AI [DONE]
+- [x] **System Resilience:** Mascot phản ứng với trạng thái Pin yếu và Mất kết nối (Angry/Sleepy).
+- [x] **Idle Behaviors:** Robot tự động chớp mắt/nhìn quanh khi không có lệnh (Micro-animations).
+- [x] **Node Hardening:** Triển khai MQTT Last Will & Testament cho toàn bộ hệ thống phần cứng.
 
-### Phase 7.5: Robot Face & Emotion UI [PRIORITY HIGH]
-- [ ] **Emotion Eye Component:** Tạo Component mắt Robot (Anime style, Sparkling) với các trạng thái: Blink, Happy, Curious, Sleepy.
-- [ ] **Vision Page Update:** Nâng cấp `/vision` để hỗ trợ 2 chế độ:
-    1.  **Scanner Mode:** Camera Fullscreen (như hiện tại).
-    2.  **Face Mode:** Hiển thị mắt Robot.
-- [ ] **Remote Switching:** Tích hợp MQTT/Supabase để Admin chuyển đổi chế độ từ xa.
-- [ ] **Sync with Arms:** Khi tay múa "Happy", mắt cũng phải chuyển "Happy".
+### Phase 8: Triển khai & Hoàn thiện (The Grand Finale) [PLANNED]
+- [ ] **Hub Migration:** Chuyển AI Brain Hub từ Laptop sang Raspberry Pi (Docker/Systemd).
+- [ ] **Leaderboards:** Xây dựng Bảng xếp hạng điểm số real-time tích hợp Supabase.
+- [ ] **Optimization:** Tối ưu hóa độ trễ (Latency) và nén tài nguyên video/audio.
+- [ ] **Final Field Test:** Chạy thử nghiệm toàn bộ kịch bản 4 trạm di sản liên tục.
 
 ---
 

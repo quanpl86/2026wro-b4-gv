@@ -25,7 +25,8 @@
 - **Phase 4 (QR Vision):** Đã hoàn thành (Migrated ArUco -> QR engine, jsQR integration).
 - **Phase 5 (The Storyteller):** Đã hoàn thành (Judge Portal, Live Map tracking, Mini-games, Digital Badges).
 - **Phase 6 (Immersive Upgrade):** Đã hoàn thành (Gemini AI Smart Guide, Visual CMS, Advanced Quiz Builder, Adaptive Map Editor, Cloud Storage Integration).
-- **Phase 7 (Social & Orchestration):** Đã hoàn thành 50% (Emotion Engine v2 with dynamic facial expressions, TTS Sync Bridge, Station Controller architecture).
+- **Phase 7 (Social & Orchestration):** Đã hoàn thành (MQTT Many-to-Many, Trạng thái Trạm real-time, Telemetry Resilience & Idle AI).
+- **Phase 8 (Finalization):** Đang lập kế hoạch (Hub Migration, Leaderboards, Optimization).
 
 ---
 
@@ -56,3 +57,6 @@
 - [x] **Adaptive Map Editor:** Công cụ quản trị cho phép kéo thả, căn chỉnh vị trí di sản và robot trực tiếp trên Web.
 - [x] **Supabase Storage Integration:** Hỗ trợ tải ảnh sa bàn thực tế lên Cloud để làm hình nền bản đồ.
 - [x] **Visual CMS & Advanced Quiz:** Quản lý nội dung di sản và câu hỏi trắc nghiệm trực quan (Matching, Sequencing) với cơ chế tự động lưu.
+- [x] **Phygital Resilience:** Tự động phản ứng với trạng thái Pin yếu (<15%) và Mất kết nối bằng cảm xúc Mascot (Angry/Sleepy).
+- [x] **Idle AI Intelligence:** Mascot tự động thực hiện các hoạt động chớp mắt, nhìn xung quanh khi không có lệnh để tăng độ sống động.
+- [x] **MQTT Last Will Architecture:** Đảm bảo trạng thái Offline được báo cáo chính xác ngay cả khi phần cứng bị sập nguồn đột ngột.

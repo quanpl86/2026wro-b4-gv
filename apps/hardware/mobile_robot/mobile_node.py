@@ -100,10 +100,15 @@ client = mqtt.Client(client_id=ROBOT_ID)
 client.on_connect = on_connect
 client.on_message = on_message
 
+# Thiết lập Last Will (Nếu robot mất kết nối đột ngột, Hub sẽ nhận được tin này)
+client.will_set(f"robot/{ROBOT_ID}/status", json.dumps({"status": "offline"}), retain=True)
+
 print(f"🤖 MOBILE GUIDE PREPARED. Waiting for Broker: {BROKER}")
 while True:
     try:
         client.connect(BROKER, 1883, 60)
+        # Báo cáo trạng thái online ngay khi kết nối
+        client.publish(f"robot/{ROBOT_ID}/status", json.dumps({"status": "online"}), retain=True)
         client.loop_forever()
     except:
         time.sleep(5)

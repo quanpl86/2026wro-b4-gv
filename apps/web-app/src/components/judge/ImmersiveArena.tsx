@@ -10,7 +10,7 @@ interface Point {
     y: number;
 }
 
-interface Site {
+export interface Site {
     id: string;
     name: string;
     description: string;
@@ -33,9 +33,10 @@ interface ImmersiveArenaProps {
     onPosUpdate?: (siteId: string, x: number, y: number) => void;
     onRobotPosUpdate?: (x: number, y: number) => void;
     backgroundUrl?: string;
+    stationStatuses?: Record<string, { status: string, action?: string }>;
 }
 
-export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscover, isEditorMode, onEditSite, sites, onPosUpdate, onRobotPosUpdate, backgroundUrl }: ImmersiveArenaProps) {
+export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscover, isEditorMode, onEditSite, sites, onPosUpdate, onRobotPosUpdate, backgroundUrl, stationStatuses = {} }: ImmersiveArenaProps) {
     const [selectedSite, setSelectedSite] = useState<Site | null>(null);
     const [hoveredSite, setHoveredSite] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -233,8 +234,23 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
                                         className={`w-10 h-10 rounded-[14px] border-2 border-white flex items-center justify-center bg-gradient-to-br ${site.color} shadow-[0_10px_20px_rgba(0,0,0,0.3)] relative group/pin`}
                                     >
                                         <span className="text-lg group-hover/pin:rotate-12 transition-transform">{site.icon}</span>
-                                        <div className="absolute inset-[-10px] border-2 border-white/20 rounded-[20px] animate-ping" />
-                                        <div className="absolute inset-[-4px] border border-white/40 rounded-[16px] animate-pulse" />
+
+                                        {/* BUSY STATUS RING */}
+                                        {stationStatuses[site.id]?.status === 'busy' ? (
+                                            <div className="absolute inset-[-8px] border-4 border-amber-500 rounded-[18px] animate-[spin_3s_linear_infinity]">
+                                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-amber-500 rounded-full shadow-[0_0_10px_#f59e0b]" />
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="absolute inset-[-10px] border-2 border-white/20 rounded-[20px] animate-ping" />
+                                                <div className="absolute inset-[-4px] border border-white/40 rounded-[16px] animate-pulse" />
+                                            </>
+                                        )}
+
+                                        {/* ONLINE INDICATOR */}
+                                        {stationStatuses[site.id]?.status === 'online' && (
+                                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-900 shadow-sm" />
+                                        )}
                                     </motion.button>
                                 </div>
                             </motion.div>

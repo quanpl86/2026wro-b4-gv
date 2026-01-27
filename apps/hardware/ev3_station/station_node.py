@@ -70,12 +70,17 @@ client = mqtt.Client(client_id=f"ev3_{STATION_ID}")
 client.on_connect = on_connect
 client.on_message = on_message
 
+# Thiết lập Last Will
+client.will_set(TOPIC_STATUS, json.dumps({"status": "offline", "station_id": STATION_ID}), retain=True)
+
 print(f"Starting Station Node: {STATION_ID}")
 print(f"Connecting to Broker: {BROKER}...")
 
 while True:
     try:
         client.connect(BROKER, 1883, 60)
+        # Báo cáo online
+        client.publish(TOPIC_STATUS, json.dumps({"status": "online", "station_id": STATION_ID}), retain=True)
         client.loop_forever()
     except Exception as e:
         print(f"Connection failed: {e}. Retrying in 5s...")

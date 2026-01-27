@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export type MascotVideoEmotion = 'neutral' | 'think' | 'sad' | 'celebrate' | 'talking';
+export type MascotVideoEmotion = 'neutral' | 'think' | 'sad' | 'celebrate' | 'talking' | 'sleepy' | 'angry' | 'curious';
 
 interface VideoMascotProps {
     emotion?: MascotVideoEmotion;
@@ -32,11 +32,14 @@ export default function VideoMascot({ emotion = 'neutral', isTalking = false, cl
                     setActiveVideo(VIDEO_MAP.think);
                     break;
                 case 'sad':
+                case 'angry':
                     setActiveVideo(VIDEO_MAP.sad);
                     break;
                 case 'celebrate':
                     setActiveVideo(VIDEO_MAP.celebrate);
                     break;
+                case 'sleepy':
+                case 'neutral':
                 default:
                     setActiveVideo(VIDEO_MAP.idle);
                     break;

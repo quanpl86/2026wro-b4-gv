@@ -4,14 +4,14 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import VerticalMissionTimeline from '@/components/judge/VerticalMissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
 import SiteEditorModal from '@/components/judge/SiteEditorModal';
-import ImmersiveArena from '@/components/judge/ImmersiveArena';
+import ImmersiveArena, { Site } from '@/components/judge/ImmersiveArena';
 import ScoreLeaderboard from '@/components/judge/ScoreLeaderboard';
 import AdvancedQuiz from '@/components/interactive/AdvancedQuiz';
 import BadgeCollection from '@/components/judge/BadgeCollection';
 import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import AIAvatar from '@/components/interactive/AIAvatar';
 import { MascotVideoEmotion } from '@/components/interactive/VideoMascot';
-import { useRobotEmotion } from '@/stores/useRobotEmotion';
+import { useRobotEmotion, Emotion } from '@/stores/useRobotEmotion';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import config from '@/data/config.json';
@@ -37,7 +37,8 @@ export default function JudgePage() {
     const [showBadges, setShowBadges] = useState(false);
     const [currentSubtitle, setCurrentSubtitle] = useState<string>("Hệ thống đang chờ lệnh...");
     const [isEditorMode, setIsEditorMode] = useState(false);
-    const [editingSite, setEditingSite] = useState<any | null>(null);
+    const [editingSite, setEditingSite] = useState<Site | null>(null);
+    const [stationStatuses, setStationStatuses] = useState<Record<string, { status: string, action?: string }>>({});
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [backgroundUrl, setBackgroundUrl] = useState<string | undefined>(undefined);
@@ -189,6 +190,11 @@ export default function JudgePage() {
                         setCurrentSubtitle(data.text);
                         // Trigger TTS (VoiceAssistant will handle the 'talking' emotion update via Global Store)
                         window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
+                    } else if (data.type === 'station_status') {
+                        setStationStatuses(prev => ({
+                            ...prev,
+                            [data.station_id]: { status: data.status, action: data.action }
+                        }));
                     }
                 };
                 socket.onclose = () => {
@@ -218,6 +224,36 @@ export default function JudgePage() {
             console.log("📡 Emotion Synced to Robot:", currentEmotion);
         }
     }, [currentEmotion]);
+
+    // --- RESILIENCE: Telemetry ⇌ Emotion ---
+    useEffect(() => {
+        if (wsStatus === 'Disconnected') {
+            setEmotion('sleepy');
+        } else if (batteryLevel < 15) {
+            setEmotion('angry');
+        } else if (currentEmotion === 'sleepy' || currentEmotion === 'angry') {
+            // Recover to neutral if previously in error state
+            setEmotion('neutral');
+        }
+    }, [wsStatus, batteryLevel, setEmotion]);
+
+    // --- IDLE BEHAVIOR: Random micro-animations ---
+    useEffect(() => {
+        if (currentEmotion !== 'neutral') return;
+
+        const triggerIdle = () => {
+            if (currentEmotion === 'neutral') {
+                const idles: Emotion[] = ['curious', 'happy', 'shy'];
+                const randomIdle = idles[Math.floor(Math.random() * idles.length)];
+                setEmotion(randomIdle);
+                // Return to neutral after 3s
+                setTimeout(() => setEmotion('neutral'), 3000);
+            }
+        };
+
+        const interval = setInterval(triggerIdle, 25000 + Math.random() * 20000); // 25-45s
+        return () => clearInterval(interval);
+    }, [currentEmotion, setEmotion]);
 
     // Handle Score
     const handleScoreUpdate = useCallback(async (points: number, stationId: string) => {
@@ -460,6 +496,7 @@ export default function JudgePage() {
                                 setActiveQuizStation(id);
                                 if (id) setEmotion('curious');
                             }}
+                            stationStatuses={stationStatuses}
                             isEditorMode={isEditorMode}
                             onEditSite={setEditingSite}
                             sites={[...mapSites].sort((a, b) => {
