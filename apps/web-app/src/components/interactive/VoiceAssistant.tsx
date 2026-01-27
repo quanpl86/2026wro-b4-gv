@@ -89,15 +89,22 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
     }, [activeLanguage]);
 
     const toggleListening = () => {
+        // CHROME FIX: Unlock TTS on user interaction
+        if (window.speechSynthesis) {
+            window.speechSynthesis.getVoices();
+            window.speechSynthesis.resume();
+        }
+
         if (isListening) {
             recognitionRef.current?.stop();
-            // setEmotion('neutral'); // Don't reset immediately, let processing/silence handle it
         } else {
             setTranscript('');
-            recognitionRef.current.lang = activeLanguage;
-            recognitionRef.current?.start();
+            if (recognitionRef.current) {
+                recognitionRef.current.lang = activeLanguage;
+                recognitionRef.current.start();
+            }
             setIsListening(true);
-            setEmotion('curious'); // 👂 Start Listen -> Curious
+            setEmotion('curious');
         }
     };
 
@@ -105,12 +112,16 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
 
     const handleTextSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (textInput.trim()) {
-            // 1. Blur first (Causes onBlur -> Neutral)
-            inputRef.current?.blur();
-            // 2. Then set Think (Overriding Neutral)
-            setTimeout(() => setEmotion('think'), 50);
 
+        // CHROME FIX: Unlock TTS on user interaction
+        if (window.speechSynthesis) {
+            window.speechSynthesis.getVoices();
+            window.speechSynthesis.resume();
+        }
+
+        if (textInput.trim()) {
+            inputRef.current?.blur();
+            setTimeout(() => setEmotion('think'), 50);
             onCommand(textInput, activeLanguage);
             setTextInput('');
         }
@@ -121,53 +132,58 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
 
     const speakResponse = (text: string) => {
         if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel(); // Stop current speech
+
+        // CHROME FIX: Force cancel and tiny delay to clear queue
+        window.speechSynthesis.cancel();
+
+        // CHROME FIX: Ensure API isn't stuck/paused
+        window.speechSynthesis.resume();
 
         console.log("🗣️ Preparing TTS:", text);
-        // setEmotion('talking'); // Removed: waiting for onstart to match audio timing
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utteranceRef.current = utterance; // Keep reference to prevent GC
+        setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utteranceRef.current = utterance;
 
-        const voice = availableVoices.find(v => v.name === selectedVoiceName);
-        if (voice) utterance.voice = voice;
-        utterance.lang = activeLanguage;
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
+            const voice = availableVoices.find(v => v.name === selectedVoiceName) ||
+                availableVoices.find(v => v.lang.startsWith(activeLanguage.split('-')[0]));
 
-        // Emotion Triggers
-        utterance.onstart = () => {
-            console.log("🔊 TTS Started Playing");
-            setEmotion('talking');
+            if (voice) utterance.voice = voice;
+            utterance.lang = activeLanguage;
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
 
-            // 🚀 FAST END DETECTION: Poll 'speaking' state to catch end faster than 'onend' event
-            const checkInterval = setInterval(() => {
-                if (!window.speechSynthesis.speaking) {
-                    console.log("⚡ Fast Silence Detected");
+            utterance.onstart = () => {
+                console.log("🔊 TTS Started Playing");
+                setEmotion('talking');
+
+                const checkInterval = setInterval(() => {
+                    if (!window.speechSynthesis.speaking) {
+                        console.log("⚡ Fast Silence Detected");
+                        setEmotion('neutral');
+                        utteranceRef.current = null;
+                        clearInterval(checkInterval);
+                    }
+                }, 100);
+
+                utterance.onend = () => {
+                    console.log("✅ TTS Ended (Event)");
                     setEmotion('neutral');
                     utteranceRef.current = null;
                     clearInterval(checkInterval);
-                }
-            }, 100);
+                };
+            };
 
-            // Cleanup interval if onend fires first
-            utterance.onend = () => {
-                console.log("✅ TTS Ended (Event)");
+            utterance.onerror = (e) => {
+                if (e.error === 'interrupted' || e.error === 'canceled') return;
+                console.error("❌ TTS Error Details:", e.error);
                 setEmotion('neutral');
                 utteranceRef.current = null;
-                clearInterval(checkInterval);
             };
-        };
 
-        utterance.onerror = (e) => {
-            if (e.error === 'interrupted' || e.error === 'canceled') return;
-            console.error("❌ TTS Error Details:", e.error);
-            setEmotion('neutral');
-            utteranceRef.current = null;
-        };
-
-        console.log("🗣️ Speaking:", text, "Voice:", voice?.name);
-        window.speechSynthesis.speak(utterance);
+            console.log("🗣️ Speaking:", text, "Voice:", voice?.name, "Available Count:", availableVoices.length);
+            window.speechSynthesis.speak(utterance);
+        }, 50); // Small 50ms buffer for Chrome to reset state
     };
 
     // MANUAL TEST TRIGGER
