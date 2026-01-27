@@ -227,8 +227,9 @@ def on_message(topic, msg):
 def run():
     global MQTT_BROKER
     
-    # 1. Lấy IP động từ Supabase Dashboard
-    MQTT_BROKER = get_hub_ip_from_supabase()
+    # 1. BỎ QUA Sync Cloud (EV3 chỉ nên kết nối Local IP để ổn định)
+    # MQTT_BROKER = get_hub_ip_from_supabase()
+    MQTT_BROKER = "192.168.0.137" # IP Cố định của Laptop Brain
     
     ev3.screen.clear()
     ev3.screen.print("Broker: {}".format(MQTT_BROKER))
@@ -251,6 +252,7 @@ def run():
     except Exception as e:
         ev3.screen.print("❌ Fail")
         print("Run Error:", e)
+        time.sleep(10) # Dừng màn hình để đọc lỗi
 
 if __name__ == "__main__":
     run()

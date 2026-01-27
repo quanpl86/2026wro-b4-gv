@@ -52,9 +52,10 @@ interface ImmersiveArenaProps {
     backgroundUrl?: string;
     stationStatuses?: Record<string, { status: string, action?: string }>;
     onSiteClick?: (site: Site) => void;
+    focusedSiteId?: string | null;
 }
 
-export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscover, isEditorMode, onEditSite, sites, onPosUpdate, onRobotPosUpdate, backgroundUrl, stationStatuses = {}, onSiteClick }: ImmersiveArenaProps) {
+export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscover, isEditorMode, onEditSite, sites, onPosUpdate, onRobotPosUpdate, backgroundUrl, stationStatuses = {}, onSiteClick, focusedSiteId }: ImmersiveArenaProps) {
     const [hoveredSite, setHoveredSite] = useState<string | null>(null);
     const [isPanMode, setIsPanMode] = useState(false);
     const [isMoveMode, setIsMoveMode] = useState(false);
@@ -93,6 +94,16 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
         const currentZone = zoomVal.get();
         zoomVal.set(Math.min(Math.max(currentZone + delta, 0.5), 6));
     };
+
+    // Auto-focus when focusedSiteId changes
+    useEffect(() => {
+        if (focusedSiteId) {
+            const site = sites.find(s => s.id === focusedSiteId);
+            if (site) {
+                handleFocusSite(site);
+            }
+        }
+    }, [focusedSiteId, sites]);
 
     const updateImageBounds = () => {
         if (!containerRef.current || !imgRef.current) return;

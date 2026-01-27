@@ -5,6 +5,7 @@ import jsQR from 'jsqr';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useRobotEmotion } from '@/stores/useRobotEmotion';
+import { RefreshCw } from 'lucide-react';
 
 import RobotFace from '@/components/robot/RobotFace';
 
@@ -23,6 +24,7 @@ export default function VisionPage() {
     const [fps, setFps] = useState(0);
     const [hubIp, setHubIp] = useState<string | null>(null);
     const [wsError, setWsError] = useState<string | null>(null);
+    const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
 
     // --- PHASE 7.5: FACE UI STATE ---
     const [displayMode, setDisplayMode] = useState<'camera' | 'face'>('camera');
@@ -149,7 +151,7 @@ export default function VisionPage() {
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: 640, height: 480 },
+                    video: { facingMode: facingMode, width: 640, height: 480 },
                     audio: false
                 });
 
@@ -169,7 +171,7 @@ export default function VisionPage() {
             const stream = videoRef.current?.srcObject as MediaStream;
             stream?.getTracks().forEach(track => track.stop());
         };
-    }, [displayMode]); // Re-run when switching back to camera
+    }, [displayMode, facingMode]); // Re-run when switching back to camera or changing facingMode
 
     // QR Detection Loop (Only active in Camera Mode)
     useEffect(() => {
@@ -205,6 +207,8 @@ export default function VisionPage() {
 
             if (code) {
                 const siteName = code.data;
+                const now = performance.now();
+
                 context.strokeStyle = "#00FF00";
                 context.lineWidth = 4;
                 context.beginPath();
@@ -215,15 +219,33 @@ export default function VisionPage() {
                 context.closePath();
                 context.stroke();
 
+                // --- ANTI-FLICKER & COOLDOWN LOGIC ---
+                // If it's a new site or we are ready to resend
                 if (siteName !== detectedSite) {
                     setDetectedSite(siteName);
-                    sendWsCommand('site_discovered', {
-                        site_id: siteName,
-                        site_name: siteName
-                    });
+
+                    // Reset stability counter for new site
+                    (window as any)._scanStabilityCount = 0;
+                    (window as any)._lastScanTime = now;
+                } else {
+                    // Same site detected, check stability
+                    (window as any)._scanStabilityCount = ((window as any)._scanStabilityCount || 0) + 1;
+
+                    const timeSinceLastSend = now - ((window as any)._lastActualSendTime || 0);
+
+                    // Trigger only if stable for ~10 frames AND cooldown of 5s passed
+                    if ((window as any)._scanStabilityCount >= 10 && timeSinceLastSend > 5000) {
+                        console.log(`📍 QR Confirmed & Sending: ${siteName}`);
+                        sendWsCommand('site_discovered', {
+                            site_id: siteName,
+                            site_name: siteName
+                        });
+                        (window as any)._lastActualSendTime = now;
+                    }
                 }
             } else {
                 setDetectedSite(null);
+                (window as any)._scanStabilityCount = 0;
             }
 
             frameCount++;
@@ -264,6 +286,19 @@ export default function VisionPage() {
 
                             <button onClick={() => router.push('/dashboard/test-control')} className="pointer-events-auto px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-xs font-bold">
                                 CLOSE
+                            </button>
+                        </div>
+
+                        {/* Camera Switch Control */}
+                        <div className="absolute top-20 right-4 pointer-events-auto flex flex-col gap-2">
+                            <button
+                                onClick={() => setFacingMode(prev => prev === 'user' ? 'environment' : 'user')}
+                                className="p-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2 shadow-lg"
+                            >
+                                <RefreshCw className="w-5 h-5" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest pr-2">
+                                    {facingMode === 'user' ? 'Front' : 'Back'}
+                                </span>
                             </button>
                         </div>
 

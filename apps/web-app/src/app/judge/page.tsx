@@ -269,6 +269,18 @@ export default function JudgePage() {
                         setCurrentSubtitle(data.text);
                         // Trigger TTS (VoiceAssistant will handle the 'talking' emotion update via Global Store)
                         window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
+                    } else if (data.type === 'event' && data.event === 'site_discovered') {
+                        const siteId = data.station_id;
+                        console.log("📍 Site Discovered via AI Brain:", siteId);
+
+                        // Auto-open quiz station
+                        setActiveQuizStation(siteId);
+                        setEmotion('curious');
+
+                        // Set subtitle to inform the judge
+                        if (data.site_name) {
+                            setCurrentSubtitle(`Phát hiện di sản: ${data.site_name}`);
+                        }
                     } else if (data.type === 'station_status') {
                         setStationStatuses(prev => ({
                             ...prev,
@@ -635,6 +647,7 @@ export default function JudgePage() {
                             onRobotPosUpdate={handleRobotPosUpdate}
                             backgroundUrl={backgroundUrl}
                             onSiteClick={setSelectedBookSite}
+                            focusedSiteId={activeQuizStation}
                         />
 
                         {/* Editor Controls (ADMIN ONLY) */}

@@ -84,6 +84,8 @@ Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính
     - [x] Implement Precision Map Interaction (Zoom, Pan, Move Mode).
     - [x] Refactor VoiceAssistant UI (Consolidated Settings Popover).
     - [x] Implement Dynamic Sidebar Resize & AI Scaling.
+    - [x] **Ultra-Stable QR Vision & Auto-Focus Focus [DONE]**
+    - [x] **Dual-Camera Switch Support [DONE]**
     - [ ] Refactor `ImmersiveArena` to 3D perspective (CSS 3D/Three.js).
 - [ ] **Phase 9.2: Gemini Multimodal Vision (The AI Eye)**
     - [ ] Implement Frame-to-AI pipeline (Smartphone Cam -> AI Brain).

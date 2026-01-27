@@ -1,14 +1,14 @@
 # 📊 Project Status: Antigravyti (WRO 2026)
 
 ## 📍 Current Phase: Phase 9 (Immersive Expansion)
-**Status:** 🏗️ Execution | **Progress:** 92%
+**Status:** 🏗️ Execution | **Progress:** 94%
 
 ---
 
 ## ✅ Completed Milestones
 - [x] **Phase 1-Phase 7:** Infrastructure, Vision, Portal, AI Brain, Multi-Robot Sync (DONE).
 - [x] **Phase 8 (Finalization):** Leaderboard System, Low-latency Scoring, Resource Optimization (DONE).
-- [x] **Phase 9.1 (Spatial UI):** Dynamic Sidebar, Precision Map Editor, Pro Voice Control (DONE).
+- [x] **Phase 9.1 (Spatial & Vision):** Precision Map Editor, Pro Voice Control, QR Stability, Auto-Focus & Dual-Camera (DONE).
 
 ## 🚧 In Progress
 - [ ] **Phase 9.2 Gemini Vision:** Real-time scene description and visual feedback loop.

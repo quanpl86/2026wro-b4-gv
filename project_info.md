@@ -27,7 +27,7 @@
 - [x] **Phase 6 (Immersive Upgrade):** Đã hoàn thành (Gemini AI Smart Guide, Visual CMS, Advanced Quiz Builder, Adaptive Map Editor, Cloud Storage Integration).
 - [x] **Phase 7 (Social & Orchestration):** Đã hoàn thành (MQTT Many-to-Many, Trạng thái Trạm real-time, Telemetry Resilience & Idle AI).
 - [x] **Phase 8 (Finalization):** Đã hoàn thành (Leaderboards, AI Optimization, Video Compression).
-- [x] **Phase 9 (XR & Immersive):** Đang thực hiện (Spatial UI, Precision Map Editor, Pro Voice Control).
+- [x] **Phase 9 (XR & Immersive):** Đang thực hiện (Spatial UI, Precision Map Editor, Pro Voice Control, **QR Stability & Auto-Focus [DONE]**).
 
 ---
 
@@ -65,5 +65,8 @@
 - [x] **Score Leaderboard System:** Bảng xếp hạng Top 10 tích hợp real-time ngay trên Dashboard giám khảo.
 - [x] **Resizable Immersive Sidebar:** Thanh điều khiển và Mascot có khả năng thay đổi kích thước linh hoạt, tối ưu không gian hiển thị trên mọi thiết bị.
 - [ ] **Spatial 3D Arena:** Nâng cấp bản đồ di sản sang góc nhìn 3D có chiều sâu.
+- [x] **Ultra-Stable QR Vision:** Cơ chế chống nhiễu và cooldown giúp quét QR chính xác, không lặp lại.
+- [x] **Smart Heritage Focus:** Bản đồ tự động zoom và tập trung vào di sản khi robot phát hiện.
+- [x] **Dual-Camera Support:** Cho phép chuyển đổi linh hoạt giữa camera trước và sau trên thiết bị di động.
 - [ ] **Gemini Multimodal Vision:** AI có khả năng nhìn và mô tả vạn vật qua camera điện thoại.
 - [ ] **Digital Passport & Stamps:** Hệ thống con dấu di sản kỹ thuật số để tăng tính trò chơi hóa.
