@@ -166,6 +166,7 @@ export default function SimulatorPage() {
                                 posY: 50,
                                 icon: '📍',
                                 badge: site.badge_image,
+                                quiz_data: site.quiz_data as any,
                                 description: site.pages[0].subtitle || '',
                                 color: 'blue'
                             }))}
