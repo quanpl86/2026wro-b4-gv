@@ -3,6 +3,9 @@
 import { motion, Reorder } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import HeritageBadge, { BadgeTier } from './HeritageBadge';
+import AIAvatar from './AIAvatar';
+import { useRobotEmotion } from '@/stores/useRobotEmotion';
+import { MascotVideoEmotion } from './VideoMascot';
 
 // --- TYPES ---
 export interface QuizQuestion {
@@ -349,12 +352,24 @@ interface AdvancedQuizProps {
     questions: QuizQuestion[];
     onClose: () => void;
     onScoreUpdate: (points: number) => void;
+    onAnswerResult?: (isCorrect: boolean) => void;
+    onComplete?: () => void;
     badgeImage?: string; // New prop for badge visual
 }
 
-export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpdate, badgeImage }: AdvancedQuizProps) {
+export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpdate, onAnswerResult, onComplete, badgeImage }: AdvancedQuizProps) {
     const [currentIdx, setCurrentIdx] = useState(0);
     const [phase, setPhase] = useState<'question' | 'feedback' | 'reward'>('question');
+    const { currentEmotion } = useRobotEmotion();
+
+    const hasTriggeredReward = useRef(false);
+    useEffect(() => {
+        if (phase === 'reward' && !hasTriggeredReward.current && onComplete) {
+            onComplete();
+            hasTriggeredReward.current = true;
+        }
+    }, [phase, onComplete]);
+
     const [isCorrect, setIsCorrect] = useState(false);
     const [score, setScore] = useState(0); // Track local score for badge calc
     const currentQ = questions[currentIdx];
@@ -368,6 +383,7 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
         setIsCorrect(correct);
         setPhase('feedback');
         playSound(correct ? 'correct' : 'wrong');
+        if (onAnswerResult) onAnswerResult(correct);
         if (correct) {
             const points = currentQ.points;
             setScore(prev => prev + points);
@@ -496,6 +512,29 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                         </div>
                     </div>
                 )}
+            </motion.div>
+
+            {/* FLOATING MASCOT IN CORNER */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.5, x: 50, y: 50 }}
+                animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                className="fixed bottom-8 right-8 z-[220] pointer-events-none"
+            >
+                <div className="relative group pointer-events-auto">
+                    {/* Glass Backdrop for Mascot */}
+                    <div className="absolute inset-[-20px] bg-slate-900/40 backdrop-blur-xl rounded-full border border-white/10 shadow-2xl scale-75 lg:scale-100" />
+
+                    <AIAvatar
+                        emotion={currentEmotion as MascotVideoEmotion}
+                        isTalking={currentEmotion === 'talking'}
+                        size={140} // Slightly smaller for quiz to not overlap too much
+                    />
+
+                    {/* Status badge */}
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 px-3 py-1 rounded-full text-[8px] font-black text-white uppercase tracking-tighter shadow-lg border border-white/20">
+                        AI Proctor
+                    </div>
+                </div>
             </motion.div>
         </div>
     );

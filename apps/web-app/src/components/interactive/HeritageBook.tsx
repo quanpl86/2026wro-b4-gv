@@ -2,6 +2,9 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import AIAvatar from './AIAvatar';
+import { useRobotEmotion } from '@/stores/useRobotEmotion';
+import { MascotVideoEmotion } from './VideoMascot';
 
 interface BookPage {
     type: 'cover' | 'content' | 'infographic' | 'media' | 'end';
@@ -29,6 +32,7 @@ interface HeritageBookProps {
 export default function HeritageBook({ siteId, pages, onClose, onQuizStart }: HeritageBookProps) {
     const [currentPage, setCurrentPage] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
+    const { currentEmotion } = useRobotEmotion();
 
     // TTS Synchronization
     useEffect(() => {
@@ -217,6 +221,29 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart }: He
                     )}
                 </motion.div>
             </div>
+
+            {/* FLOATING MASCOT IN CORNER */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.5, x: 50, y: 50 }}
+                animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                className="fixed bottom-8 right-8 z-[120] pointer-events-none"
+            >
+                <div className="relative group pointer-events-auto">
+                    {/* Glass Backdrop for Mascot */}
+                    <div className="absolute inset-[-20px] bg-slate-900/40 backdrop-blur-xl rounded-full border border-white/10 shadow-2xl scale-75 lg:scale-100" />
+
+                    <AIAvatar
+                        emotion={currentEmotion as MascotVideoEmotion}
+                        isTalking={currentEmotion === 'talking'}
+                        size={140}
+                    />
+
+                    {/* Status badge */}
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 px-3 py-1 rounded-full text-[8px] font-black text-white uppercase tracking-tighter shadow-lg border border-white/20">
+                        AI Guide
+                    </div>
+                </div>
+            </motion.div>
         </div>
     );
 }

@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRobotEmotion } from '@/stores/useRobotEmotion';
+import AIAvatar from './AIAvatar';
+import { MascotVideoEmotion } from './VideoMascot';
 
 interface QuizProps {
     stationId: string;
@@ -11,6 +14,7 @@ interface QuizProps {
 }
 
 export default function QuizOverlay({ stationId, onClose, onScoreUpdate }: QuizProps) {
+    const { currentEmotion, setEmotion } = useRobotEmotion();
     const [quiz, setQuiz] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -55,9 +59,13 @@ export default function QuizOverlay({ stationId, onClose, onScoreUpdate }: QuizP
     const handleSubmit = () => {
         if (selectedIdx === null || isSubmitted) return;
         setIsSubmitted(true);
-        if (selectedIdx === quiz.correct_index && onScoreUpdate) {
-            onScoreUpdate(10); // Reward 10 points
+        if (selectedIdx === quiz.correct_index) {
+            if (onScoreUpdate) onScoreUpdate(10); // Reward 10 points
+            setEmotion('celebrate');
+        } else {
+            setEmotion('sad');
         }
+        setTimeout(() => setEmotion('neutral'), 3000);
     };
 
     useEffect(() => {
@@ -153,6 +161,22 @@ export default function QuizOverlay({ stationId, onClose, onScoreUpdate }: QuizP
                             </div>
                         )}
                     </div>
+                </div>
+            </motion.div>
+
+            {/* FLOATING MASCOT IN CORNER */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.5, x: 50, y: 50 }}
+                animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                className="fixed bottom-8 right-8 z-[120] pointer-events-none"
+            >
+                <div className="relative group pointer-events-auto">
+                    <div className="absolute inset-[-15px] bg-slate-900/40 backdrop-blur-xl rounded-full border border-white/10 shadow-2xl" />
+                    <AIAvatar
+                        emotion={currentEmotion as MascotVideoEmotion}
+                        isTalking={currentEmotion === 'talking'}
+                        size={150}
+                    />
                 </div>
             </motion.div>
         </div>

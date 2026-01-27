@@ -11,6 +11,8 @@ import AIAvatar from '@/components/interactive/AIAvatar';
 import { MascotVideoEmotion } from '@/components/interactive/VideoMascot';
 import config from '@/data/config.json';
 
+import { useRobotEmotion } from '@/stores/useRobotEmotion';
+
 const DEFAULT_HUB_IP = 'localhost';
 
 export default function SimulatorPage() {
@@ -24,7 +26,7 @@ export default function SimulatorPage() {
     const [logs, setLogs] = useState<any[]>([]);
     const [robotPos, setRobotPos] = useState({ x: 100, y: 100 });
     const [path, setPath] = useState<{ x: number, y: number }[]>([]);
-    const [mascotEmotion, setMascotEmotion] = useState<MascotVideoEmotion>('neutral');
+    const { currentEmotion, setEmotion } = useRobotEmotion();
     const [isAITalking, setIsAITalking] = useState(false);
 
     // Fetch Hub IP
@@ -66,9 +68,10 @@ export default function SimulatorPage() {
                         addLog(`AI: ${data.text}`, 'system');
 
                         // 🐱 Update Mascot Appearance
-                        if (data.emotion) setMascotEmotion(data.emotion);
+                        if (data.emotion) setEmotion(data.emotion);
                         setIsAITalking(true);
-                        setTimeout(() => setIsAITalking(false), 5000);
+                        // Trigger logic that ends talking
+                        window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
                     } else if (data.type === 'event' && data.event === 'site_discovered') {
                         setActiveQuizStation(data.station_id);
                         addLog(`Discovery: ${data.site_name}`, 'info');
@@ -186,7 +189,7 @@ export default function SimulatorPage() {
                     <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
                         <div className="bg-slate-900 border border-white/10 rounded-[40px] p-8 flex flex-col items-center shadow-2xl">
                             <div className="mb-6">
-                                <AIAvatar emotion={mascotEmotion} isTalking={isAITalking} />
+                                <AIAvatar emotion={currentEmotion as MascotVideoEmotion} isTalking={isAITalking} />
                             </div>
                             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-8">AI Interaction Lab</h3>
                             <VoiceAssistant

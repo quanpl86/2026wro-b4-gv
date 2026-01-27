@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import VerticalMissionTimeline from '@/components/judge/VerticalMissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
 import SiteEditorModal from '@/components/judge/SiteEditorModal';
@@ -94,7 +94,6 @@ export default function JudgePage() {
     const [path, setPath] = useState<{ x: number, y: number }[]>([]);
 
     // AI State
-    const [mascotEmotion, setMascotEmotion] = useState<MascotVideoEmotion>('neutral');
     const [isAITalking, setIsAITalking] = useState(false);
 
     // --- EFFECTS & LOGIC ---
@@ -207,7 +206,7 @@ export default function JudgePage() {
 
     // --- EMOTION SYNC (New) ---
     // Sync global emotion store (from VoiceAssistant) to Robot (via WebSocket)
-    const { currentEmotion } = useRobotEmotion();
+    const { currentEmotion, setEmotion } = useRobotEmotion();
 
     useEffect(() => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -221,14 +220,14 @@ export default function JudgePage() {
     }, [currentEmotion]);
 
     // Handle Score
-    const handleScoreUpdate = async (points: number, stationId: string) => {
+    const handleScoreUpdate = useCallback(async (points: number, stationId: string) => {
         const newScore = currentScore + points;
         setCurrentScore(newScore);
 
         setSessionScores(prev => ({ ...prev, [stationId]: (prev[stationId] || 0) + points }));
 
-        setMascotEmotion('celebrate');
-        setTimeout(() => setMascotEmotion('neutral'), 3000);
+        setEmotion('celebrate');
+        setTimeout(() => setEmotion('neutral'), 3000);
 
         if (sessionId && supabase) {
             await supabase.from('game_sessions').update({ score: newScore }).eq('id', sessionId);
@@ -239,7 +238,20 @@ export default function JudgePage() {
                 points: points
             });
         }
-    };
+    }, [currentScore, sessionId, supabase, setEmotion]);
+
+    const handleAnswerResult = useCallback((isCorrect: boolean) => {
+        if (isCorrect) {
+            setEmotion('celebrate');
+        } else {
+            setEmotion('sad');
+        }
+        setTimeout(() => setEmotion('neutral'), 2500);
+    }, [setEmotion]);
+
+    const handleQuizComplete = useCallback(() => {
+        setEmotion('celebrate');
+    }, [setEmotion]);
 
     const handleVoiceCommand = (text: string, lang: string) => {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
@@ -250,7 +262,7 @@ export default function JudgePage() {
             command: 'voice_command',
             params: { text, lang }
         }));
-        setMascotEmotion('think');
+        setEmotion('think');
         setCurrentSubtitle(`Đang xử lý: "${text}"...`);
     };
 
@@ -444,7 +456,10 @@ export default function JudgePage() {
                                 x: p.x + robotHome.x,
                                 y: p.y + robotHome.y
                             }))}
-                            onSiteDiscover={setActiveQuizStation}
+                            onSiteDiscover={(id) => {
+                                setActiveQuizStation(id);
+                                if (id) setEmotion('curious');
+                            }}
                             isEditorMode={isEditorMode}
                             onEditSite={setEditingSite}
                             sites={[...mapSites].sort((a, b) => {
@@ -497,7 +512,7 @@ export default function JudgePage() {
                     </div>
 
                     {/* SUBTITLE OVERLAY (Bottom-Middle of the whole screen area) */}
-                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-6 pointer-events-none">
+                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-[250] w-full max-w-3xl px-6 pointer-events-none">
                         <AnimatePresence mode='wait'>
                             <motion.div
                                 key={currentSubtitle}
@@ -577,6 +592,8 @@ export default function JudgePage() {
                         badgeImage={(config.heritage_info as any)[activeQuizStation]?.badge_image}
                         onClose={() => setActiveQuizStation(null)}
                         onScoreUpdate={(points) => handleScoreUpdate(points, activeQuizStation)}
+                        onAnswerResult={handleAnswerResult}
+                        onComplete={handleQuizComplete}
                     />
                 )}
             </AnimatePresence>
