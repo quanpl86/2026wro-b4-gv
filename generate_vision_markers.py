@@ -34,9 +34,10 @@ output_dir = "apps/web-app/public/markers"
 os.makedirs(output_dir, exist_ok=True)
 
 sites = {
-    0: "Trang_An",
-    1: "Cot_Co",
-    2: "Chua_Mot_Cot"
+    0: "trang_an",
+    1: "cot_co",
+    2: "vinh_ha_long",
+    3: "pho_co_hoi_an"
 }
 
 for mid, name in sites.items():

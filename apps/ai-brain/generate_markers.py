@@ -12,11 +12,12 @@ def generate_markers():
     # Use the same dictionary as in vision_service.py
     aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
 
-    # Site mapping
+    # Site mapping - Sync with config.json IDs
     sites = {
-        0: "Trang_An",
-        1: "Cot_Co",
-        2: "Chua_Mot_Cot"
+        0: "trang_an",
+        1: "cot_co",
+        2: "vinh_ha_long",
+        3: "pho_co_hoi_an"
     }
 
     print("🎨 Generating ArUco Markers...")
