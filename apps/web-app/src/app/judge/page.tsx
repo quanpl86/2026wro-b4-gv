@@ -272,6 +272,18 @@ export default function JudgePage() {
         return () => window.removeEventListener('ai-speak-end', handleSpeakEnd);
     }, [pendingIntro, mapSites]);
 
+    // Phase 1 Trigger: Start Greeting AFTER Map Zoom settles
+    useEffect(() => {
+        if (pendingIntro?.phase === 'greeting') {
+            const timer = setTimeout(() => {
+                const greetingText = `Mời bạn đến tham quan địa danh ${pendingIntro.site.name}`;
+                setCurrentSubtitle(greetingText);
+                window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: greetingText } }));
+            }, 1500); // 1.5s delay for Zoom & Pin show
+            return () => clearTimeout(timer);
+        }
+    }, [pendingIntro?.site.id, pendingIntro?.phase]);
+
     // WebSocket (Robot Connection)
     useEffect(() => {
         if (!isAuthorized || !hubIp) return;
@@ -310,14 +322,10 @@ export default function JudgePage() {
 
                         // --- GUARD: Don't re-trigger if already busy with this site or any other ---
                         if (siteObj && !selectedBookSite && !activeQuizStation && !pendingIntro) {
-                            // Start Intro Sequence instead of opening book immediately
-                            // Greeting Phase: Standard Welcome
-                            const greetingText = `Mời bạn đến tham quan địa danh ${siteObj.name}`;
+                            // Start Intro Sequence: UI state change first (triggers Zoom)
                             setPendingIntro({ site: siteObj, phase: 'greeting' });
                             setEmotion('curious');
-
-                            setCurrentSubtitle(greetingText);
-                            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: greetingText } }));
+                            // Voice will be triggered by useEffect after a delay
                         } else {
                             console.log("⏭️ Site Discovery ignored (Busy or Invalid):", siteId);
                         }
