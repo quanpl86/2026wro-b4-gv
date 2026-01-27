@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X, Play } from 'lucide-react';
 import AIAvatar from './AIAvatar';
 import { useRobotEmotion } from '@/stores/useRobotEmotion';
