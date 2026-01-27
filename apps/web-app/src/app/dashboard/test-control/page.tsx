@@ -133,6 +133,7 @@ export default function GameControllerPage() {
                             icon="↑"
                             label="UP"
                             kLabel={getKeyLabel(profile?.key_mappings?.forward)}
+                            isActive={activeKeys.has(profile?.key_mappings?.forward)}
                             onPress={() => sendCommand('move', { direction: 'forward', speed: profile?.speed_profile?.forward || 100 })}
                             onRelease={() => sendCommand('stop')}
                         />
@@ -142,6 +143,7 @@ export default function GameControllerPage() {
                             icon="←"
                             label="LEFT"
                             kLabel={getKeyLabel(profile?.key_mappings?.left)}
+                            isActive={activeKeys.has(profile?.key_mappings?.left)}
                             onPress={() => sendCommand('move', { direction: 'left', speed: profile?.speed_profile?.turn || 60 })}
                             onRelease={() => sendCommand('stop')}
                         />
@@ -152,6 +154,7 @@ export default function GameControllerPage() {
                             icon="→"
                             label="RIGHT"
                             kLabel={getKeyLabel(profile?.key_mappings?.right)}
+                            isActive={activeKeys.has(profile?.key_mappings?.right)}
                             onPress={() => sendCommand('move', { direction: 'right', speed: profile?.speed_profile?.turn || 60 })}
                             onRelease={() => sendCommand('stop')}
                         />
@@ -161,6 +164,7 @@ export default function GameControllerPage() {
                             icon="↓"
                             label="DOWN"
                             kLabel={getKeyLabel(profile?.key_mappings?.backward)}
+                            isActive={activeKeys.has(profile?.key_mappings?.backward)}
                             onPress={() => sendCommand('move', { direction: 'backward', speed: profile?.speed_profile?.forward || 100 })}
                             onRelease={() => sendCommand('stop')}
                         />
@@ -225,6 +229,7 @@ export default function GameControllerPage() {
                                 title="LOADER (Aux 1)"
                                 color="blue"
                                 kLabel={getKeyLabel(profile?.key_mappings?.aux1)}
+                                isActive={activeKeys.has(profile?.key_mappings?.aux1)}
                                 defaultValue={profile?.aux_settings?.aux1 || { value: 1, unit: 'rotations' }}
                                 onSend={(val: number, unit: 'rotations' | 'degrees') => sendCommand('aux_move', { port: 'aux1', value: val, unit: unit })}
                             />
@@ -232,6 +237,7 @@ export default function GameControllerPage() {
                                 title="GRAPPLER (Aux 2)"
                                 color="purple"
                                 kLabel={getKeyLabel(profile?.key_mappings?.aux2)}
+                                isActive={activeKeys.has(profile?.key_mappings?.aux2)}
                                 defaultValue={profile?.aux_settings?.aux2 || { value: 1, unit: 'rotations' }}
                                 onSend={(val: number, unit: 'rotations' | 'degrees') => sendCommand('aux_move', { port: 'aux2', value: val, unit: unit })}
                             />
@@ -243,10 +249,11 @@ export default function GameControllerPage() {
     );
 }
 
-function DPadButton({ icon, label, kLabel, onPress, onRelease }: {
+function DPadButton({ icon, label, kLabel, isActive, onPress, onRelease }: {
     icon: string,
     label: string,
     kLabel?: string,
+    isActive?: boolean,
     onPress: () => void,
     onRelease: () => void
 }) {
@@ -257,11 +264,19 @@ function DPadButton({ icon, label, kLabel, onPress, onRelease }: {
             onMouseLeave={onRelease}
             onTouchStart={(e) => { e.preventDefault(); onPress(); }}
             onTouchEnd={(e) => { e.preventDefault(); onRelease(); }}
-            className="group relative flex flex-col items-center justify-center rounded-2xl border transition-all active:brightness-125 bg-slate-800/80 border-slate-700 hover:bg-slate-700 hover:border-slate-600 shadow-xl"
+            className={`group relative flex flex-col items-center justify-center rounded-2xl border transition-all shadow-xl ${isActive
+                ? 'brightness-125 bg-slate-700 border-slate-500 scale-95 shadow-inner'
+                : 'bg-slate-800/80 border-slate-700 hover:bg-slate-700 hover:border-slate-600'
+                }`}
         >
-            <span className="text-2xl transition-transform group-hover:scale-110 text-blue-400">{icon}</span>
+            <span className={`text-2xl transition-transform ${isActive ? 'scale-90 text-white' : 'group-hover:scale-110 text-blue-400'}`}>
+                {icon}
+            </span>
             {kLabel && (
-                <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-slate-900 border border-slate-700 rounded text-[8px] font-mono text-slate-500 group-hover:text-blue-400 group-hover:border-blue-500/50 transition-colors">
+                <div className={`absolute top-1 right-1 px-1.5 py-0.5 border rounded text-[8px] font-mono transition-colors ${isActive
+                    ? 'bg-blue-500 text-white border-blue-400'
+                    : 'bg-slate-900 border-slate-700 text-slate-500 group-hover:text-blue-400 group-hover:border-blue-500/50'
+                    }`}>
                     {kLabel}
                 </div>
             )}
@@ -269,7 +284,7 @@ function DPadButton({ icon, label, kLabel, onPress, onRelease }: {
     );
 }
 
-function GameAuxRow({ title, color, kLabel, defaultValue, onSend }: { title: string, color: string, kLabel?: string, defaultValue: any, onSend: (val: number, unit: 'rotations' | 'degrees') => void }) {
+function GameAuxRow({ title, color, kLabel, isActive, defaultValue, onSend }: { title: string, color: string, kLabel?: string, isActive?: boolean, defaultValue: any, onSend: (val: number, unit: 'rotations' | 'degrees') => void }) {
     const colorStyles: { [key: string]: string } = {
         blue: "hover:bg-blue-500/10 border-blue-500/20 text-blue-400",
         purple: "hover:bg-purple-500/10 border-purple-500/20 text-purple-400"
@@ -279,7 +294,10 @@ function GameAuxRow({ title, color, kLabel, defaultValue, onSend }: { title: str
         <button
             onMouseDown={() => onSend(defaultValue.value, defaultValue.unit)}
             onTouchStart={() => onSend(defaultValue.value, defaultValue.unit)}
-            className={`w-full bg-slate-800/40 p-5 md:p-8 rounded-[2rem] border backdrop-blur-md transition-all active:brightness-125 group text-left flex items-center justify-between ${colorStyles[color]}`}
+            className={`w-full p-5 md:p-8 rounded-[2rem] border backdrop-blur-md transition-all group text-left flex items-center justify-between ${isActive
+                ? 'scale-[0.98] brightness-125 bg-slate-700 border-white/20'
+                : `bg-slate-800/40 active:brightness-125 ${colorStyles[color]}`
+                }`}
         >
             <div className="flex flex-col">
                 <div className="flex items-center gap-2 h-5 mb-1">

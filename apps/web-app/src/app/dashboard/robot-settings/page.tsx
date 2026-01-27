@@ -4,6 +4,25 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
+import {
+    Bot,
+    Globe,
+    Settings,
+    Zap,
+    Radio,
+    Keyboard,
+    Gamepad2,
+    CheckCircle,
+    AlertCircle,
+    AlertTriangle,
+    CircleOff,
+    Palette,
+    Waves,
+    Compass,
+    MousePointerClick,
+    Loader2
+} from 'lucide-react';
+
 export default function RobotSettingsPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
@@ -97,7 +116,7 @@ export default function RobotSettingsPage() {
         return (
             <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 text-white text-center">
                 <div className="w-20 h-20 bg-purple-500/20 border border-purple-500/40 rounded-full flex items-center justify-center mb-6">
-                    <span className="text-4xl text-purple-400">🤖</span>
+                    <Bot className="w-12 h-12 text-purple-400" />
                 </div>
                 <h2 className="text-2xl font-bold mb-2">Chưa có cấu hình Robot</h2>
                 <p className="text-slate-400 mb-8 max-w-sm">Dữ liệu cấu hình đã bị xóa. Bạn cần khởi tạo lại để có thể điều khiển Robot.</p>
@@ -112,49 +131,52 @@ export default function RobotSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white p-8 pb-20 font-sans">
-            <div className="max-w-2xl mx-auto">
+        <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 pb-32 font-sans">
+            <div className="max-w-5xl mx-auto">
                 <header className="mb-12">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-2">
+                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-3">
                         Robot Configuration
                     </h1>
-                    <p className="text-slate-400">Thiết lập cổng kết nối và tốc độ cho EV3</p>
+                    <p className="text-slate-400 text-lg">Thiết lập cổng kết nối và tốc độ cho EV3</p>
                 </header>
 
-                <div className="space-y-6">
+                <div className="space-y-8">
                     {/* Network Settings */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-                        <h2 className="text-xl font-semibold mb-4 text-blue-400 flex items-center">
-                            🌐 Network Settings
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
+                        <h2 className="text-2xl font-semibold mb-6 text-blue-400 flex items-center gap-3">
+                            <Globe className="w-7 h-7" />
+                            Network Settings
                         </h2>
-                        <div className="flex flex-col space-y-2">
-                            <label className="text-xs text-slate-400 uppercase font-bold tracking-wider">AI Brain (Hub) IP Address</label>
+                        <div className="flex flex-col space-y-3">
+                            <label className="text-sm text-slate-400 uppercase font-bold tracking-wider ml-1">AI Brain (Hub) IP Address</label>
                             <input
                                 type="text"
                                 value={profile.hub_ip || ''}
                                 onChange={(e) => setProfile({ ...profile, hub_ip: e.target.value })}
                                 placeholder="e.g. 192.168.1.15 or localhost"
-                                className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-blue-500 font-mono"
+                                className="bg-slate-800 border border-slate-700 rounded-2xl p-4 text-xl text-white outline-none focus:border-blue-500 font-mono transition-all"
                             />
-                            <p className="text-[10px] text-slate-500 italic mt-1">
+                            <p className="text-sm text-slate-500 italic mt-1 ml-1">
                                 IP này giúp Robot Eyes (Điện thoại) tìm thấy Laptop của bạn trên mạng Wi-Fi.
                             </p>
                         </div>
                     </section>
 
                     {/* Motor Ports */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-                        <h2 className="text-xl font-semibold mb-4 text-purple-400 flex items-center">
-                            ⚙️ Cấu hình Cổng Động cơ
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
+                        <h2 className="text-2xl font-semibold mb-6 text-purple-400 flex items-center gap-3">
+                            <Settings className="w-7 h-7" />
+                            Cấu hình Cổng Động cơ
                         </h2>
 
                         {profile.motor_ports.left === profile.motor_ports.right && (
-                            <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-2xl text-red-400 text-sm font-bold flex items-center gap-3 animate-pulse">
+                            <div className="mb-6 p-5 bg-red-500/20 border border-red-500/50 rounded-2xl text-red-400 text-base font-bold flex items-center gap-4 animate-pulse">
+                                <AlertTriangle className="w-6 h-6 flex-shrink-0" />
                                 ⚠️ CẢNH BÁO: Cổng Bánh xe Trái và Phải đang bị trùng nhau ({profile.motor_ports.left}). Vui lòng đổi cổng khác!
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <PortInput
                                 label="Bánh xe Trái"
                                 value={profile.motor_ports.left}
@@ -179,11 +201,12 @@ export default function RobotSettingsPage() {
                     </section>
 
                     {/* Speed Profile */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-                        <h2 className="text-xl font-semibold mb-4 text-pink-400 flex items-center">
-                            ⚡ Thiết lập Tốc độ (%)
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
+                        <h2 className="text-2xl font-semibold mb-6 text-pink-400 flex items-center gap-3">
+                            <Zap className="w-7 h-7" />
+                            Thiết lập Tốc độ (%)
                         </h2>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <SpeedInput
                                 label="Tiến/Lùi"
                                 value={profile.speed_profile.forward}
@@ -198,11 +221,12 @@ export default function RobotSettingsPage() {
                     </section>
 
                     {/* Sensor Ports */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-                        <h2 className="text-xl font-semibold mb-4 text-blue-400 flex items-center">
-                            📡 Cấu hình Cảm biến (Ports 1-4)
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
+                        <h2 className="text-2xl font-semibold mb-6 text-blue-400 flex items-center gap-3">
+                            <Radio className="w-7 h-7" />
+                            Cấu hình Cảm biến (Ports 1-4)
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                             {['in1', 'in2', 'in3', 'in4'].map((port) => (
                                 <SensorConfigInput
                                     key={port}
@@ -221,12 +245,13 @@ export default function RobotSettingsPage() {
                     </section>
 
                     {/* Keyboard Mapping */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-blue-400 flex items-center">
-                                ⌨️ Ánh xạ Phím Bàn phím
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-semibold text-blue-400 flex items-center gap-3">
+                                <Keyboard className="w-7 h-7" />
+                                Ánh xạ Phím Bàn phím
                             </h2>
-                            <div className="flex gap-2">
+                            <div className="flex gap-3">
                                 <button
                                     onClick={() => setProfile({
                                         ...profile,
@@ -235,7 +260,7 @@ export default function RobotSettingsPage() {
                                             aux1: "KeyQ", aux2: "KeyE"
                                         }
                                     })}
-                                    className="px-3 py-1 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg text-[10px] font-bold text-blue-400 transition-colors"
+                                    className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl text-xs font-bold text-blue-400 transition-colors"
                                 >
                                     WASD PRESET
                                 </button>
@@ -247,14 +272,14 @@ export default function RobotSettingsPage() {
                                             aux1: "KeyQ", aux2: "KeyE"
                                         }
                                     })}
-                                    className="px-3 py-1 bg-slate-500/10 hover:bg-slate-500/20 border border-slate-500/30 rounded-lg text-[10px] font-bold text-slate-400 transition-colors"
+                                    className="px-4 py-2 bg-slate-500/10 hover:bg-slate-500/20 border border-slate-500/30 rounded-xl text-xs font-bold text-slate-400 transition-colors"
                                 >
                                     ARROWS PRESET
                                 </button>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <KeyMappingInput
                                 label="Tiến"
                                 action="forward"
@@ -295,11 +320,12 @@ export default function RobotSettingsPage() {
                     </section>
 
                     {/* Aux Motor Settings */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6">
-                        <h2 className="text-xl font-semibold mb-4 text-emerald-400 flex items-center">
-                            🕹️ Mặc định Động cơ Phụ
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
+                        <h2 className="text-2xl font-semibold mb-6 text-emerald-400 flex items-center gap-3">
+                            <Gamepad2 className="w-7 h-7" />
+                            Mặc định Động cơ Phụ
                         </h2>
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             <AuxSettingInput
                                 label="Động cơ Phụ 1 (Loader)"
                                 settings={profile.aux_settings?.aux1 || { value: 1, unit: 'rotations' }}
@@ -325,26 +351,26 @@ export default function RobotSettingsPage() {
                         </div>
                     </section>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6 pt-6">
                         {saveStatus.type && (
-                            <div className={`p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 ${saveStatus.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                            <div className={`p-6 rounded-3xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300 ${saveStatus.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'
                                 }`}>
-                                <span className="text-lg">{saveStatus.type === 'success' ? '✨' : '❌'}</span>
-                                <span className="font-bold text-sm tracking-tight">{saveStatus.message}</span>
+                                <span className="text-2xl">{saveStatus.type === 'success' ? <CheckCircle className="w-8 h-8" /> : <AlertCircle className="w-8 h-8" />}</span>
+                                <span className="font-bold text-lg tracking-tight">{saveStatus.message}</span>
                             </div>
                         )}
 
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-2xl font-bold text-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
+                            className="w-full py-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-3xl font-bold text-xl shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4"
                         >
                             {saving ? (
                                 <>
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <Loader2 className="w-6 h-6 animate-spin text-white/50" />
                                     ĐANG LƯU...
                                 </>
-                            ) : 'LƯU CẤU HÌNH'}
+                            ) : 'LUU CẤU HÌNH'}
                         </button>
                     </div>
                 </div>
@@ -355,12 +381,12 @@ export default function RobotSettingsPage() {
 
 function PortInput({ label, value, onChange, options = ['outA', 'outB', 'outC', 'outD'] }: any) {
     return (
-        <div className="flex flex-col space-y-2">
-            <label className="text-xs text-slate-400 uppercase font-bold tracking-wider">{label}</label>
+        <div className="flex flex-col space-y-3">
+            <label className="text-sm text-slate-400 uppercase font-bold tracking-wider ml-1">{label}</label>
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-purple-500 transition-colors"
+                className="bg-slate-800 border border-slate-700 rounded-2xl p-4 text-white text-lg outline-none focus:border-purple-500 transition-colors appearance-none cursor-pointer"
             >
                 {options.map((opt: string) => <option key={opt} value={opt}>{opt.toUpperCase()}</option>)}
             </select>
@@ -370,13 +396,13 @@ function PortInput({ label, value, onChange, options = ['outA', 'outB', 'outC', 
 
 function SpeedInput({ label, value, onChange }: any) {
     return (
-        <div className="flex flex-col space-y-2">
-            <label className="text-xs text-slate-400 uppercase font-bold tracking-wider">{label}</label>
+        <div className="flex flex-col space-y-3">
+            <label className="text-sm text-slate-400 uppercase font-bold tracking-wider ml-1">{label}</label>
             <input
                 type="number"
                 value={value}
                 onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-                className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-pink-500"
+                className="bg-slate-800 border border-slate-700 rounded-2xl p-4 text-white text-lg outline-none focus:border-pink-500"
                 min="0" max="100"
             />
         </div>
@@ -385,19 +411,19 @@ function SpeedInput({ label, value, onChange }: any) {
 
 function AuxSettingInput({ label, settings, onChange }: any) {
     return (
-        <div className="flex items-center justify-between gap-4 bg-slate-800/30 p-4 rounded-2xl border border-slate-800/50">
-            <span className="text-sm font-medium text-slate-300">{label}</span>
-            <div className="flex gap-2">
+        <div className="flex items-center justify-between gap-6 bg-slate-800/30 p-6 rounded-3xl border border-slate-800/50">
+            <span className="text-lg font-medium text-slate-300">{label}</span>
+            <div className="flex gap-3">
                 <input
                     type="number"
                     value={settings.value}
                     onChange={(e) => onChange({ ...settings, value: parseFloat(e.target.value) || 0 })}
-                    className="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white outline-none"
+                    className="w-28 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-lg text-white outline-none text-center"
                 />
                 <select
                     value={settings.unit}
                     onChange={(e) => onChange({ ...settings, unit: e.target.value })}
-                    className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-400 outline-none"
+                    className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-400 outline-none uppercase tracking-wide cursor-pointer"
                 >
                     <option value="rotations">ROT</option>
                     <option value="degrees">DEG</option>
@@ -424,16 +450,16 @@ function KeyMappingInput({ label, value, onChange }: any) {
     }, [isListening, onChange]);
 
     return (
-        <div className="flex flex-col space-y-2">
-            <label className="text-xs text-slate-400 uppercase font-bold tracking-wider">{label}</label>
+        <div className="flex flex-col space-y-3">
+            <label className="text-sm text-slate-400 uppercase font-bold tracking-wider ml-1">{label}</label>
             <button
                 onClick={() => setIsListening(true)}
-                className={`bg-slate-800 border ${isListening ? 'border-blue-500 animate-pulse' : 'border-slate-700'} rounded-xl p-3 text-white text-sm font-mono transition-all flex items-center justify-between group`}
+                className={`bg-slate-800 border ${isListening ? 'border-blue-500 animate-pulse' : 'border-slate-700'} rounded-2xl p-5 text-white text-base font-mono transition-all flex items-center justify-between group h-[72px]`}
             >
                 <span className={isListening ? 'text-blue-400' : ''}>
                     {isListening ? 'NHẤN MỘT PHÍM...' : getKeyLabel(value)}
                 </span>
-                {!isListening && <span className="text-[10px] text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">THAY ĐỔI</span>}
+                {!isListening && <span className="text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity font-bold">CHANGE</span>}
             </button>
         </div>
     );
@@ -450,11 +476,11 @@ function getKeyLabel(code: string) {
 
 function SensorConfigInput({ port, config, onChange }: any) {
     const sensorTypes = [
-        { id: 'none', label: 'None', icon: '⚪' },
-        { id: 'color', label: 'Color', icon: '🌈' },
-        { id: 'ultrasonic', label: 'Ultrasonic', icon: '🦇' },
-        { id: 'gyro', label: 'Gyro', icon: '🌀' },
-        { id: 'touch', label: 'Touch', icon: '🔘' }
+        { id: 'none', label: 'None', icon: <CircleOff className="w-6 h-6" /> },
+        { id: 'color', label: 'Color', icon: <Palette className="w-6 h-6" /> },
+        { id: 'ultrasonic', label: 'Ultrasonic', icon: <Waves className="w-6 h-6" /> },
+        { id: 'gyro', label: 'Gyro', icon: <Compass className="w-6 h-6" /> },
+        { id: 'touch', label: 'Touch', icon: <MousePointerClick className="w-6 h-6" /> }
     ];
 
     const colorModes = [
@@ -464,19 +490,19 @@ function SensorConfigInput({ port, config, onChange }: any) {
     ];
 
     return (
-        <div className="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50 space-y-3">
+        <div className="bg-slate-800/40 p-6 rounded-[28px] border border-slate-700/50 space-y-4">
             <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase">Input Port {port.replace('in', '')}</span>
-                <span className="text-xs font-bold text-blue-400/60 uppercase">{config.type}</span>
+                <span className="text-xs font-black tracking-widest text-slate-500 uppercase">Input Port {port.replace('in', '')}</span>
+                <span className="text-sm font-bold text-blue-400/60 uppercase">{config.type}</span>
             </div>
 
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-5 gap-2">
                 {sensorTypes.map((t) => (
                     <button
                         key={t.id}
                         title={t.label}
                         onClick={() => onChange({ type: t.id, mode: t.id === 'color' ? 'color' : undefined })}
-                        className={`py-2 rounded-lg border text-lg transition-all ${config.type === t.id ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-900/50 border-slate-800 text-slate-600 hover:border-slate-600'}`}
+                        className={`py-4 rounded-2xl border transition-all flex items-center justify-center ${config.type === t.id ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-slate-900/50 border-slate-800 text-slate-600 hover:border-slate-600'}`}
                     >
                         {t.icon}
                     </button>
@@ -484,12 +510,12 @@ function SensorConfigInput({ port, config, onChange }: any) {
             </div>
 
             {config.type === 'color' && (
-                <div className="flex gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                <div className="flex gap-3 animate-in fade-in slide-in-from-top-1 duration-300">
                     {colorModes.map((m) => (
                         <button
                             key={m.id}
                             onClick={() => onChange({ ...config, mode: m.id })}
-                            className={`flex-1 py-1.5 rounded-lg border text-[9px] font-bold uppercase transition-all ${config.mode === m.id ? 'bg-purple-500/20 border-purple-500 text-purple-400' : 'bg-slate-900/50 border-slate-800 text-slate-500 hover:border-slate-600'}`}
+                            className={`flex-1 py-3 rounded-xl border text-[10px] font-bold uppercase transition-all ${config.mode === m.id ? 'bg-purple-500/20 border-purple-500 text-purple-400' : 'bg-slate-900/50 border-slate-800 text-slate-500 hover:border-slate-600'}`}
                         >
                             {m.label}
                         </button>
