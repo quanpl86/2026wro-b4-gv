@@ -307,7 +307,9 @@ export default function JudgePage() {
 
                         // Find the site object from mapSites
                         const siteObj = mapSites.find(s => s.id === siteId);
-                        if (siteObj) {
+
+                        // --- GUARD: Don't re-trigger if already busy with this site or any other ---
+                        if (siteObj && !selectedBookSite && !activeQuizStation && !pendingIntro) {
                             // Start Intro Sequence instead of opening book immediately
                             setPendingIntro({ site: siteObj, phase: 'greeting' });
                             setEmotion('curious');
@@ -315,6 +317,8 @@ export default function JudgePage() {
                             const introText = `Mời bạn đến tham quan địa danh ${siteObj.name}`;
                             setCurrentSubtitle(introText);
                             window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: introText } }));
+                        } else {
+                            console.log("⏭️ Site Discovery ignored (Busy or Invalid):", siteId);
                         }
                     } else if (data.type === 'station_status') {
                         setStationStatuses(prev => ({
@@ -848,7 +852,11 @@ export default function JudgePage() {
                             stationId={activeQuizStation}
                             questions={(config.heritage_info as any)[activeQuizStation]?.quiz_data || []}
                             badgeImage={(config.heritage_info as any)[activeQuizStation]?.badge_image}
-                            onClose={() => setActiveQuizStation(null)}
+                            onClose={() => {
+                                setActiveQuizStation(null);
+                                setIsAutoPlayBook(false);
+                                setSelectedBookSite(null);
+                            }}
                             onScoreUpdate={(points) => handleScoreUpdate(points, activeQuizStation)}
                             onAnswerResult={handleAnswerResult}
                             onComplete={handleQuizComplete}
