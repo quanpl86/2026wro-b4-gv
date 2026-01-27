@@ -373,6 +373,20 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
 
     const [isCorrect, setIsCorrect] = useState(false);
     const [score, setScore] = useState(0); // Track local score for badge calc
+
+    if (!questions || questions.length === 0) {
+        return (
+            <div className="w-full h-full flex items-center justify-center bg-slate-950 p-8">
+                <div className="bg-slate-900 border border-white/10 p-12 rounded-[40px] text-center max-w-md">
+                    <XCircle className="w-20 h-20 text-rose-500 mx-auto mb-6" />
+                    <h2 className="text-2xl font-bold text-white mb-4">Dữ liệu Quiz chưa sẵn sàng</h2>
+                    <p className="text-slate-400 mb-8">Rất tiếc, hiện tại trạm di sản này chưa có câu hỏi thử thách. Bạn hãy quay lại sau nhé.</p>
+                    <button onClick={onClose} className="px-8 py-3 bg-white text-black font-black uppercase rounded-xl">Đóng</button>
+                </div>
+            </div>
+        );
+    }
+
     const currentQ = questions[currentIdx];
 
     const playSound = (type: 'correct' | 'wrong' | 'win') => {
@@ -475,9 +489,11 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                                 <span className="text-purple-400 font-black uppercase tracking-[0.2em] text-sm">
                                     Question {currentIdx + 1} / {questions.length}
                                 </span>
-                                <div className="px-4 py-1 bg-yellow-500/10 text-yellow-500 rounded-full text-xs font-bold border border-yellow-500/20">
-                                    +{currentQ.points} Points
-                                </div>
+                                {currentQ && (
+                                    <div className="px-4 py-1 bg-yellow-500/10 text-yellow-500 rounded-full text-xs font-bold border border-yellow-500/20">
+                                        +{currentQ.points} Points
+                                    </div>
+                                )}
                             </div>
 
                             <h2 className="text-3xl font-bold text-white mb-12 leading-relaxed">
