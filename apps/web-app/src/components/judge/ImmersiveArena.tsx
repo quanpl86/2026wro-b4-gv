@@ -102,8 +102,10 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
             if (site) {
                 handleFocusSite(site);
             }
+        } else {
+            resetView();
         }
-    }, [focusedSiteId, sites]);
+    }, [focusedSiteId, sites, resetView]);
 
     const updateImageBounds = () => {
         if (!containerRef.current || !imgRef.current) return;

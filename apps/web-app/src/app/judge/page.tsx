@@ -856,6 +856,9 @@ export default function JudgePage() {
                                 setActiveQuizStation(null);
                                 setIsAutoPlayBook(false);
                                 setSelectedBookSite(null);
+                                const endText = "Chúng ta cùng tiếp tục cuộc hành trình nhé";
+                                setCurrentSubtitle(endText);
+                                window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: endText } }));
                             }}
                             onScoreUpdate={(points) => handleScoreUpdate(points, activeQuizStation)}
                             onAnswerResult={handleAnswerResult}
