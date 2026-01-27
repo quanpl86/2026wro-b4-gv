@@ -34,13 +34,20 @@ interface HeritageBookProps {
 export default function HeritageBook({ siteId, pages, onClose, onQuizStart, isAutoPlay = false }: HeritageBookProps) {
     const [currentPage, setCurrentPage] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
+    const lastSpokenRef = useRef<string>('');
     const { currentEmotion } = useRobotEmotion();
 
     // Auto-advance logic
     useEffect(() => {
         if (!isAutoPlay) return;
 
-        const handleSpeakEnd = () => {
+        const handleSpeakEnd = (e: any) => {
+            const endedText = e.detail?.text;
+            const currentPageText = pages[currentPage]?.voice_text;
+
+            // Important: Only advance if the text that just ended matches our current page
+            if (endedText !== currentPageText) return;
+
             // Give 1s pause after voice ends
             setTimeout(() => {
                 if (currentPage < pages.length - 1) {
@@ -49,25 +56,29 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart, isAu
                     // It's the end page, auto-trigger quiz after finishing final speech
                     onQuizStart();
                 }
-            }, 1500);
+            }, 1000);
         };
 
         window.addEventListener('ai-speak-end', handleSpeakEnd);
         return () => window.removeEventListener('ai-speak-end', handleSpeakEnd);
     }, [isAutoPlay, currentPage, pages]);
 
-    // TTS Synchronization
-    useEffect(() => {
+    const speakCurrentPage = () => {
         const page = pages[currentPage];
-        if (page?.voice_text) {
-            // Dispatch a custom event that VoiceAssistant listens to
+        if (page?.voice_text && page.voice_text !== lastSpokenRef.current) {
+            lastSpokenRef.current = page.voice_text;
             // First stop any current speech
             window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: '', action: 'stop' } }));
             // Then speak new text
             setTimeout(() => {
                 window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: page.voice_text } }));
-            }, 100);
+            }, 150);
         }
+    };
+
+    // TTS Synchronization
+    useEffect(() => {
+        speakCurrentPage();
     }, [currentPage, pages]);
 
     // Keyboard Navigation
