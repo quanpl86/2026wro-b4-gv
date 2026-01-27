@@ -254,27 +254,33 @@ export default function JudgePage() {
 
     // --- HERITAGE INTRO SEQUENCER ---
     useEffect(() => {
-        const handleSpeakEnd = () => {
+        const handleSpeakEnd = (e: any) => {
             if (!pendingIntro) return;
+            const finishedText = e.detail?.text;
 
             if (pendingIntro.phase === 'greeting') {
+                // Only proceed if the finished text matches Phase 1
+                const expectedText = `Mời bạn đến tham quan địa danh ${pendingIntro.site.name}`;
+                if (finishedText !== expectedText) return;
+
                 // Phase 1 finished -> Start Phase 2
                 setTimeout(() => {
                     setPendingIntro({ ...pendingIntro, phase: 'invitation' });
                     const inviteText = "Chúng ta cùng nhau tìm hiểu về địa danh nổi tiếng này nhé";
                     setCurrentSubtitle(inviteText);
-                    // Stop any previous speech before starting next phase
                     window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: '', action: 'stop' } }));
                     setTimeout(() => {
                         window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: inviteText } }));
                     }, 100);
                 }, 800);
             } else if (pendingIntro.phase === 'invitation') {
+                // Only proceed if the finished text matches Phase 2
+                const expectedText = "Chúng ta cùng nhau tìm hiểu về địa danh nổi tiếng này nhé";
+                if (finishedText !== expectedText) return;
+
                 // Phase 2 finished -> Open Book in Auto Mode
                 setTimeout(() => {
-                    // STOP any intro speech before opening book (which will start its own speech)
                     window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: '', action: 'stop' } }));
-
                     setTimeout(() => {
                         setSelectedBookSite(pendingIntro.site);
                         setIsAutoPlayBook(true);
