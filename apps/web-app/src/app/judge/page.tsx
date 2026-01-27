@@ -254,7 +254,7 @@ export default function JudgePage() {
                 // Phase 1 finished -> Start Phase 2
                 setTimeout(() => {
                     setPendingIntro({ ...pendingIntro, phase: 'invitation' });
-                    const inviteText = "Chúng ta cùng nhau tìm hiểu về địa danh nổi tiếng này nhé";
+                    const inviteText = `Chúng ta cùng nhau khám phá những điều thú vị về ${pendingIntro.site.name} nhé!`;
                     setCurrentSubtitle(inviteText);
                     window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: inviteText } }));
                 }, 500);
