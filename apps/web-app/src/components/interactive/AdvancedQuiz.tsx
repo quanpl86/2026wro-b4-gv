@@ -406,7 +406,11 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
     const speakQuestion = (idx: number) => {
         const q = questions[idx];
         if (q) {
-            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: q.question } }));
+            // Stop any current speech first
+            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: '', action: 'stop' } }));
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: q.question } }));
+            }, 100);
         }
     };
 
@@ -419,6 +423,17 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
         setIsCorrect(correct);
         setPhase('feedback');
         playSound(correct ? 'correct' : 'wrong');
+
+        // Speak Result and Explanation
+        const feedbackText = correct
+            ? `Chính xác! ${currentQ.explanation}`
+            : `Tiếc quá, chưa chính xác. ${currentQ.explanation}`;
+
+        window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: '', action: 'stop' } }));
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: feedbackText } }));
+        }, 100);
+
         if (onAnswerResult) onAnswerResult(correct);
         if (correct) {
             const points = currentQ.points;
