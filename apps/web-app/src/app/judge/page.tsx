@@ -138,6 +138,7 @@ export default function JudgePage() {
     // AI State
     const [isAITalking, setIsAITalking] = useState(false);
     const [selectedBookSite, setSelectedBookSite] = useState<Site | null>(null);
+    const [isAutoPlayBook, setIsAutoPlayBook] = useState(false);
     const [sidebarWidth, setSidebarWidth] = useState(360);
     const [isResizing, setIsResizing] = useState(false);
 
@@ -273,13 +274,16 @@ export default function JudgePage() {
                         const siteId = data.station_id;
                         console.log("📍 Site Discovered via AI Brain:", siteId);
 
-                        // Auto-open quiz station
-                        setActiveQuizStation(siteId);
-                        setEmotion('curious');
+                        // Find the site object from mapSites
+                        const siteObj = mapSites.find(s => s.id === siteId);
+                        if (siteObj) {
+                            setSelectedBookSite(siteObj);
+                            setIsAutoPlayBook(true);
+                            setEmotion('curious');
 
-                        // Set subtitle to inform the judge
-                        if (data.site_name) {
-                            setCurrentSubtitle(`Phát hiện di sản: ${data.site_name}`);
+                            if (data.site_name) {
+                                setCurrentSubtitle(`Bắt đầu thuyết minh di sản: ${data.site_name}`);
+                            }
                         }
                     } else if (data.type === 'station_status') {
                         setStationStatuses(prev => ({
@@ -791,11 +795,16 @@ export default function JudgePage() {
                         <HeritageBook
                             siteId={selectedBookSite.id}
                             pages={(config.heritage_info as any)[selectedBookSite.id]?.pages || []}
-                            onClose={() => setSelectedBookSite(null)}
+                            onClose={() => {
+                                setSelectedBookSite(null);
+                                setIsAutoPlayBook(false);
+                            }}
                             onQuizStart={() => {
                                 setActiveQuizStation(selectedBookSite.id);
                                 setSelectedBookSite(null);
+                                setIsAutoPlayBook(false);
                             }}
+                            isAutoPlay={isAutoPlayBook}
                         />
                     </div>
                 )}

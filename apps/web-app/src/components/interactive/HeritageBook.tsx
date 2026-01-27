@@ -28,12 +28,33 @@ interface HeritageBookProps {
     pages: BookPage[];
     onClose: () => void;
     onQuizStart: () => void;
+    isAutoPlay?: boolean;
 }
 
-export default function HeritageBook({ siteId, pages, onClose, onQuizStart }: HeritageBookProps) {
+export default function HeritageBook({ siteId, pages, onClose, onQuizStart, isAutoPlay = false }: HeritageBookProps) {
     const [currentPage, setCurrentPage] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
     const { currentEmotion } = useRobotEmotion();
+
+    // Auto-advance logic
+    useEffect(() => {
+        if (!isAutoPlay) return;
+
+        const handleSpeakEnd = () => {
+            // Give 1s pause after voice ends
+            setTimeout(() => {
+                if (currentPage < pages.length - 1) {
+                    nextPage();
+                } else {
+                    // It's the end page, auto-trigger quiz after finishing final speech
+                    onQuizStart();
+                }
+            }, 1500);
+        };
+
+        window.addEventListener('ai-speak-end', handleSpeakEnd);
+        return () => window.removeEventListener('ai-speak-end', handleSpeakEnd);
+    }, [isAutoPlay, currentPage, pages]);
 
     // TTS Synchronization
     useEffect(() => {

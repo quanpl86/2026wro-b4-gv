@@ -121,6 +121,7 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
                     setEmotion('neutral');
                     utteranceRef.current = null;
                     clearInterval(checkInterval);
+                    window.dispatchEvent(new CustomEvent('ai-speak-end', { detail: { text } }));
                 };
             };
 
