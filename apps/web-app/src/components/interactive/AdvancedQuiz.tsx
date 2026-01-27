@@ -2,7 +2,7 @@
 
 import { motion, Reorder } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
-import { Check, X, CheckCircle2, XCircle, GripVertical } from 'lucide-react';
+import { Check, X, CheckCircle2, XCircle, GripVertical, Trophy } from 'lucide-react';
 import HeritageBadge, { BadgeTier } from './HeritageBadge';
 import AIAvatar from './AIAvatar';
 import { useRobotEmotion } from '@/stores/useRobotEmotion';
@@ -360,10 +360,19 @@ interface AdvancedQuizProps {
 
 export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpdate, onAnswerResult, onComplete, badgeImage }: AdvancedQuizProps) {
     const [currentIdx, setCurrentIdx] = useState(0);
-    const [phase, setPhase] = useState<'question' | 'feedback' | 'reward'>('question');
+    const [phase, setPhase] = useState<'welcome' | 'question' | 'feedback' | 'reward'>('welcome');
     const { currentEmotion } = useRobotEmotion();
 
     const hasTriggeredReward = useRef(false);
+    const hasTriggeredWelcome = useRef(false);
+
+    useEffect(() => {
+        if (phase === 'welcome' && !hasTriggeredWelcome.current) {
+            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: "Bạn đã sẵn sàng cho thử thách chưa? Hãy nhấn nút Bắt đầu để chúng mình cùng chơi nhé!" } }));
+            hasTriggeredWelcome.current = true;
+        }
+    }, [phase]);
+
     useEffect(() => {
         if (phase === 'reward' && !hasTriggeredReward.current && onComplete) {
             onComplete();
@@ -394,6 +403,18 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
         audio.play().catch(() => { });
     };
 
+    const speakQuestion = (idx: number) => {
+        const q = questions[idx];
+        if (q) {
+            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: q.question } }));
+        }
+    };
+
+    const startQuiz = () => {
+        setPhase('question');
+        speakQuestion(0);
+    };
+
     const handleAnswer = (correct: boolean) => {
         setIsCorrect(correct);
         setPhase('feedback');
@@ -408,8 +429,10 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
 
     const nextQuestion = () => {
         if (currentIdx < questions.length - 1) {
-            setCurrentIdx(prev => prev + 1);
+            const nextIdx = currentIdx + 1;
+            setCurrentIdx(nextIdx);
             setPhase('question');
+            speakQuestion(nextIdx);
         } else {
             setPhase('reward'); // Unlock Badge Phase
             playSound('win');
@@ -437,8 +460,31 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                 transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
                 className="w-full h-full max-w-6xl max-h-[90vh] bg-slate-900/80 backdrop-blur-3xl border border-white/10 rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] flex flex-col relative"
             >
-                {/* REWARD PHASE */}
-                {phase === 'reward' ? (
+                {/* WELCOME PHASE */}
+                {phase === 'welcome' ? (
+                    <div className="p-12 flex flex-col items-center justify-center text-center h-full relative overflow-hidden">
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="bg-purple-600/20 p-8 rounded-[40px] border border-purple-500/30 mb-8"
+                        >
+                            <Trophy className="w-20 h-20 text-yellow-400 mb-4 mx-auto" />
+                            <h2 className="text-4xl font-black text-white uppercase tracking-tighter mb-4">Sẵn sàng thử thách?</h2>
+                            <p className="text-slate-300 text-lg max-w-md">Bạn đã sẵn lòng tham gia trò chơi tìm hiểu về di sản này chưa? Nhấn nút bên dưới để bắt đầu nhé!</p>
+                        </motion.div>
+
+                        <button
+                            onClick={startQuiz}
+                            className="px-12 py-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-2xl font-black uppercase tracking-widest rounded-3xl shadow-[0_20px_50px_rgba(79,70,229,0.4)] hover:scale-110 active:scale-95 transition-all border border-white/20"
+                        >
+                            Bắt đầu chơi
+                        </button>
+
+                        <useEffect(() => {
+                            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: "Bạn đã sẵn sàng cho thử thách chưa? Hãy nhấn nút Bắt đầu để chúng mình cùng chơi nhé!" } }));
+                        }, [])}
+                    </div>
+                ) : phase === 'reward' ? (
                     <div className="p-8 md:p-10 flex flex-col items-center justify-center text-center min-h-[450px] relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-t from-purple-900/40 via-transparent to-transparent pointer-events-none" />
 
