@@ -374,8 +374,11 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
     }, [phase]);
 
     useEffect(() => {
-        if (phase === 'reward' && !hasTriggeredReward.current && onComplete) {
-            onComplete();
+        if (phase === 'reward' && !hasTriggeredReward.current) {
+            const congratsText = "Chúc mừng bạn đã hoàn thành thử thách xuất sắc! Hãy nhấn nút Thu thập để nhận huy hiệu di sản của mình nhé.";
+            window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: congratsText } }));
+
+            if (onComplete) onComplete();
             hasTriggeredReward.current = true;
         }
     }, [phase, onComplete]);
