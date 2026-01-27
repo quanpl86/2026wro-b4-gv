@@ -254,7 +254,7 @@ export default function JudgePage() {
                 // Phase 1 finished -> Start Phase 2
                 setTimeout(() => {
                     setPendingIntro({ ...pendingIntro, phase: 'invitation' });
-                    const inviteText = "Chúng ta cùng nhau khám phá chi tiết";
+                    const inviteText = "Chúng ta cùng nhau tìm hiểu về địa danh nổi tiếng này nhé";
                     setCurrentSubtitle(inviteText);
                     window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: inviteText } }));
                 }, 500);
@@ -311,8 +311,8 @@ export default function JudgePage() {
                         // --- GUARD: Don't re-trigger if already busy with this site or any other ---
                         if (siteObj && !selectedBookSite && !activeQuizStation && !pendingIntro) {
                             // Start Intro Sequence instead of opening book immediately
-                            // Greeting Phase: Welcome + Brief Description
-                            const greetingText = `Chào mừng bạn đã đến với ${siteObj.name}. ${siteObj.description}`;
+                            // Greeting Phase: Standard Welcome
+                            const greetingText = `Mời bạn đến tham quan địa danh ${siteObj.name}`;
                             setPendingIntro({ site: siteObj, phase: 'greeting' });
                             setEmotion('curious');
 
