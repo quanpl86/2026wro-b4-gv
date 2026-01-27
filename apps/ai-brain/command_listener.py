@@ -311,8 +311,10 @@ async def main():
     
     # Auto-update Hub IP in Supabase for active profile
     try:
-        db.table("robot_profiles").update({"hub_ip": local_ip}).eq("is_active", True).execute()
-        print(f"📡  Supabase: Hub IP synced to {local_ip} (Zero-Config Active)")
+        # ⚠️ DISABLED AUTO-SYNC for Ngrok Tunnel Mode
+        # db.table("robot_profiles").update({"hub_ip": local_ip}).eq("is_active", True).execute()
+        # print(f"📡  Supabase: Hub IP synced to {local_ip} (Zero-Config Active)")
+        print(f"⚠️  Supabase Sync SKIPPED (Manual/Ngrok Mode active)")
     except Exception as e:
         print(f"⚠️  Supabase Sync Failed: {e}")
     

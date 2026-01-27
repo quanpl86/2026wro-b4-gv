@@ -85,7 +85,11 @@ export default function VisionPage() {
         const connectWs = () => {
             try {
                 console.log(`[VisionPage] Connecting to ${hubIp}...`);
-                const socket = new WebSocket(`ws://${hubIp}:8765`);
+                const isNgrok = hubIp.includes('ngrok');
+                const wsUrl = isNgrok
+                    ? `wss://${hubIp}`
+                    : `ws://${hubIp}:8765`;
+                const socket = new WebSocket(wsUrl);
 
                 socket.onopen = () => {
                     console.log('[VisionPage] WS Connected');

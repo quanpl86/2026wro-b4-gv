@@ -246,7 +246,10 @@ export default function JudgePage() {
 
         const connectWs = () => {
             try {
-                const wsUrl = `ws://${hubIp}:8765`;
+                const isNgrok = hubIp.includes('ngrok');
+                const wsUrl = isNgrok
+                    ? `wss://${hubIp}`
+                    : `ws://${hubIp}:8765`;
                 const socket = new WebSocket(wsUrl);
 
                 socket.onopen = () => setWsStatus('Connected');
