@@ -80,40 +80,56 @@ export default function VisionPage() {
     // WebSocket Persistence & Command Listener
     useEffect(() => {
         if (!hubIp) return;
+        console.log(`[VisionPage] Mount/Update with HubIP: ${hubIp}`);
 
         const connectWs = () => {
             try {
+                console.log(`[VisionPage] Connecting to ${hubIp}...`);
                 const socket = new WebSocket(`ws://${hubIp}:8765`);
+
                 socket.onopen = () => {
+                    console.log('[VisionPage] WS Connected');
                     setWsStatus('Connected');
                     setWsError(null);
                 };
+
                 socket.onmessage = (event) => {
                     try {
                         const msg = JSON.parse(event.data);
                         // REMOTE CONTROL HANDLERS
                         if (msg.command === 'set_mode' && msg.mode) {
-                            setDisplayMode(msg.mode); // 'camera' or 'face'
+                            setDisplayMode(msg.mode);
                         }
                         if (msg.command === 'set_emotion' && msg.emotion) {
                             setEmotion(msg.emotion);
-                            // Auto-switch to face mode if emotion is sent
                             setDisplayMode('face');
                         }
                     } catch (e) { }
                 };
-                socket.onclose = () => {
+
+                socket.onclose = (e) => {
+                    console.warn(`[VisionPage] WS Closed: Code=${e.code}, Reason=${e.reason}`);
                     setWsStatus('Disconnected');
                     setTimeout(connectWs, 3000);
                 };
+
+                socket.onerror = (e) => {
+                    console.error('[VisionPage] WS Error', e);
+                };
+
                 wsRef.current = socket;
             } catch (err: any) {
                 console.error("[WS Error]", err);
                 setWsError("Connection Refused");
             }
         };
+
         connectWs();
-        return () => wsRef.current?.close();
+
+        return () => {
+            console.log('[VisionPage] Unmounting/Cleaning up WS');
+            wsRef.current?.close();
+        };
     }, [hubIp]);
 
     const sendWsCommand = (command: string, params: object = {}) => {

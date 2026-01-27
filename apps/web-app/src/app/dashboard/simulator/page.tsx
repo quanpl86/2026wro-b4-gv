@@ -28,6 +28,7 @@ export default function SimulatorPage() {
     const [path, setPath] = useState<{ x: number, y: number }[]>([]);
     const { currentEmotion, setEmotion } = useRobotEmotion();
     const [isAITalking, setIsAITalking] = useState(false);
+    const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model', parts: string[] }[]>([]);
 
     // Fetch Hub IP
     useEffect(() => {
@@ -66,6 +67,9 @@ export default function SimulatorPage() {
                     if (data.type === 'voice_response') {
                         window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: data.text } }));
                         addLog(`AI: ${data.text}`, 'system');
+
+                        // Update history with AI response
+                        setChatHistory(prev => [...prev, { role: 'model', parts: [data.text] }]);
 
                         // 🐱 Update Mascot Appearance
                         if (data.emotion) setEmotion(data.emotion);
@@ -115,9 +119,17 @@ export default function SimulatorPage() {
 
     const handleVoiceCommand = (text: string, lang: string) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
+            // Calculate new history with user message
+            const newHistory = [...chatHistory, { role: 'user' as const, parts: [text] }];
+            setChatHistory(newHistory);
+
             wsRef.current.send(JSON.stringify({
                 command: 'voice_command',
-                params: { text, lang }
+                params: {
+                    text,
+                    lang,
+                    history: newHistory.slice(-10) // Limit context window
+                }
             }));
             addLog(`You: ${text}`, 'info');
         }

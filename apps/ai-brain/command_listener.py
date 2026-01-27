@@ -217,7 +217,8 @@ async def ws_handler(websocket):
                     
                     # 2. SMART AI ROUTING (Gemini)
                     else:
-                        ai_data = await gemini_service.get_response(text, lang)
+                        history = params.get('history', [])
+                        ai_data = await gemini_service.get_response(text, lang, history)
                         if ai_data:
                             response_text = ai_data.get("text", "")
                             move_intent = ai_data.get("robot_move")

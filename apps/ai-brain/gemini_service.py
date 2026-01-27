@@ -37,7 +37,7 @@ class GeminiService:
         self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
         genai.configure(api_key=self.api_keys[self.current_key_index])
 
-    async def get_response(self, user_input, lang="vi-VN"):
+    async def get_response(self, user_input, lang="vi-VN", history=[]):
         if not self.api_keys:
             return None
 
@@ -56,10 +56,24 @@ class GeminiService:
         }}
         """
 
+        # Construct full prompt with history
+        contents = [
+            {"role": "user", "parts": [system_prompt]}
+        ]
+        
+        # Add valid history
+        if history and isinstance(history, list):
+            for turn in history:
+                if "role" in turn and "parts" in turn:
+                    contents.append(turn)
+
+        # Add current user input
+        contents.append({"role": "user", "parts": [f"User: {user_input}"]})
+
         try:
             # 🚀 Thử với model Flash trước
             model = genai.GenerativeModel(self.primary_model)
-            response = model.generate_content(f"{system_prompt}\n\nUser: {user_input}")
+            response = model.generate_content(contents)
             return self._parse_json(response.text)
         except Exception as e:
             import traceback
@@ -70,7 +84,7 @@ class GeminiService:
                 try:
                     print(f"🔄 Falling back to {self.fallback_model}...")
                     model_pro = genai.GenerativeModel(self.fallback_model)
-                    response = model_pro.generate_content(f"{system_prompt}\n\nUser: {user_input}")
+                    response = model_pro.generate_content(contents)
                     return self._parse_json(response.text)
                 except Exception as e2:
                     print(f"❌ Gemini Fallback Error: {e2}")
