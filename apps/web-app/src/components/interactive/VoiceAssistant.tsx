@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRobotEmotion } from '@/stores/useRobotEmotion';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Settings, Mic, Volume2, Square, Keyboard, Globe, Send } from 'lucide-react';
 
 interface VoiceAssistantProps {
     onCommand: (text: string, lang: string) => void;
@@ -18,10 +19,14 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
     const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
     const [selectedVoiceName, setSelectedVoiceName] = useState<string>('');
     const [showSettings, setShowSettings] = useState(false);
+    const [responseMode, setResponseMode] = useState<'speech' | 'text'>('speech');
     const [inputMode, setInputMode] = useState<'voice' | 'text'>('voice');
     const [textInput, setTextInput] = useState('');
 
     const recognitionRef = useRef<any>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const { setEmotion } = useRobotEmotion();
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
     // Initialize Speech Recognition
     useEffect(() => {
@@ -33,14 +38,14 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
 
             recognitionRef.current.onstart = () => {
                 setIsListening(true);
-                setEmotion('curious'); // Listening intently
+                setEmotion('curious');
             };
 
             recognitionRef.current.onresult = (event: any) => {
                 const current = event.results[event.results.length - 1][0].transcript;
                 setTranscript(current);
                 if (event.results[0].isFinal) {
-                    setEmotion('think'); // Processing result
+                    setEmotion('think');
                     onCommand(current, activeLanguage);
                     setTimeout(() => {
                         setIsListening(false);
@@ -51,15 +56,9 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
 
             recognitionRef.current.onend = () => {
                 setIsListening(false);
-                // Don't reset to neutral here immediately if we are processing (let TTS take over)
-                // However, if no result was found, we should reset.
-                // For now, let's leave it to TTS or timeout to reset if needed, 
-                // but checking 'isTalking' might be complex here.
-                // Safest: depend on TTS or explicit reset if idle.
             };
 
             recognitionRef.current.onerror = (event: any) => {
-                // 'no-speech' is common (timeout), don't log as error
                 if (event.error !== 'no-speech') {
                     console.error("Speech Error:", event.error);
                 }
@@ -67,7 +66,7 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
                 setEmotion('neutral');
             };
         }
-    }, [activeLanguage, onCommand]);
+    }, [activeLanguage, onCommand, setEmotion]);
 
     // Initialize TTS Voices
     useEffect(() => {
@@ -76,7 +75,6 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
             const filtered = voices.filter(v => v.lang.startsWith('vi') || v.lang.startsWith('en'));
             setAvailableVoices(filtered);
 
-            // Set default voice based on language
             if (filtered.length > 0) {
                 const preferred = filtered.find(v => v.lang === activeLanguage && (v.name.includes('Google') || v.name.includes('Natural')));
                 if (preferred) setSelectedVoiceName(preferred.name);
@@ -88,8 +86,55 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
         window.speechSynthesis.onvoiceschanged = loadVoices;
     }, [activeLanguage]);
 
+    const speakResponse = useCallback((text: string) => {
+        if (!window.speechSynthesis || responseMode === 'text') {
+            console.log("🤐 Response Mode: Text Only");
+            return;
+        }
+
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+
+        setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utteranceRef.current = utterance;
+
+            const voice = availableVoices.find(v => v.name === selectedVoiceName) ||
+                availableVoices.find(v => v.lang.startsWith(activeLanguage.split('-')[0]));
+
+            if (voice) utterance.voice = voice;
+            utterance.lang = activeLanguage;
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+
+            utterance.onstart = () => {
+                setEmotion('talking');
+                const checkInterval = setInterval(() => {
+                    if (!window.speechSynthesis.speaking) {
+                        setEmotion('neutral');
+                        utteranceRef.current = null;
+                        clearInterval(checkInterval);
+                    }
+                }, 100);
+
+                utterance.onend = () => {
+                    setEmotion('neutral');
+                    utteranceRef.current = null;
+                    clearInterval(checkInterval);
+                };
+            };
+
+            utterance.onerror = (e) => {
+                if (e.error === 'interrupted' || e.error === 'canceled') return;
+                setEmotion('neutral');
+                utteranceRef.current = null;
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }, 50);
+    }, [availableVoices, selectedVoiceName, activeLanguage, responseMode, setEmotion]);
+
     const toggleListening = () => {
-        // CHROME FIX: Unlock TTS on user interaction
         if (window.speechSynthesis) {
             window.speechSynthesis.getVoices();
             window.speechSynthesis.resume();
@@ -108,12 +153,8 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
         }
     };
 
-    const inputRef = useRef<HTMLInputElement>(null);
-
     const handleTextSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        // CHROME FIX: Unlock TTS on user interaction
         if (window.speechSynthesis) {
             window.speechSynthesis.getVoices();
             window.speechSynthesis.resume();
@@ -127,80 +168,19 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
         }
     };
 
-    const { setEmotion } = useRobotEmotion();
-    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+    const testSpeak = () => speakResponse(activeLanguage === 'vi-VN' ? "Hệ thống âm thanh đã sẵn sàng." : "Audio system is ready.");
 
-    const speakResponse = (text: string) => {
-        if (!window.speechSynthesis) return;
-
-        // CHROME FIX: Force cancel and tiny delay to clear queue
-        window.speechSynthesis.cancel();
-
-        // CHROME FIX: Ensure API isn't stuck/paused
-        window.speechSynthesis.resume();
-
-        console.log("🗣️ Preparing TTS:", text);
-
-        setTimeout(() => {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utteranceRef.current = utterance;
-
-            const voice = availableVoices.find(v => v.name === selectedVoiceName) ||
-                availableVoices.find(v => v.lang.startsWith(activeLanguage.split('-')[0]));
-
-            if (voice) utterance.voice = voice;
-            utterance.lang = activeLanguage;
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-
-            utterance.onstart = () => {
-                console.log("🔊 TTS Started Playing");
-                setEmotion('talking');
-
-                const checkInterval = setInterval(() => {
-                    if (!window.speechSynthesis.speaking) {
-                        console.log("⚡ Fast Silence Detected");
-                        setEmotion('neutral');
-                        utteranceRef.current = null;
-                        clearInterval(checkInterval);
-                    }
-                }, 100);
-
-                utterance.onend = () => {
-                    console.log("✅ TTS Ended (Event)");
-                    setEmotion('neutral');
-                    utteranceRef.current = null;
-                    clearInterval(checkInterval);
-                };
-            };
-
-            utterance.onerror = (e) => {
-                if (e.error === 'interrupted' || e.error === 'canceled') return;
-                console.error("❌ TTS Error Details:", e.error);
-                setEmotion('neutral');
-                utteranceRef.current = null;
-            };
-
-            console.log("🗣️ Speaking:", text, "Voice:", voice?.name, "Available Count:", availableVoices.length);
-            window.speechSynthesis.speak(utterance);
-        }, 50); // Small 50ms buffer for Chrome to reset state
-    };
-
-    // MANUAL TEST TRIGGER
-    const testSpeak = () => speakResponse("Hệ thống âm thanh đã sẵn sàng.");
-
-    // Expose TTS to parent via global event
     useEffect(() => {
         const handleSpeak = (e: any) => {
             if (e.detail?.text) speakResponse(e.detail.text);
         };
         window.addEventListener('ai-speak', handleSpeak);
         return () => window.removeEventListener('ai-speak', handleSpeak);
-    }, [availableVoices, selectedVoiceName, activeLanguage]);
+    }, [speakResponse]);
 
     return (
         <div className="relative flex flex-col items-center gap-6 w-full max-w-sm">
-            {/* Listening State UI (Waveform Overlay) */}
+            {/* Listening State UI */}
             <AnimatePresence>
                 {isListening && (
                     <motion.div
@@ -226,10 +206,9 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
                 )}
             </AnimatePresence>
 
-            {/* Transitioning Input Area */}
             <div className="w-full flex flex-col gap-4">
                 <AnimatePresence mode="wait">
-                    {inputMode === 'text' ? (
+                    {inputMode === 'text' && (
                         <motion.form
                             key="text-input"
                             initial={{ opacity: 0, scale: 0.95 }}
@@ -243,8 +222,8 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
                                 type="text"
                                 autoFocus
                                 value={textInput}
-                                onFocus={() => setEmotion('curious')} // 👀 Focus -> Curious
-                                onBlur={() => setEmotion('neutral')}  // 😐 Blur -> Neutral (if not processing)
+                                onFocus={() => setEmotion('curious')}
+                                onBlur={() => setEmotion('neutral')}
                                 onChange={(e) => setTextInput(e.target.value)}
                                 placeholder={activeLanguage === 'vi-VN' ? "Nhập câu hỏi tại đây..." : "Type your question..."}
                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 pr-14 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500/50 transition-all shadow-inner"
@@ -253,98 +232,112 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
                                 type="submit"
                                 className="absolute right-3 top-2 w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center hover:bg-purple-500 active:scale-95 transition-all shadow-lg shadow-purple-600/20"
                             >
-                                <span className="text-xs">↵</span>
+                                <Send className="w-4 h-4 text-white" />
                             </button>
                         </motion.form>
-                    ) : (
-                        <motion.div
-                            key="voice-mode"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex justify-center"
-                        >
-                            {/* Speech bubble or status could go here if needed */}
-                        </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* Interaction Controls */}
-                <div className="flex items-center justify-center gap-4">
-                    <button
-                        onClick={testSpeak}
-                        className="w-8 h-8 rounded-full bg-slate-800 text-[10px] flex items-center justify-center border border-white/10 hover:bg-white/10 transition-all"
-                        title="Test Audio"
-                    >
-                        🔊
-                    </button>
-
+                {/* CONSOLIDATED INTERACTION CLUSTER */}
+                <div className="flex items-center justify-center gap-6">
                     <button
                         onClick={() => setShowSettings(!showSettings)}
-                        className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all ${showSettings ? 'bg-white text-black border-white' : 'bg-slate-900 border-white/10 text-white/40 hover:text-white'}`}
+                        className={`w-14 h-14 rounded-[22px] border flex items-center justify-center transition-all ${showSettings ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'bg-slate-900 border-white/10 text-white/40 hover:text-white hover:border-white/20'}`}
+                        title="AI Settings"
                     >
-                        <span className="text-xl">⚙️</span>
+                        <Settings className={`w-6 h-6 ${showSettings ? 'animate-spin-slow' : ''}`} />
                     </button>
 
                     <button
                         onClick={inputMode === 'voice' ? toggleListening : () => setInputMode('voice')}
-                        className={`group relative w-20 h-20 rounded-[32px] flex items-center justify-center transition-all duration-500 ${isListening ? 'bg-red-500 scale-110 shadow-[0_0_50px_rgba(239,68,68,0.5)]' : 'bg-gradient-to-br from-indigo-600 to-purple-600 shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:scale-105 active:scale-95'}`}
+                        className={`group relative w-24 h-24 rounded-[36px] flex items-center justify-center transition-all duration-500 ${isListening ? 'bg-red-500 scale-110 shadow-[0_0_60px_rgba(239,68,68,0.5)]' : 'bg-gradient-to-br from-indigo-600 to-purple-600 shadow-[0_0_40px_rgba(124,58,237,0.3)] hover:scale-105 active:scale-95'}`}
                     >
                         {isListening ? (
-                            <span className="text-3xl text-white">⏹️</span>
+                            <Square className="w-10 h-10 text-white fill-white" />
                         ) : (
-                            <span className="text-4xl text-white group-hover:scale-110 transition-transform">🎙️</span>
+                            <Mic className="w-12 h-12 text-white group-hover:scale-110 transition-transform" />
                         )}
-
                         {!isListening && inputMode === 'voice' && (
                             <motion.div
                                 animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
                                 transition={{ repeat: Infinity, duration: 2 }}
-                                className="absolute -inset-2 bg-purple-500/20 rounded-[40px] -z-10"
+                                className="absolute -inset-3 bg-purple-500/20 rounded-[44px] -z-10"
                             />
                         )}
                     </button>
 
-                    <div className="flex flex-col gap-2">
-                        <button
-                            onClick={() => setInputMode(inputMode === 'text' ? 'voice' : 'text')}
-                            className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all ${inputMode === 'text' ? 'bg-purple-600 text-white border-purple-500' : 'bg-slate-900 border-white/10 text-white/40 hover:text-white'}`}
-                        >
-                            <span className="text-xl">{inputMode === 'text' ? '🎙️' : '⌨️'}</span>
-                        </button>
-                        <button
-                            onClick={() => onLangChange(activeLanguage === 'vi-VN' ? 'en-US' : 'vi-VN')}
-                            className="w-12 h-12 rounded-2xl bg-slate-900 border border-white/10 flex flex-col items-center justify-center hover:border-purple-500/40 transition-all font-black text-[10px]"
-                        >
-                            <span className="text-lg opacity-80">{activeLanguage === 'vi-VN' ? '🇻🇳' : '🇺🇸'}</span>
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => setInputMode(inputMode === 'text' ? 'voice' : 'text')}
+                        className={`w-14 h-14 rounded-[22px] border flex items-center justify-center transition-all ${inputMode === 'text' ? 'bg-purple-600 text-white border-purple-500 shadow-[0_0_20px_rgba(147,51,234,0.3)]' : 'bg-slate-900 border-white/10 text-white/40 hover:text-white hover:border-white/20'}`}
+                        title={inputMode === 'text' ? "Switch to Voice" : "Switch to Keyboard"}
+                    >
+                        {inputMode === 'text' ? <Mic className="w-6 h-6" /> : <Keyboard className="w-6 h-6" />}
+                    </button>
                 </div>
             </div>
 
-            {/* Voice Settings Dropdown */}
+            {/* COMPREHENSIVE SETTINGS POPOVER */}
             <AnimatePresence>
                 {showSettings && (
                     <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute bottom-28 bg-slate-900 border border-white/10 rounded-3xl p-4 w-64 shadow-2xl z-50 backdrop-blur-xl"
+                        className="absolute bottom-32 bg-slate-900/95 border border-white/10 rounded-[32px] p-5 w-80 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 backdrop-blur-2xl"
                     >
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 px-2">AI Voice Config</h4>
-                        <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-                            {availableVoices.map((voice) => (
-                                <button
-                                    key={voice.name}
-                                    onClick={() => {
-                                        setSelectedVoiceName(voice.name);
-                                        setShowSettings(false);
-                                    }}
-                                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${selectedVoiceName === voice.name ? 'bg-purple-600 text-white' : 'text-slate-400 hover:bg-white/5'}`}
-                                >
-                                    <span className="truncate max-w-[140px]">{voice.name}</span>
-                                    <span className="opacity-40 text-[9px] uppercase">{voice.lang}</span>
-                                </button>
+                        <div className="flex items-center justify-between mb-6 px-1">
+                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">AI Assistant Config</h4>
+                            <button onClick={testSpeak} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-purple-400 transition-all" title="Test Voice">
+                                <Volume2 className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-bold text-slate-600 uppercase ml-1">Language</label>
+                                    <button
+                                        onClick={() => onLangChange(activeLanguage === 'vi-VN' ? 'en-US' : 'vi-VN')}
+                                        className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 px-4 flex items-center gap-3 hover:bg-white/10 transition-all group"
+                                    >
+                                        <Globe className="w-4 h-4 text-purple-500 group-hover:rotate-12 transition-transform" />
+                                        <span className="text-xs font-black text-white">{activeLanguage === 'vi-VN' ? 'TIẾNG VIỆT' : 'ENGLISH'}</span>
+                                    </button>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-bold text-slate-600 uppercase ml-1">Response</label>
+                                    <button
+                                        onClick={() => setResponseMode(responseMode === 'speech' ? 'text' : 'speech')}
+                                        className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 px-4 flex items-center gap-3 hover:bg-white/10 transition-all group"
+                                    >
+                                        {responseMode === 'speech' ? <Volume2 className="w-4 h-4 text-emerald-500" /> : <Square className="w-3 h-3 text-amber-500" />}
+                                        <span className="text-xs font-black text-white uppercase">{responseMode}</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-bold text-slate-600 uppercase ml-1">Available Voices</label>
+                                <div className="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar pr-1 bg-black/20 rounded-2xl p-2 border border-white/5">
+                                    {availableVoices.map((voice) => (
+                                        <button
+                                            key={voice.name}
+                                            onClick={() => setSelectedVoiceName(voice.name)}
+                                            className={`w-full text-left px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all flex items-center justify-between group ${selectedVoiceName === voice.name ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                                        >
+                                            <span className="truncate max-w-[150px]">{voice.name}</span>
+                                            <span className={`text-[8px] uppercase px-1.5 py-0.5 rounded-md ${selectedVoiceName === voice.name ? 'bg-white/20' : 'bg-white/5 text-slate-600'}`}>
+                                                {voice.lang.split('-')[0]}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-white/5 flex justify-center gap-1.5">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="w-1 h-1 bg-white/10 rounded-full" />
                             ))}
                         </div>
                     </motion.div>
@@ -352,6 +345,13 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
             </AnimatePresence>
 
             <style jsx global>{`
+                @keyframes spin-slow {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                .animate-spin-slow {
+                    animation: spin-slow 8s linear infinite;
+                }
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }

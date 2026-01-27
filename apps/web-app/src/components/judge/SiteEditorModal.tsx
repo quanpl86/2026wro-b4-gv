@@ -3,33 +3,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- TYPES (Synced with AdvancedQuiz.tsx) ---
-interface QuizQuestion {
-    id: string;
-    type: 'multiple_choice' | 'multiple_response' | 'true_false' | 'matching' | 'sequencing';
-    question: string;
-    options?: string[]; // MC, MR, TF
-    correct_answer?: string; // MC, TF
-    correct_answers?: string[]; // MR
-    items?: string[]; // Sequencing
-    correct_order?: string[]; // Sequencing
-    pairs?: { left: string; right: string }[]; // Matching
-    explanation: string;
-    points: number;
-}
-
-interface Site {
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    badge: string;
-    posX: number;
-    posY: number;
-    color: string;
-    pathColor?: string;
-    quiz_data?: QuizQuestion[];
-}
+import ImmersiveArena, { Site, QuizQuestion } from './ImmersiveArena';
+import { ICON_MAP, renderLucideIcon } from '@/utils/iconMapping';
 
 interface SiteEditorModalProps {
     site: Site;
@@ -114,7 +89,7 @@ export default function SiteEditorModal({ site, onSave, onCancel }: SiteEditorMo
                 <div className="h-20 bg-slate-800/50 border-b border-white/5 flex items-center justify-between px-8 shrink-0">
                     <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${editedSite.color} flex items-center justify-center text-xl`}>
-                            {editedSite.icon}
+                            {renderLucideIcon(editedSite.icon, "w-6 h-6 text-white")}
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-white">Edit Site: {editedSite.name}</h2>
@@ -159,13 +134,36 @@ export default function SiteEditorModal({ site, onSave, onCancel }: SiteEditorMo
                                     className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none"
                                 />
                             </div>
-                            <div className="space-y-4">
-                                <label className="block text-xs font-bold text-slate-500 uppercase">Icon (Emoji)</label>
-                                <input
-                                    value={editedSite.icon}
-                                    onChange={e => setEditedSite({ ...editedSite, icon: e.target.value })}
-                                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none"
-                                />
+                            <div className="col-span-2 space-y-4">
+                                <label className="block text-xs font-bold text-slate-500 uppercase">Select Site Icon</label>
+                                <div className="grid grid-cols-6 sm:grid-cols-8 gap-3 p-4 bg-slate-950 rounded-2xl border border-white/5">
+                                    {Object.keys(ICON_MAP).map((iconKey) => {
+                                        const isSelected = editedSite.icon === iconKey;
+                                        return (
+                                            <button
+                                                key={iconKey}
+                                                type="button"
+                                                onClick={() => setEditedSite({ ...editedSite, icon: iconKey })}
+                                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all border-2
+                                                    ${isSelected
+                                                        ? 'bg-purple-600 border-white shadow-lg shadow-purple-500/20'
+                                                        : 'bg-slate-900 border-white/5 hover:border-white/20 text-slate-400'}`}
+                                                title={iconKey}
+                                            >
+                                                {renderLucideIcon(iconKey, "w-6 h-6")}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase">Custom Icon / Emoji Fallback</label>
+                                    <input
+                                        value={typeof editedSite.icon === 'string' && !ICON_MAP[editedSite.icon] ? editedSite.icon : ''}
+                                        onChange={e => setEditedSite({ ...editedSite, icon: e.target.value })}
+                                        placeholder="Or type an Emoji here..."
+                                        className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none"
+                                    />
+                                </div>
                             </div>
                             <div className="col-span-2 space-y-4">
                                 <label className="block text-xs font-bold text-slate-500 uppercase">Description</label>

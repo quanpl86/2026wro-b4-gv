@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, X, Play } from 'lucide-react';
 import AIAvatar from './AIAvatar';
 import { useRobotEmotion } from '@/stores/useRobotEmotion';
 import { MascotVideoEmotion } from './VideoMascot';
@@ -154,9 +155,10 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart }: He
                         <p className="text-xl text-amber-800 mb-12 max-w-md">{page.text}</p>
                         <button
                             onClick={onQuizStart}
-                            className="px-12 py-6 bg-amber-900 text-amber-50 text-xl font-bold uppercase tracking-widest rounded-full shadow-2xl hover:scale-110 hover:bg-amber-800 transition-all border-4 border-amber-50 outline outline-4 outline-amber-900/20"
+                            className="px-12 py-6 bg-amber-900 text-amber-50 text-xl font-bold uppercase tracking-widest rounded-full shadow-2xl hover:scale-110 hover:bg-amber-800 transition-all border-4 border-amber-50 outline outline-4 outline-amber-900/20 flex items-center gap-3"
                         >
-                            Start Quiz 🎯
+                            <Play className="w-6 h-6 fill-amber-50" />
+                            Start Quiz
                         </button>
                     </div>
                 );
@@ -166,22 +168,28 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart }: He
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
-            {/* BOOK CONTAINER */}
-            <div className="relative w-[1000px] h-[650px] perspective-2000">
-                {/* BACK BUTTON */}
-                <button onClick={onClose} className="absolute -top-12 right-0 text-white/50 hover:text-white uppercase font-bold tracking-widest text-xs flex items-center gap-2">
-                    <span>Close Book</span> ✕
+        <div className="w-full h-full flex items-center justify-center bg-slate-950 p-0 overflow-hidden relative">
+            {/* AMBIENT BACKGROUND LAYER */}
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-950/20 via-slate-950 to-slate-950 pointer-events-none" />
+
+            {/* IMMERSIVE SPACE CONTAINER - Lifted slightly to avoid Mascot overlap */}
+            <div className="relative w-full h-full flex items-center justify-center perspective-3000 pb-32">
+                {/* CLOSE BUTTON - Now more prominent in full screen */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-8 right-8 text-white/40 hover:text-white uppercase font-black tracking-[0.3em] text-[10px] flex items-center gap-3 transition-all z-[150] bg-white/5 px-6 py-3 rounded-full border border-white/10 hover:bg-white/10"
+                >
+                    <span>Exit Space</span> <X className="w-4 h-4" />
                 </button>
 
                 <motion.div
-                    initial={{ rotateY: 90, opacity: 0 }}
-                    animate={{ rotateY: 0, opacity: 1 }}
-                    transition={{ duration: 0.8, type: "spring" }}
-                    className="w-full h-full relative preserve-3d shadow-2xl rounded-tr-3xl rounded-br-3xl bg-amber-900"
+                    initial={{ scale: 0.8, opacity: 0, rotateX: 10 }}
+                    animate={{ scale: 1, opacity: 1, rotateX: 0 }}
+                    transition={{ duration: 1.2, type: "spring", bounce: 0.3 }}
+                    className="w-[1200px] h-[750px] max-w-[95vw] max-h-[85vh] relative preserve-3d shadow-[0_50px_100px_rgba(0,0,0,0.8)] rounded-tr-[40px] rounded-br-[40px] bg-amber-900 ring-1 ring-white/10"
                 >
                     {/* BINDING */}
-                    <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-amber-950 to-amber-800 rounded-l-md z-20 shadow-2xl" />
+                    <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-800 rounded-l-md z-20 shadow-2xl border-r border-amber-950/30" />
 
                     {/* PAGES */}
                     <AnimatePresence mode='wait'>
@@ -206,17 +214,17 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart }: He
                     {currentPage > 0 && (
                         <button
                             onClick={prevPage}
-                            className="absolute -left-20 top-1/2 -translate-y-1/2 w-16 h-16 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all active:scale-95"
+                            className="absolute -left-24 top-1/2 -translate-y-1/2 w-20 h-20 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all active:scale-95 border border-white/5 group"
                         >
-                            ←
+                            <ChevronLeft className="w-10 h-10 group-hover:-translate-x-1 transition-transform" />
                         </button>
                     )}
                     {currentPage < pages.length - 1 && (
                         <button
                             onClick={nextPage}
-                            className="absolute -right-20 top-1/2 -translate-y-1/2 w-16 h-16 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all active:scale-95"
+                            className="absolute -right-24 top-1/2 -translate-y-1/2 w-20 h-20 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all active:scale-95 border border-white/5 group"
                         >
-                            →
+                            <ChevronRight className="w-10 h-10 group-hover:translate-x-1 transition-transform" />
                         </button>
                     )}
                 </motion.div>
@@ -224,23 +232,21 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart }: He
 
             {/* FLOATING MASCOT IN CORNER */}
             <motion.div
-                initial={{ opacity: 0, scale: 0.5, x: 50, y: 50 }}
-                animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-                className="fixed bottom-8 right-8 z-[120] pointer-events-none"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="fixed bottom-12 right-12 z-[120] pointer-events-none"
             >
                 <div className="relative group pointer-events-auto">
-                    {/* Glass Backdrop for Mascot */}
-                    <div className="absolute inset-[-20px] bg-slate-900/40 backdrop-blur-xl rounded-full border border-white/10 shadow-2xl scale-75 lg:scale-100" />
+                    <div className="absolute inset-[-20px] bg-slate-900/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-3xl" />
 
                     <AIAvatar
                         emotion={currentEmotion as MascotVideoEmotion}
                         isTalking={currentEmotion === 'talking'}
-                        size={140}
+                        size={160}
                     />
 
-                    {/* Status badge */}
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 px-3 py-1 rounded-full text-[8px] font-black text-white uppercase tracking-tighter shadow-lg border border-white/20">
-                        AI Guide
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-1.5 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-xl border border-white/20 whitespace-nowrap">
+                        Heritage Guide
                     </div>
                 </div>
             </motion.div>

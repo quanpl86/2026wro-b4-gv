@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
+import { Trophy } from 'lucide-react';
 
 interface SessionScore {
     id: string;
@@ -22,7 +23,7 @@ export default function ScoreLeaderboard() {
                 .from('game_sessions')
                 .select('id, player_name, total_score, start_time')
                 .order('total_score', { ascending: false })
-                .limit(5);
+                .limit(10);
 
             if (data) setRankings(data);
             setLoading(false);
@@ -44,9 +45,9 @@ export default function ScoreLeaderboard() {
     return (
         <div className="bg-slate-900/50 rounded-2xl p-4 border border-white/5">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
-                <span>🏆</span> Session Leaderboard
+                <Trophy className="w-3.5 h-3.5 text-yellow-500" /> Session Leaderboard
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
                 {rankings.map((rank, index) => (
                     <motion.div
                         key={rank.id}
@@ -57,8 +58,8 @@ export default function ScoreLeaderboard() {
                     >
                         <div className="flex items-center gap-3">
                             <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold ${index === 0 ? 'bg-yellow-500 text-black shadow-[0_0_10px_rgba(234,179,8,0.5)]' :
-                                    index === 1 ? 'bg-slate-400 text-black' :
-                                        index === 2 ? 'bg-orange-700 text-white' : 'bg-slate-800 text-slate-400'
+                                index === 1 ? 'bg-slate-400 text-black' :
+                                    index === 2 ? 'bg-orange-700 text-white' : 'bg-slate-800 text-slate-400'
                                 }`}>
                                 {index + 1}
                             </div>

@@ -19,14 +19,15 @@
 - **Lighting:** ESP32 for ambient RGB effects via MQTT.
 
 ## 📈 4. Trạng thái Triển khai (Live Status)
-- **Phase 1 (Foundation):** Đã hoàn thành (Cấu trúc monorepo, 9 Agent Personas).
-- **Phase 2 (Connectivity):** Đã hoàn thành (Kết nối Supabase, GitHub Sync).
-- **Phase 3 (Intelligence):** Đã hoàn thành (Điều hướng cơ bản, Motor Tune).
-- **Phase 4 (QR Vision):** Đã hoàn thành (Migrated ArUco -> QR engine, jsQR integration).
-- **Phase 5 (The Storyteller):** Đã hoàn thành (Judge Portal, Live Map tracking, Mini-games, Digital Badges).
-- **Phase 6 (Immersive Upgrade):** Đã hoàn thành (Gemini AI Smart Guide, Visual CMS, Advanced Quiz Builder, Adaptive Map Editor, Cloud Storage Integration).
-- **Phase 7 (Social & Orchestration):** Đã hoàn thành (MQTT Many-to-Many, Trạng thái Trạm real-time, Telemetry Resilience & Idle AI).
-- **Phase 8 (Finalization):** Đang lập kế hoạch (Hub Migration, Leaderboards, Optimization).
+- [x] **Phase 1 (Foundation):** Đã hoàn thành (Cấu trúc monorepo, 9 Agent Personas).
+- [x] **Phase 2 (Connectivity):** Đã hoàn thành (Kết nối Supabase, GitHub Sync).
+- [x] **Phase 3 (Intelligence):** Đã hoàn thành (Điều hướng cơ bản, Motor Tune).
+- [x] **Phase 4 (QR Vision):** Đã hoàn thành (Migrated ArUco -> QR engine, jsQR integration).
+- [x] **Phase 5 (The Storyteller):** Đã hoàn thành (Judge Portal, Live Map tracking, Mini-games, Digital Badges).
+- [x] **Phase 6 (Immersive Upgrade):** Đã hoàn thành (Gemini AI Smart Guide, Visual CMS, Advanced Quiz Builder, Adaptive Map Editor, Cloud Storage Integration).
+- [x] **Phase 7 (Social & Orchestration):** Đã hoàn thành (MQTT Many-to-Many, Trạng thái Trạm real-time, Telemetry Resilience & Idle AI).
+- [x] **Phase 8 (Finalization):** Đã hoàn thành (Leaderboards, AI Optimization, Video Compression).
+- [x] **Phase 9 (XR & Immersive):** Đang thực hiện (Spatial UI, Precision Map Editor, Pro Voice Control).
 
 ---
 
@@ -54,9 +55,15 @@
 - [x] **Living Robot Face (Emotion Engine v2):** Hệ thống cảm xúc động với các biểu cảm: *Neutral, Happy, Love (pulsing hearts), Sad (teary), Shy (blushing), Celebrate (stars), Thinking (scanning)*.
 - [x] **Zero-Latency TTS-to-Face Sync:** Cầu nối WebSocket đồng bộ hóa cử động miệng và cảm xúc theo thời gian thực với độ trễ < 50ms.
 - [x] **Mobile-First Judge UI:** Giao diện mật khẩu và bản đồ được tối ưu hóa cho điện thoại (Horizontal Layout Navigation).
-- [x] **Adaptive Map Editor:** Công cụ quản trị cho phép kéo thả, căn chỉnh vị trí di sản và robot trực tiếp trên Web.
+- [x] **Adaptive Map Editor PRO:** Công cụ quản trị cho phép kéo thả chính xác (Precision Move Mode), căn chỉnh vị trí di sản và robot trực tiếp trên Web bất kể Zoom/Pan.
 - [x] **Supabase Storage Integration:** Hỗ trợ tải ảnh sa bàn thực tế lên Cloud để làm hình nền bản đồ.
 - [x] **Visual CMS & Advanced Quiz:** Quản lý nội dung di sản và câu hỏi trắc nghiệm trực quan (Matching, Sequencing) với cơ chế tự động lưu.
 - [x] **Phygital Resilience:** Tự động phản ứng với trạng thái Pin yếu (<15%) và Mất kết nối bằng cảm xúc Mascot (Angry/Sleepy).
 - [x] **Idle AI Intelligence:** Mascot tự động thực hiện các hoạt động chớp mắt, nhìn xung quanh khi không có lệnh để tăng độ sống động.
 - [x] **MQTT Last Will Architecture:** Đảm bảo trạng thái Offline được báo cáo chính xác ngay cả khi phần cứng bị sập nguồn đột ngột.
+- [x] **Consolidated AI Voice Control:** Giao diện điều khiển chatbot 3 nút tối giản với Menu cấu hình âm thanh, ngôn ngữ và chế độ phản hồi (Speech/Text) chuyên nghiệp.
+- [x] **Score Leaderboard System:** Bảng xếp hạng Top 10 tích hợp real-time ngay trên Dashboard giám khảo.
+- [x] **Resizable Immersive Sidebar:** Thanh điều khiển và Mascot có khả năng thay đổi kích thước linh hoạt, tối ưu không gian hiển thị trên mọi thiết bị.
+- [ ] **Spatial 3D Arena:** Nâng cấp bản đồ di sản sang góc nhìn 3D có chiều sâu.
+- [ ] **Gemini Multimodal Vision:** AI có khả năng nhìn và mô tả vạn vật qua camera điện thoại.
+- [ ] **Digital Passport & Stamps:** Hệ thống con dấu di sản kỹ thuật số để tăng tính trò chơi hóa.

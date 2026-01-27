@@ -74,11 +74,25 @@ Dự án được xây dựng trên mô hình Monorepo chia làm 3 mảng chính
 - [x] **Idle Behaviors:** Robot tự động chớp mắt/nhìn quanh khi không có lệnh (Micro-animations).
 - [x] **Node Hardening:** Triển khai MQTT Last Will & Testament cho toàn bộ hệ thống phần cứng.
 
-### Phase 8: Triển khai & Hoàn thiện (The Grand Finale) [PLANNED]
-- [ ] **Hub Migration:** Chuyển AI Brain Hub từ Laptop sang Raspberry Pi (Docker/Systemd).
-- [ ] **Leaderboards:** Xây dựng Bảng xếp hạng điểm số real-time tích hợp Supabase.
-- [ ] **Optimization:** Tối ưu hóa độ trễ (Latency) và nén tài nguyên video/audio.
+### Phase 8: Triển khai & Hoàn thiện (The Grand Finale) [DONE]
+- [x] **Leaderboards:** Xây dựng Bảng xếp hạng điểm số real-time tích hợp Supabase.
+- [x] **Optimization:** Tối ưu hóa độ trễ (Latency) và nén tài nguyên video/audio.
 - [ ] **Final Field Test:** Chạy thử nghiệm toàn bộ kịch bản 4 trạm di sản liên tục.
+
+### Phase 9: The Extended Reality (XR) & Immersive Expansion [IN PROGRESS]
+- [x] **Phase 9.1: Spatial UI & 3D Arena**
+    - [x] Implement Precision Map Interaction (Zoom, Pan, Move Mode).
+    - [x] Refactor VoiceAssistant UI (Consolidated Settings Popover).
+    - [x] Implement Dynamic Sidebar Resize & AI Scaling.
+    - [ ] Refactor `ImmersiveArena` to 3D perspective (CSS 3D/Three.js).
+- [ ] **Phase 9.2: Gemini Multimodal Vision (The AI Eye)**
+    - [ ] Implement Frame-to-AI pipeline (Smartphone Cam -> AI Brain).
+    - [ ] Add Scene Description capabilities to Gemini System Prompt.
+    - [ ] Emotional Voice Synthesis tuning.
+- [ ] **Phase 9.3: Heritage Gamification (The Digital Passport)**
+    - [ ] Create `DigitalPassport` component with 3D Stamp animations.
+    - [ ] Implement Heritage Token reward system.
+    - [ ] Add "AR Heritage Portal" (Overlaid 3D visuals on live camera feed).
 
 ---
 

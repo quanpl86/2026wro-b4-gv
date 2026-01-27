@@ -2,6 +2,7 @@
 
 import { motion, Reorder } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
+import { Check, X, CheckCircle2, XCircle, GripVertical } from 'lucide-react';
 import HeritageBadge, { BadgeTier } from './HeritageBadge';
 import AIAvatar from './AIAvatar';
 import { useRobotEmotion } from '@/stores/useRobotEmotion';
@@ -79,7 +80,7 @@ function MultipleResponse({ data, onAnswer }: { data: QuizQuestion, onAnswer: (i
                         >
                             <span className="text-lg font-medium">{opt}</span>
                             <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${isSelected ? 'bg-blue-500 border-transparent' : 'border-white/30'}`}>
-                                {isSelected && '✓'}
+                                {isSelected && <Check className="w-4 h-4 text-white" />}
                             </div>
                         </button>
                     )
@@ -102,16 +103,16 @@ function TrueFalse({ data, onAnswer }: { data: QuizQuestion, onAnswer: (isCorrec
         <div className="grid grid-cols-2 gap-8 h-64">
             <button
                 onClick={() => onAnswer(data.correct_answer === 'Đúng')}
-                className="bg-emerald-500/20 border-2 border-emerald-500/50 rounded-3xl flex flex-col items-center justify-center gap-4 hover:bg-emerald-500/30 transition-all"
+                className="bg-emerald-500/20 border-2 border-emerald-500/50 rounded-3xl flex flex-col items-center justify-center gap-4 hover:bg-emerald-500/30 transition-all group"
             >
-                <div className="text-6xl">✅</div>
+                <CheckCircle2 className="w-16 h-16 text-emerald-500 group-hover:scale-110 transition-transform" />
                 <div className="text-3xl font-black uppercase text-emerald-400">ĐÚNG</div>
             </button>
             <button
                 onClick={() => onAnswer(data.correct_answer === 'Sai')}
-                className="bg-rose-500/20 border-2 border-rose-500/50 rounded-3xl flex flex-col items-center justify-center gap-4 hover:bg-rose-500/30 transition-all"
+                className="bg-rose-500/20 border-2 border-rose-500/50 rounded-3xl flex flex-col items-center justify-center gap-4 hover:bg-rose-500/30 transition-all group"
             >
-                <div className="text-6xl">❌</div>
+                <XCircle className="w-16 h-16 text-rose-500 group-hover:scale-110 transition-transform" />
                 <div className="text-3xl font-black uppercase text-rose-400">SAI</div>
             </button>
         </div>
@@ -141,7 +142,7 @@ function Sequencing({ data, onAnswer }: { data: QuizQuestion, onAnswer: (isCorre
                 {items.map((item) => (
                     <Reorder.Item key={item} value={item}>
                         <div className="p-4 bg-slate-800 rounded-xl border border-white/10 flex items-center gap-4 cursor-grab active:cursor-grabbing shadow-lg">
-                            <span className="text-2xl opacity-50">☰</span>
+                            <GripVertical className="w-5 h-5 text-slate-500" />
                             <span className="text-lg font-bold">{item}</span>
                         </div>
                     </Reorder.Item>
@@ -411,12 +412,16 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4">
+        <div className="w-full h-full flex items-center justify-center bg-slate-950 p-0 overflow-hidden relative pb-32">
+            {/* AMBIENT ATMOSPHERE */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_70%)] from-purple-900/20 to-transparent pointer-events-none" />
+
             <motion.div
                 key={phase}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-4xl bg-slate-900 border border-white/10 rounded-[40px] overflow-hidden shadow-2xl flex flex-col"
+                initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+                className="w-full h-full max-w-6xl max-h-[90vh] bg-slate-900/80 backdrop-blur-3xl border border-white/10 rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] flex flex-col relative"
             >
                 {/* REWARD PHASE */}
                 {phase === 'reward' ? (
@@ -514,25 +519,23 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                 )}
             </motion.div>
 
-            {/* FLOATING MASCOT IN CORNER */}
+            {/* IMMERSIVE MASCOT IN CORNER */}
             <motion.div
-                initial={{ opacity: 0, scale: 0.5, x: 50, y: 50 }}
-                animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-                className="fixed bottom-8 right-8 z-[220] pointer-events-none"
+                initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="fixed bottom-12 right-12 z-[220] pointer-events-none"
             >
                 <div className="relative group pointer-events-auto">
-                    {/* Glass Backdrop for Mascot */}
-                    <div className="absolute inset-[-20px] bg-slate-900/40 backdrop-blur-xl rounded-full border border-white/10 shadow-2xl scale-75 lg:scale-100" />
+                    <div className="absolute inset-[-20px] bg-slate-900/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-3xl" />
 
                     <AIAvatar
                         emotion={currentEmotion as MascotVideoEmotion}
                         isTalking={currentEmotion === 'talking'}
-                        size={140} // Slightly smaller for quiz to not overlap too much
+                        size={180}
                     />
 
-                    {/* Status badge */}
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 px-3 py-1 rounded-full text-[8px] font-black text-white uppercase tracking-tighter shadow-lg border border-white/20">
-                        AI Proctor
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-1.5 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-xl border border-white/20 whitespace-nowrap">
+                        Quiz Master
                     </div>
                 </div>
             </motion.div>

@@ -1,12 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { CheckCircle, MapPin, Circle } from 'lucide-react';
+import { renderLucideIcon } from '@/utils/iconMapping';
 
 interface Step {
     id: string;
     label: string;
     status: 'pending' | 'current' | 'completed';
-    icon?: string;
+    icon?: string | React.ReactNode;
 }
 
 interface VerticalMissionTimelineProps {
@@ -15,14 +17,10 @@ interface VerticalMissionTimelineProps {
 
 export default function VerticalMissionTimeline({ steps }: VerticalMissionTimelineProps) {
     return (
-        <div className="h-full flex flex-col p-6 bg-slate-900/40 backdrop-blur-xl border-r border-white/5 relative overflow-y-auto custom-scrollbar">
-            <h3 className="text-xs font-black uppercase text-slate-500 tracking-[0.2em] mb-8 shrink-0">
-                Mission Progress
-            </h3>
-
-            <div className="relative flex-1">
+        <div className="h-full flex flex-col items-center py-8 bg-slate-900/40 backdrop-blur-xl border-r border-white/5 relative overflow-y-auto custom-scrollbar w-full">
+            <div className="relative flex-1 flex flex-col items-center">
                 {/* Vertical Line Connector */}
-                <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-slate-800 rounded-full" />
+                <div className="absolute left-1/2 -translate-x-1/2 top-4 bottom-4 w-0.5 bg-slate-800 rounded-full" />
 
                 {/* Active Progress Line Overlay */}
                 <motion.div
@@ -30,10 +28,10 @@ export default function VerticalMissionTimeline({ steps }: VerticalMissionTimeli
                     animate={{
                         height: `${Math.max(0, (steps.filter(s => s.status === 'completed').length / (steps.length - 1)) * 100)}%`
                     }}
-                    className="absolute left-6 top-8 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-orange-500 rounded-full z-0 origin-top"
+                    className="absolute left-1/2 -translate-x-1/2 top-4 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-orange-500 rounded-full z-0 origin-top"
                 />
 
-                <div className="space-y-12 relative z-10">
+                <div className="space-y-16 relative z-10">
                     {steps.map((step, idx) => {
                         const isCompleted = step.status === 'completed';
                         const isCurrent = step.status === 'current';
@@ -41,50 +39,46 @@ export default function VerticalMissionTimeline({ steps }: VerticalMissionTimeli
                         return (
                             <motion.div
                                 key={step.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="flex items-start gap-6 group"
+                                className="relative flex items-center justify-center"
                             >
                                 {/* Marker Container */}
-                                <div className="relative shrink-0 mt-1">
+                                <div className="relative shrink-0">
                                     <motion.div
                                         animate={{
-                                            scale: isCurrent ? [1, 1.2, 1] : 1,
-                                            boxShadow: isCurrent ? "0 0 20px rgba(168, 85, 247, 0.4)" : "none"
+                                            scale: isCurrent ? [1, 1.1, 1] : 1,
+                                            borderColor: isCurrent ? "#fff" : isCompleted ? "#3b82f6" : "#334155",
+                                            backgroundColor: isCurrent ? "rgb(147, 51, 234)" : isCompleted ? "rgba(59, 130, 246, 0.1)" : "rgb(15, 23, 42)"
                                         }}
                                         transition={{ repeat: isCurrent ? Infinity : 0, duration: 2 }}
                                         className={`w-12 h-12 rounded-2xl border-2 flex items-center justify-center transition-all duration-500 
-                                            ${isCompleted ? 'bg-blue-500/10 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]' :
-                                                isCurrent ? 'bg-purple-600 border-white shadow-lg' :
-                                                    'bg-slate-900 border-slate-700'}`}
+                                            ${isCompleted ? 'shadow-[0_0_15px_rgba(59,130,246,0.2)]' :
+                                                isCurrent ? 'shadow-lg ring-4 ring-purple-500/30' :
+                                                    'ring-1 ring-white/5'}`}
                                     >
-                                        <span className={`text-xl ${isCompleted ? 'opacity-100' : isCurrent ? 'opacity-100' : 'opacity-30'}`}>
-                                            {step.icon || (isCompleted ? '✅' : isCurrent ? '📍' : '⚪')}
+                                        <span className={`${isCompleted ? 'opacity-100' : isCurrent ? 'opacity-100' : 'opacity-30'}`}>
+                                            {renderLucideIcon(step.icon, "w-6 h-6") || (
+                                                isCompleted ? <CheckCircle className="w-6 h-6 text-blue-400" /> :
+                                                    isCurrent ? <MapPin className="w-6 h-6 text-white" /> :
+                                                        <Circle className="w-5 h-5 text-slate-500" />
+                                            )}
                                         </span>
                                     </motion.div>
 
+                                    {/* Tooltip on hover */}
+                                    <div className="absolute left-16 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                        {step.label}
+                                    </div>
+
                                     {isCurrent && (
                                         <motion.div
-                                            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                                            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }}
                                             transition={{ repeat: Infinity, duration: 1.5 }}
                                             className="absolute inset-0 bg-purple-500 rounded-2xl -z-10"
                                         />
                                     )}
-                                </div>
-
-                                {/* Content Card */}
-                                <div className={`flex-1 p-4 rounded-2xl border transition-all duration-300 
-                                    ${isCurrent ? 'bg-white/10 border-white/20 shadow-xl translate-x-1' :
-                                        isCompleted ? 'bg-slate-800/30 border-blue-500/20' :
-                                            'bg-transparent border-transparent opacity-40'}`}>
-                                    <h4 className={`text-sm font-black uppercase tracking-wider 
-                                        ${isCurrent ? 'text-white' : isCompleted ? 'text-blue-400' : 'text-slate-500'}`}>
-                                        {step.label}
-                                    </h4>
-                                    <p className="text-[10px] text-slate-500 mt-1 font-bold">
-                                        {isCompleted ? 'Nhiệm vụ hoàn tất' : isCurrent ? 'Đang thực hiện...' : 'Chờ khám phá'}
-                                    </p>
                                 </div>
                             </motion.div>
                         );
@@ -93,8 +87,10 @@ export default function VerticalMissionTimeline({ steps }: VerticalMissionTimeli
             </div>
 
             {/* Tactile Decor */}
-            <div className="mt-8 pt-6 border-t border-white/5 opacity-20 text-[10px] font-mono tracking-tighter">
-                MISSION_SYNC_v2.1 // ACTIVE
+            <div className="h-10 flex items-center justify-center opacity-10">
+                <div className="w-1 h-1 bg-white rounded-full mx-1" />
+                <div className="w-1 h-1 bg-white rounded-full mx-1" />
+                <div className="w-1 h-1 bg-white rounded-full mx-1" />
             </div>
         </div>
     );

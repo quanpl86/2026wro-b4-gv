@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Shield } from 'lucide-react';
 
 interface JudgePinModalProps {
     onSuccess: (role: 'admin' | 'judge') => void;
@@ -42,7 +43,7 @@ export default function JudgePinModal({ onSuccess }: JudgePinModalProps) {
                 <div className="flex flex-col items-center sm:items-start gap-4 sm:gap-6">
                     <div className="flex flex-col items-center sm:items-start gap-1 sm:gap-2">
                         <div className="w-10 h-10 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-3xl shadow-lg ring-4 ring-white/5">
-                            🛡️
+                            <Shield className="w-6 h-6 sm:w-10 sm:h-10 text-white" />
                         </div>
                         <h2 className="text-sm sm:text-2xl font-black italic tracking-tighter uppercase mt-1 sm:mt-4 text-center sm:text-left">Judge Entry</h2>
                         <p className="hidden sm:block text-slate-400 text-[10px] sm:text-xs font-bold tracking-widest uppercase opacity-60">Authorization Required</p>

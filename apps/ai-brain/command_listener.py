@@ -19,6 +19,7 @@ MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
 MQTT_TOPIC_TELEMETRY = "robot/+/telemetry"
 MQTT_TOPIC_STATUS = "robot/+/status"
+MQTT_TOPIC_CFG = "robot/config"
 WS_PORT = 8765
 DEFAULT_MOBILE_ROBOT = "mobile_guide"
 

@@ -3,7 +3,7 @@
 interface JudgeStatsCardProps {
     title: string;
     value: string | number;
-    icon: string;
+    icon: React.ReactNode;
     status?: 'normal' | 'warning' | 'critical' | 'success';
     subtext?: string;
 }

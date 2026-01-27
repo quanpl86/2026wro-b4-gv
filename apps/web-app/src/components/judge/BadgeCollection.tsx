@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { ShoppingBag, X } from 'lucide-react';
 import HeritageBadge, { BadgeTier } from '../interactive/HeritageBadge';
 import config from '@/data/config.json';
 
@@ -37,15 +38,15 @@ export default function BadgeCollection({ scores, onClose }: BadgeCollectionProp
                 <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-center bg-slate-800/50">
                     <div>
                         <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-widest flex items-center gap-3">
-                            <span className="text-3xl md:text-4xl">🎒</span> Explorer's Collection
+                            <ShoppingBag className="w-8 h-8 md:w-10 md:h-10 text-purple-400" /> Explorer's Collection
                         </h2>
                         <p className="text-slate-400 mt-1 md:mt-2 text-sm md:text-base">Thu thập Huy hiệu từ các Di sản Thế giới</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"
+                        className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all group"
                     >
-                        ✕
+                        <X className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-90 transition-transform" />
                     </button>
                 </div>
 
