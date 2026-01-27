@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 import VoiceAssistant from '@/components/interactive/VoiceAssistant';
 import QuizOverlay from '@/components/interactive/QuizOverlay';
 import ImmersiveArena from '@/components/judge/ImmersiveArena';
-import AIAvatar, { MascotEmotion } from '@/components/interactive/AIAvatar';
+import AIAvatar from '@/components/interactive/AIAvatar';
+import { MascotVideoEmotion } from '@/components/interactive/VideoMascot';
 import config from '@/data/config.json';
 
 const DEFAULT_HUB_IP = 'localhost';
@@ -23,7 +24,7 @@ export default function SimulatorPage() {
     const [logs, setLogs] = useState<any[]>([]);
     const [robotPos, setRobotPos] = useState({ x: 100, y: 100 });
     const [path, setPath] = useState<{ x: number, y: number }[]>([]);
-    const [mascotEmotion, setMascotEmotion] = useState<MascotEmotion>('neutral');
+    const [mascotEmotion, setMascotEmotion] = useState<MascotVideoEmotion>('neutral');
     const [isAITalking, setIsAITalking] = useState(false);
 
     // Fetch Hub IP

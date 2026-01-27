@@ -94,7 +94,7 @@ export default function JudgePage() {
     const [path, setPath] = useState<{ x: number, y: number }[]>([]);
 
     // AI State
-    const [mascotEmotion, setMascotEmotion] = useState<MascotEmotion>('neutral');
+    const [mascotEmotion, setMascotEmotion] = useState<MascotVideoEmotion>('neutral');
     const [isAITalking, setIsAITalking] = useState(false);
 
     // --- EFFECTS & LOGIC ---
@@ -227,7 +227,7 @@ export default function JudgePage() {
 
         setSessionScores(prev => ({ ...prev, [stationId]: (prev[stationId] || 0) + points }));
 
-        setMascotEmotion('excited');
+        setMascotEmotion('celebrate');
         setTimeout(() => setMascotEmotion('neutral'), 3000);
 
         if (sessionId && supabase) {
@@ -250,7 +250,7 @@ export default function JudgePage() {
             command: 'voice_command',
             params: { text, lang }
         }));
-        setMascotEmotion('thinking');
+        setMascotEmotion('think');
         setCurrentSubtitle(`Đang xử lý: "${text}"...`);
     };
 
