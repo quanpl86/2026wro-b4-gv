@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import VerticalMissionTimeline from '@/components/judge/VerticalMissionTimeline';
 import JudgePinModal from '@/components/judge/JudgePinModal';
 import SiteEditorModal from '@/components/judge/SiteEditorModal';
@@ -60,6 +60,12 @@ export default function JudgePage() {
     const [currentSubtitle, setCurrentSubtitle] = useState<string>("Hệ thống đang chờ lệnh...");
     const [isEditorMode, setIsEditorMode] = useState(false);
     const [editingSite, setEditingSite] = useState<Site | null>(null);
+
+    // Memoize sorted sites to prevent unnecessary re-renders in ImmersiveArena
+    const sortedSites = useMemo(() => {
+        const order = ['pho_co_hoi_an', 'trang_an', 'vinh_ha_long', 'cot_co'];
+        return [...mapSites].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+    }, [mapSites]);
 
     // Memoize sorted sites to prevent unnecessary re-renders in ImmersiveArena
     const sortedSites = useMemo(() => {
