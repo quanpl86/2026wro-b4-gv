@@ -87,14 +87,13 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
     }, [activeLanguage]);
 
     const speakResponse = useCallback((text: string) => {
-        if (!window.speechSynthesis || responseMode === 'text') {
-            console.log("🤐 Response Mode: Text Only");
-            return;
-        }
+        if (!window.speechSynthesis || responseMode === 'text') return;
 
+        // Force stop previous to avoid overlapping
         window.speechSynthesis.cancel();
-        window.speechSynthesis.resume();
+        setEmotion('neutral');
 
+        // Small timeout to let cancel finish and NOT trigger event handlers for new one early
         setTimeout(() => {
             const utterance = new SpeechSynthesisUtterance(text);
             utteranceRef.current = utterance;
@@ -109,30 +108,34 @@ export default function VoiceAssistant({ onCommand, lang: activeLanguage, onLang
 
             utterance.onstart = () => {
                 setEmotion('talking');
-                const checkInterval = setInterval(() => {
-                    if (!window.speechSynthesis.speaking) {
-                        setEmotion('neutral');
-                        utteranceRef.current = null;
-                        clearInterval(checkInterval);
-                    }
-                }, 100);
+            };
 
-                utterance.onend = () => {
+            utterance.onend = (e) => {
+                // IMPORTANT: Only dispatch 'ai-speak-end' if the speech was NOT interrupted or canceled.
+                // In most browsers, an interrupted speak will either NOT fire onend or fire it with 0 duration/charIndex.
+                // However, the most reliable way is to check if this utterance is still the current one.
+                if (utteranceRef.current === utterance) {
                     setEmotion('neutral');
                     utteranceRef.current = null;
-                    clearInterval(checkInterval);
+                    console.log("✅ Speech finished naturally:", text);
                     window.dispatchEvent(new CustomEvent('ai-speak-end', { detail: { text } }));
-                };
+                }
             };
 
             utterance.onerror = (e) => {
-                if (e.error === 'interrupted' || e.error === 'canceled') return;
-                setEmotion('neutral');
-                utteranceRef.current = null;
+                if (e.error === 'interrupted' || e.error === 'canceled') {
+                    console.log("🛑 Speech interrupted/canceled:", text);
+                } else {
+                    console.error("Speech Error:", e.error);
+                }
+                if (utteranceRef.current === utterance) {
+                    setEmotion('neutral');
+                    utteranceRef.current = null;
+                }
             };
 
             window.speechSynthesis.speak(utterance);
-        }, 50);
+        }, 100);
     }, [availableVoices, selectedVoiceName, activeLanguage, responseMode, setEmotion]);
 
     const toggleListening = () => {
