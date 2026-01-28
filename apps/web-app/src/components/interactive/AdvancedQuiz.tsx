@@ -2,7 +2,7 @@
 
 import { motion, Reorder } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
-import { Check, X, CheckCircle2, XCircle, GripVertical, Trophy } from 'lucide-react';
+import { Check, CheckCircle2, XCircle, GripVertical, Trophy } from 'lucide-react';
 import HeritageBadge, { BadgeTier } from './HeritageBadge';
 import AIAvatar from './AIAvatar';
 import { useRobotEmotion } from '@/stores/useRobotEmotion';
@@ -467,7 +467,7 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
     };
 
     return (
-        <div className="w-full h-full flex items-center justify-center bg-slate-950 p-0 overflow-hidden relative pb-32">
+        <div className="w-full h-full flex items-center justify-center bg-slate-950 p-6 overflow-hidden relative">
             {/* AMBIENT ATMOSPHERE */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_70%)] from-purple-900/20 to-transparent pointer-events-none" />
 
@@ -476,7 +476,7 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                 initial={{ opacity: 0, scale: 0.9, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-                className="w-full h-full max-w-6xl max-h-[90vh] bg-slate-900/80 backdrop-blur-3xl border border-white/10 rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] flex flex-col relative"
+                className="w-full max-w-4xl bg-slate-900/80 backdrop-blur-3xl border border-white/10 rounded-[40px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] flex flex-col relative z-10"
             >
                 {/* WELCOME PHASE */}
                 {phase === 'welcome' ? (
@@ -533,8 +533,7 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                         </div>
                     </div>
                 ) : (
-                    // QUIZ PHASES (Existing Render Logic)
-                    <div className="flex-1 flex flex-col h-full">
+                    <div className="flex flex-col">
                         {/* HEADER */}
                         <div className="h-2 bg-slate-800 w-full relative">
                             <motion.div
@@ -544,7 +543,7 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                             />
                         </div>
 
-                        <div className="p-10 flex-col flex h-full">
+                        <div className="p-10 flex flex-col">
                             <div className="flex justify-between items-center mb-8">
                                 <span className="text-purple-400 font-black uppercase tracking-[0.2em] text-sm">
                                     Question {currentIdx + 1} / {questions.length}
@@ -556,12 +555,12 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                                 )}
                             </div>
 
-                            <h2 className="text-3xl font-bold text-white mb-12 leading-relaxed">
+                            <h2 className="text-3xl font-bold text-white mb-10 leading-relaxed">
                                 {currentQ.question}
                             </h2>
 
                             {/* DYNAMIC QUESTION TYPE */}
-                            <div className="flex-1">
+                            <div className="mb-4">
                                 {phase === 'question' ? (
                                     <>
                                         {currentQ.type === 'multiple_choice' && <MultipleChoice data={currentQ} onAnswer={handleAnswer} />}
@@ -602,15 +601,18 @@ export default function AdvancedQuiz({ stationId, questions, onClose, onScoreUpd
                 className="fixed bottom-12 right-12 z-[220] pointer-events-none"
             >
                 <div className="relative group pointer-events-auto">
-                    <div className="absolute inset-[-20px] bg-slate-900/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-3xl" />
+                    {/* Refined Container: Fits 9:16, Neon Cyan Border, Minimal Padding */}
+                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-2xl rounded-2xl border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.2)]" />
 
-                    <AIAvatar
-                        emotion={currentEmotion as MascotVideoEmotion}
-                        isTalking={currentEmotion === 'talking'}
-                        size={180}
-                    />
+                    <div className="relative p-0.5">
+                        <AIAvatar
+                            emotion={currentEmotion as MascotVideoEmotion}
+                            isTalking={currentEmotion === 'talking'}
+                            size={140}
+                        />
+                    </div>
 
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-1.5 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-xl border border-white/20 whitespace-nowrap">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-600 to-blue-600 px-4 py-1.5 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-xl border border-white/20 whitespace-nowrap z-20">
                         Quiz Master
                     </div>
                 </div>

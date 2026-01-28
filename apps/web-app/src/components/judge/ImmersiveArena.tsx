@@ -147,6 +147,18 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
     const getRawX = (pctX: number) => ((pctX - 45) / 20) * 640;
     const getRawY = (pctY: number) => ((82 - pctY) / 70) * 480;
 
+
+    const getSiteColor = (site: Site) => {
+        // Robust Fallback Map for Neon Colors
+        const colorMap: Record<string, string> = {
+            'pho_co_hoi_an': '#fb923c', // Orange
+            'trang_an': '#22c55e',      // Green
+            'vinh_ha_long': '#3b82f6',  // Blue
+            'cot_co': '#f43f5e'         // Red
+        };
+        return site.pathColor || colorMap[site.id] || '#ffffff';
+    };
+
     return (
         <div ref={containerRef} className="relative w-full h-full bg-slate-950/20 rounded-[40px] overflow-hidden group border border-white/5 perspective-[2000px]">
             <motion.div
@@ -242,6 +254,8 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
                             const isFocus = focusedSiteId === site.id;
                             const isHovered = hoveredSite === site.id || isFocus;
                             const isDiscovering = stationStatuses[site.id]?.status === 'busy';
+                            const neonColor = getSiteColor(site);
+
                             return (
                                 <motion.div
                                     key={site.id}
@@ -284,14 +298,28 @@ export default function ImmersiveArena({ robotPos, robotHome, path, onSiteDiscov
                                             <AnimatePresence>
                                                 {(isHovered || isFocus) && !isEditorMode && (
                                                     <motion.div
-                                                        initial={{ opacity: 0, y: 15, scale: 0.8 }}
-                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                        exit={{ opacity: 0, y: 15, scale: 0.8 }}
-                                                        className="absolute bottom-full mb-6 w-36 h-36 bg-slate-900/95 backdrop-blur-2xl rounded-[32px] border-2 border-white/20 p-2 shadow-2xl flex items-center justify-center group/card cursor-pointer z-50 overflow-visible"
+                                                        initial={{ opacity: 0, scale: 0, y: 20 }}
+                                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                        exit={{ opacity: 0, scale: 0, y: 10 }}
+                                                        transition={{ type: "spring", bounce: 0.5, duration: 0.6 }}
+                                                        className="absolute bottom-full mb-6 w-56 aspect-square backdrop-blur-sm rounded-full flex items-center justify-center group/card cursor-pointer z-50 overflow-visible"
+                                                        style={{
+                                                            border: `3px solid ${neonColor}`,
+                                                            boxShadow: `0 0 20px ${neonColor}, 0 0 40px ${neonColor}`
+                                                        }}
                                                         onClick={() => onSiteClick?.(site)}
                                                     >
-                                                        <img src={site.badge} alt={site.name} className="w-full h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] group-hover/card:scale-110 transition-transform duration-500" />
-                                                        <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 bg-white text-black text-[11px] font-black px-4 py-1.5 rounded-full whitespace-nowrap uppercase tracking-[0.15em] shadow-[0_10px_20px_rgba(255,255,255,0.1)] ring-4 ring-black/10">
+                                                        <div className="w-full h-full rounded-full overflow-hidden relative z-10 bg-slate-900/50">
+                                                            <img
+                                                                src={site.badge}
+                                                                alt={site.name}
+                                                                className="w-full h-full object-cover drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] group-hover/card:scale-110 transition-transform duration-500"
+                                                            />
+                                                        </div>
+                                                        <div
+                                                            className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white text-black text-[12px] font-black px-5 py-1.5 rounded-full whitespace-nowrap uppercase tracking-[0.15em] shadow-[0_10px_20px_rgba(0,0,0,0.3)] ring-4 ring-black/10 z-20"
+                                                            style={{ color: '#000' }}
+                                                        >
                                                             {site.name}
                                                         </div>
                                                     </motion.div>

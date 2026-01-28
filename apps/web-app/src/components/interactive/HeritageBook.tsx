@@ -41,7 +41,7 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart, isAu
     useEffect(() => {
         if (!isAutoPlay) return;
 
-        const handleSpeakEnd = (e: any) => {
+        const handleSpeakEnd = (e: CustomEvent<{ text: string }>) => {
             const endedText = e.detail?.text;
             const currentPageText = pages[currentPage]?.voice_text;
 
@@ -59,9 +59,9 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart, isAu
             }, 1000);
         };
 
-        window.addEventListener('ai-speak-end', handleSpeakEnd);
-        return () => window.removeEventListener('ai-speak-end', handleSpeakEnd);
-    }, [isAutoPlay, currentPage, pages]);
+        window.addEventListener('ai-speak-end', handleSpeakEnd as EventListener);
+        return () => window.removeEventListener('ai-speak-end', handleSpeakEnd as EventListener);
+    }, [isAutoPlay, currentPage, pages, onQuizStart]);
 
     const speakCurrentPage = () => {
         const page = pages[currentPage];
@@ -86,11 +86,17 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart, isAu
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowRight') nextPage();
             if (e.key === 'ArrowLeft') prevPage();
-            if (e.key === 'Escape') onClose();
+            if (e.key === 'Escape') handleClose();
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [currentPage]);
+
+    const handleClose = () => {
+        // Stop any current speech immediately
+        window.dispatchEvent(new CustomEvent('ai-speak', { detail: { text: '', action: 'stop' } }));
+        onClose();
+    };
 
     const nextPage = () => {
         if (currentPage < pages.length - 1) {
@@ -171,7 +177,7 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart, isAu
                         <div className="w-full h-full grid grid-cols-2 gap-4">
                             {page.images?.map((img, idx) => (
                                 <div key={idx} className="relative rounded-xl overflow-hidden border border-white/10 group">
-                                    <img src={img} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700" />
+                                    <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700" />
                                 </div>
                             ))}
                         </div>
@@ -208,7 +214,7 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart, isAu
             <div className="relative w-full h-full flex items-center justify-center perspective-3000 pb-32">
                 {/* CLOSE BUTTON - Now more prominent in full screen */}
                 <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="absolute top-8 right-8 text-white/40 hover:text-white uppercase font-black tracking-[0.3em] text-[10px] flex items-center gap-3 transition-all z-[150] bg-white/5 px-6 py-3 rounded-full border border-white/10 hover:bg-white/10"
                 >
                     <span>Exit Space</span> <X className="w-4 h-4" />
@@ -269,15 +275,18 @@ export default function HeritageBook({ siteId, pages, onClose, onQuizStart, isAu
                 className="fixed bottom-12 right-12 z-[120] pointer-events-none"
             >
                 <div className="relative group pointer-events-auto">
-                    <div className="absolute inset-[-20px] bg-slate-900/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-3xl" />
+                    {/* Refined Container: Fits 9:16, Neon Cyan Border, Minimal Padding */}
+                    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-2xl rounded-2xl border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.2)]" />
 
-                    <AIAvatar
-                        emotion={currentEmotion as MascotVideoEmotion}
-                        isTalking={currentEmotion === 'talking'}
-                        size={160}
-                    />
+                    <div className="relative p-0.5">
+                        <AIAvatar
+                            emotion={currentEmotion as MascotVideoEmotion}
+                            isTalking={currentEmotion === 'talking'}
+                            size={140}
+                        />
+                    </div>
 
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-1.5 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-xl border border-white/20 whitespace-nowrap">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-600 to-blue-600 px-4 py-1.5 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-xl border border-white/20 whitespace-nowrap z-20">
                         Heritage Guide
                     </div>
                 </div>

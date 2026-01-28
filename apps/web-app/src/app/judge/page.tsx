@@ -780,7 +780,7 @@ export default function JudgePage() {
                                 className="bg-slate-900/20 backdrop-blur-2xl border border-white/5 px-8 py-5 rounded-xl shadow-2xl text-center ring-1 ring-white/5 transition-all duration-500"
                             >
                                 <p className="text-lg md:text-xl font-bold text-white leading-relaxed drop-shadow-md italic">
-                                    "{currentSubtitle}"
+                                    &quot;{currentSubtitle}&quot;
                                 </p>
                             </motion.div>
                         </AnimatePresence>
@@ -803,7 +803,7 @@ export default function JudgePage() {
                 >
                     {/* MASCOT AREA - Scales with sidebarWidth */}
                     <div
-                        style={{ height: `${sidebarWidth * 1.16}px` }}
+                        style={{ height: `${sidebarWidth * 1.6}px` }}
                         className="relative border-b border-white/5 bg-gradient-to-b from-slate-950/40 to-slate-800/20 overflow-hidden shrink-0"
                     >
                         <div className="absolute inset-0 flex items-center justify-center">

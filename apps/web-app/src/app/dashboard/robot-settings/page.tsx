@@ -29,6 +29,37 @@ export default function RobotSettingsPage() {
     const [saving, setSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
     const [profile, setProfile] = useState<any>(null);
+    const [activeInfo, setActiveInfo] = useState<string | null>(null);
+
+    const DEFAULT_ROBOT_PROFILE = {
+        name: "EV3 v1.0",
+        motor_ports: { left: "outB", right: "outC", aux1: "outA", aux2: "outD" },
+        sensor_config: {
+            in1: { type: 'color', mode: 'color' },
+            in2: { type: 'ultrasonic' },
+            in3: { type: 'gyro' },
+            in4: { type: 'touch' }
+        },
+        speed_profile: { forward: 100, backward: 100, turn: 50 },
+        aux_settings: {
+            aux1: { value: 1, unit: 'rotations' },
+            aux2: { value: 1, unit: 'rotations' }
+        },
+        key_mappings: {
+            forward: "ArrowUp", backward: "ArrowDown", left: "ArrowLeft", right: "ArrowRight",
+            aux1: "KeyQ", aux2: "KeyE"
+        },
+        hub_ip: "localhost",
+        is_active: true
+    };
+
+    const ROBOT_PARAMS_INFO: Record<string, { title: string, desc: string, tip: string }> = {
+        hub_ip: { title: "Network Hub IP", desc: "Địa chỉ IP để Robot Eyes tìm thấy AI Brain trên mạng Wi-Fi.", tip: "Dùng 'localhost' cho môi trường giả lập, hoặc IP thật (ví dụ: 192.168.x.x) cho Robot thực tế." },
+        motor_ports: { title: "Motor Map", desc: "Cấu hình cổng đầu ra (A, B, C, D) cho các động cơ.", tip: "Tránh đặt trùng cổng. Chuẩn B-Trái, C-Phải là cấu hình ổn định nhất." },
+        speed_profile: { title: "Velocity Control", desc: "Thiết lập tốc độ (%) tối đa cho Robot.", tip: "Giảm tốc độ Xoay giúp Robot lấy dữ liệu cảm biến chính xác hơn khi thi đấu." },
+        sensor_config: { title: "Sensor Logic", desc: "Khai báo loại cảm biến cho 4 cổng đầu vào.", tip: "Dùng chế độ color/reflected để Robot có khả năng dò đường thông minh." },
+        key_mappings: { title: "Remote Control", desc: "Ánh xạ phím bàn phím để điều khiển Robot thủ công.", tip: "Nhấn vào mỗi nút để lắng nghe phím mới từ bàn phím của bạn." }
+    };
 
     useEffect(() => {
         fetchProfile();
@@ -73,31 +104,9 @@ export default function RobotSettingsPage() {
 
     const createDefaultProfile = async () => {
         setLoading(true);
-        const defaultProfile = {
-            name: "EV3 v1.0",
-            motor_ports: { left: "outB", right: "outC", aux1: "outA", aux2: "outD" },
-            sensor_config: {
-                in1: { type: 'color', mode: 'color' },
-                in2: { type: 'ultrasonic' },
-                in3: { type: 'gyro' },
-                in4: { type: 'touch' }
-            },
-            speed_profile: { forward: 100, backward: 100, turn: 50 },
-            aux_settings: {
-                aux1: { value: 1, unit: 'rotations' },
-                aux2: { value: 1, unit: 'rotations' }
-            },
-            key_mappings: {
-                forward: "ArrowUp", backward: "ArrowDown", left: "ArrowLeft", right: "ArrowRight",
-                aux1: "KeyQ", aux2: "KeyE"
-            },
-            hub_ip: "localhost",
-            is_active: true
-        };
-
         const { data, error } = await supabase
             .from('robot_profiles')
-            .insert([defaultProfile])
+            .insert([DEFAULT_ROBOT_PROFILE])
             .select()
             .single();
 
@@ -107,6 +116,12 @@ export default function RobotSettingsPage() {
         } else {
             setProfile(data);
             setLoading(false);
+        }
+    };
+
+    const resetToDefaults = () => {
+        if (confirm('Bạn có chắc chắn muốn khôi phục toàn bộ cấu hình về mặc định EV3 v1.0?')) {
+            setProfile({ ...DEFAULT_ROBOT_PROFILE, id: profile.id });
         }
     };
 
@@ -131,22 +146,66 @@ export default function RobotSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 pb-32 font-sans">
-            <div className="max-w-5xl mx-auto">
-                <header className="mb-12">
-                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-3">
-                        Robot Configuration
-                    </h1>
-                    <p className="text-slate-400 text-lg">Thiết lập cổng kết nối và tốc độ cho EV3</p>
+        <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 pb-32 font-sans relative">
+            {/* Backdrop for Auto-Close Tooltips */}
+            {activeInfo && (
+                <div
+                    className="fixed inset-0 z-40 bg-transparent"
+                    onClick={() => setActiveInfo(null)}
+                    onTouchStart={() => setActiveInfo(null)}
+                />
+            )}
+            <div className="max-w-5xl mx-auto relative z-0">
+                <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                    <div>
+                        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-3 uppercase tracking-tighter">
+                            Robot Configuration
+                        </h1>
+                        <p className="text-slate-400 text-lg">Thiết lập linh hồn và hệ vận hành cho chiến binh EV3</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => router.push('/judge')}
+                            className="px-6 py-3 bg-indigo-600/10 border border-indigo-500/30 rounded-2xl hover:bg-indigo-600/20 hover:border-indigo-500/50 transition-all text-[10px] font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2 group"
+                        >
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                            </span>
+                            Judge System
+                        </button>
+                        <button
+                            onClick={resetToDefaults}
+                            className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-red-500/10 hover:border-red-500/30 transition-all text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-400 flex items-center gap-2"
+                        >
+                            <CircleOff className="w-4 h-4" />
+                            Khôi phục mặc định
+                        </button>
+                    </div>
                 </header>
 
                 <div className="space-y-8">
                     {/* Network Settings */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
-                        <h2 className="text-2xl font-semibold mb-6 text-blue-400 flex items-center gap-3">
-                            <Globe className="w-7 h-7" />
-                            Network Settings
-                        </h2>
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8 relative">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-semibold text-blue-400 flex items-center gap-3">
+                                <Globe className="w-7 h-7" />
+                                Network Settings
+                            </h2>
+                            <button onClick={() => setActiveInfo(activeInfo === 'hub_ip' ? null : 'hub_ip')} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${activeInfo === 'hub_ip' ? 'bg-blue-600 border-blue-500 text-white' : 'border-white/20 text-slate-500 hover:border-white/40'}`}>i</button>
+                        </div>
+
+                        {activeInfo === 'hub_ip' && (
+                            <div className="mb-6 bg-slate-950 border border-blue-500/30 p-6 rounded-3xl animate-in fade-in slide-in-from-top-2">
+                                <h4 className="text-blue-400 font-black text-xs uppercase tracking-widest mb-2">{ROBOT_PARAMS_INFO.hub_ip.title}</h4>
+                                <p className="text-[13px] text-slate-300 leading-relaxed mb-4">{ROBOT_PARAMS_INFO.hub_ip.desc}</p>
+                                <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-2xl">
+                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-1">PRO TiP:</span>
+                                    <p className="text-xs text-blue-200/70">{ROBOT_PARAMS_INFO.hub_ip.tip}</p>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex flex-col space-y-3">
                             <label className="text-sm text-slate-400 uppercase font-bold tracking-wider ml-1">AI Brain (Hub) IP Address</label>
                             <input
@@ -156,18 +215,29 @@ export default function RobotSettingsPage() {
                                 placeholder="e.g. 192.168.1.15 or localhost"
                                 className="bg-slate-800 border border-slate-700 rounded-2xl p-4 text-xl text-white outline-none focus:border-blue-500 font-mono transition-all"
                             />
-                            <p className="text-sm text-slate-500 italic mt-1 ml-1">
-                                IP này giúp Robot Eyes (Điện thoại) tìm thấy Laptop của bạn trên mạng Wi-Fi.
-                            </p>
                         </div>
                     </section>
 
                     {/* Motor Ports */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
-                        <h2 className="text-2xl font-semibold mb-6 text-purple-400 flex items-center gap-3">
-                            <Settings className="w-7 h-7" />
-                            Cấu hình Cổng Động cơ
-                        </h2>
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8 relative">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-semibold text-purple-400 flex items-center gap-3">
+                                <Settings className="w-7 h-7" />
+                                Cấu hình Cổng Động cơ
+                            </h2>
+                            <button onClick={() => setActiveInfo(activeInfo === 'motor_ports' ? null : 'motor_ports')} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${activeInfo === 'motor_ports' ? 'bg-purple-600 border-purple-500 text-white' : 'border-white/20 text-slate-500 hover:border-white/40'}`}>i</button>
+                        </div>
+
+                        {activeInfo === 'motor_ports' && (
+                            <div className="mb-6 bg-slate-950 border border-purple-500/30 p-6 rounded-3xl animate-in fade-in slide-in-from-top-2">
+                                <h4 className="text-purple-400 font-black text-xs uppercase tracking-widest mb-2">{ROBOT_PARAMS_INFO.motor_ports.title}</h4>
+                                <p className="text-[13px] text-slate-300 leading-relaxed mb-4">{ROBOT_PARAMS_INFO.motor_ports.desc}</p>
+                                <div className="bg-purple-500/10 border border-purple-500/20 p-3 rounded-2xl">
+                                    <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest block mb-1">PRO TiP:</span>
+                                    <p className="text-xs text-purple-200/70">{ROBOT_PARAMS_INFO.motor_ports.tip}</p>
+                                </div>
+                            </div>
+                        )}
 
                         {profile.motor_ports.left === profile.motor_ports.right && (
                             <div className="mb-6 p-5 bg-red-500/20 border border-red-500/50 rounded-2xl text-red-400 text-base font-bold flex items-center gap-4 animate-pulse">
@@ -201,11 +271,25 @@ export default function RobotSettingsPage() {
                     </section>
 
                     {/* Speed Profile */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
-                        <h2 className="text-2xl font-semibold mb-6 text-pink-400 flex items-center gap-3">
-                            <Zap className="w-7 h-7" />
-                            Thiết lập Tốc độ (%)
-                        </h2>
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8 relative">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-semibold text-pink-400 flex items-center gap-3">
+                                <Zap className="w-7 h-7" />
+                                Thiết lập Tốc độ (%)
+                            </h2>
+                            <button onClick={() => setActiveInfo(activeInfo === 'speed_profile' ? null : 'speed_profile')} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${activeInfo === 'speed_profile' ? 'bg-pink-600 border-pink-500 text-white' : 'border-white/20 text-slate-500 hover:border-white/40'}`}>i</button>
+                        </div>
+
+                        {activeInfo === 'speed_profile' && (
+                            <div className="mb-6 bg-slate-950 border border-pink-500/30 p-6 rounded-3xl animate-in fade-in slide-in-from-top-2">
+                                <h4 className="text-pink-400 font-black text-xs uppercase tracking-widest mb-2">{ROBOT_PARAMS_INFO.speed_profile.title}</h4>
+                                <p className="text-[13px] text-slate-300 leading-relaxed mb-4">{ROBOT_PARAMS_INFO.speed_profile.desc}</p>
+                                <div className="bg-pink-500/10 border border-pink-500/20 p-3 rounded-2xl">
+                                    <span className="text-[10px] font-black text-pink-400 uppercase tracking-widest block mb-1">PRO TiP:</span>
+                                    <p className="text-xs text-pink-200/70">{ROBOT_PARAMS_INFO.speed_profile.tip}</p>
+                                </div>
+                            </div>
+                        )}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <SpeedInput
                                 label="Tiến/Lùi"
@@ -221,11 +305,25 @@ export default function RobotSettingsPage() {
                     </section>
 
                     {/* Sensor Ports */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
-                        <h2 className="text-2xl font-semibold mb-6 text-blue-400 flex items-center gap-3">
-                            <Radio className="w-7 h-7" />
-                            Cấu hình Cảm biến (Ports 1-4)
-                        </h2>
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8 relative">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-semibold text-blue-400 flex items-center gap-3">
+                                <Radio className="w-7 h-7" />
+                                Cấu hình Cảm biến (Ports 1-4)
+                            </h2>
+                            <button onClick={() => setActiveInfo(activeInfo === 'sensor_config' ? null : 'sensor_config')} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${activeInfo === 'sensor_config' ? 'bg-blue-600 border-blue-500 text-white' : 'border-white/20 text-slate-500 hover:border-white/40'}`}>i</button>
+                        </div>
+
+                        {activeInfo === 'sensor_config' && (
+                            <div className="mb-6 bg-slate-950 border border-blue-500/30 p-6 rounded-3xl animate-in fade-in slide-in-from-top-2">
+                                <h4 className="text-blue-400 font-black text-xs uppercase tracking-widest mb-2">{ROBOT_PARAMS_INFO.sensor_config.title}</h4>
+                                <p className="text-[13px] text-slate-300 leading-relaxed mb-4">{ROBOT_PARAMS_INFO.sensor_config.desc}</p>
+                                <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-2xl">
+                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-1">PRO TiP:</span>
+                                    <p className="text-xs text-blue-200/70">{ROBOT_PARAMS_INFO.sensor_config.tip}</p>
+                                </div>
+                            </div>
+                        )}
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                             {['in1', 'in2', 'in3', 'in4'].map((port) => (
                                 <SensorConfigInput
@@ -245,38 +343,50 @@ export default function RobotSettingsPage() {
                     </section>
 
                     {/* Keyboard Mapping */}
-                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8">
+                    <section className="bg-slate-900/50 border border-slate-800 rounded-[32px] p-8 relative">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-semibold text-blue-400 flex items-center gap-3">
                                 <Keyboard className="w-7 h-7" />
                                 Ánh xạ Phím Bàn phím
                             </h2>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setProfile({
-                                        ...profile,
-                                        key_mappings: {
-                                            forward: "KeyW", backward: "KeyS", left: "KeyA", right: "KeyD",
-                                            aux1: "KeyQ", aux2: "KeyE"
-                                        }
-                                    })}
-                                    className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl text-xs font-bold text-blue-400 transition-colors"
-                                >
-                                    WASD PRESET
-                                </button>
-                                <button
-                                    onClick={() => setProfile({
-                                        ...profile,
-                                        key_mappings: {
-                                            forward: "ArrowUp", backward: "ArrowDown", left: "ArrowLeft", right: "ArrowRight",
-                                            aux1: "KeyQ", aux2: "KeyE"
-                                        }
-                                    })}
-                                    className="px-4 py-2 bg-slate-500/10 hover:bg-slate-500/20 border border-slate-500/30 rounded-xl text-xs font-bold text-slate-400 transition-colors"
-                                >
-                                    ARROWS PRESET
-                                </button>
+                            <button onClick={() => setActiveInfo(activeInfo === 'key_mappings' ? null : 'key_mappings')} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${activeInfo === 'key_mappings' ? 'bg-blue-600 border-blue-500 text-white' : 'border-white/20 text-slate-500 hover:border-white/40'}`}>i</button>
+                        </div>
+
+                        {activeInfo === 'key_mappings' && (
+                            <div className="mb-6 bg-slate-950 border border-blue-500/30 p-6 rounded-3xl animate-in fade-in slide-in-from-top-2">
+                                <h4 className="text-blue-400 font-black text-xs uppercase tracking-widest mb-2">{ROBOT_PARAMS_INFO.key_mappings.title}</h4>
+                                <p className="text-[13px] text-slate-300 leading-relaxed mb-4">{ROBOT_PARAMS_INFO.key_mappings.desc}</p>
+                                <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-2xl">
+                                    <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-1">PRO TiP:</span>
+                                    <p className="text-xs text-blue-200/70">{ROBOT_PARAMS_INFO.key_mappings.tip}</p>
+                                </div>
                             </div>
+                        )}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setProfile({
+                                    ...profile,
+                                    key_mappings: {
+                                        forward: "KeyW", backward: "KeyS", left: "KeyA", right: "KeyD",
+                                        aux1: "KeyQ", aux2: "KeyE"
+                                    }
+                                })}
+                                className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl text-xs font-bold text-blue-400 transition-colors"
+                            >
+                                WASD PRESET
+                            </button>
+                            <button
+                                onClick={() => setProfile({
+                                    ...profile,
+                                    key_mappings: {
+                                        forward: "ArrowUp", backward: "ArrowDown", left: "ArrowLeft", right: "ArrowRight",
+                                        aux1: "KeyQ", aux2: "KeyE"
+                                    }
+                                })}
+                                className="px-4 py-2 bg-slate-500/10 hover:bg-slate-500/20 border border-slate-500/30 rounded-xl text-xs font-bold text-slate-400 transition-colors"
+                            >
+                                ARROWS PRESET
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -363,19 +473,24 @@ export default function RobotSettingsPage() {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="w-full py-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-3xl font-bold text-xl shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4"
+                            className="w-full py-6 bg-blue-600 text-white rounded-3xl font-black text-xl hover:bg-blue-500 transition-all shadow-[0_20px_40px_-10px_rgba(37,99,235,0.4)] disabled:opacity-50 active:scale-95 uppercase tracking-widest italic border-b-4 border-blue-800 flex items-center justify-center gap-4"
                         >
                             {saving ? (
                                 <>
                                     <Loader2 className="w-6 h-6 animate-spin text-white/50" />
-                                    ĐANG LƯU...
+                                    ĐANG LƯU MASTER...
                                 </>
-                            ) : 'LUU CẤU HÌNH'}
+                            ) : (
+                                <>
+                                    <CheckCircle className="w-6 h-6" />
+                                    LUU CẤU HÌNH MASTER
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
 

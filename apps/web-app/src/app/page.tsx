@@ -33,17 +33,30 @@ export default function Home() {
           </Link>
 
           <Link
-            href="/dashboard/robot-settings"
-            className="px-8 py-4 bg-purple-600/20 border border-purple-500/20 text-purple-400 rounded-2xl font-bold text-lg backdrop-blur-md transition-all hover:bg-purple-600/30"
+            href="/judge"
+            className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-lg transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_-10px_rgba(79,70,229,0.4)] flex items-center gap-2"
           >
-            Cấu hình Robot
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+            </span>
+            Hệ thống Giám khảo
           </Link>
 
           <Link
-            href="/.antigravity/INSTRUCTION.md"
+            href="/dashboard/vectorize"
+            className="px-8 py-4 bg-purple-600/20 border border-purple-500/20 text-purple-400 rounded-2xl font-bold text-lg backdrop-blur-md transition-all hover:bg-purple-600/30"
+          >
+            AI Vectorizer
+          </Link>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 mt-4">
+          <Link
+            href="/dashboard/robot-settings"
             className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-bold text-lg backdrop-blur-md transition-all hover:bg-white/10"
           >
-            Tài liệu
+            Cấu hình Robot
           </Link>
         </div>
 
